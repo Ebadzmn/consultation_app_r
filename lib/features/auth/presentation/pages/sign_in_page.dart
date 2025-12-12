@@ -2,6 +2,7 @@ import 'package:consultant_app/features/auth/presentation/bloc/login/login_bloc.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -42,8 +43,10 @@ class SignInView extends StatelessWidget {
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status == LoginStatus.failure) {
-            // For now, error is shown in the red box at bottom, so maybe no snackbar needed
-            // unless specified. The design shows a persistent red box.
+            
+          }
+          if (state.status == LoginStatus.success) {
+            context.go(AppRoutes.experts);
           }
         },
         child: SafeArea(

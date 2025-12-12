@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 import '../../../../injection_container.dart';
 import '../bloc/experts_bloc.dart';
 import '../bloc/experts_event.dart';
@@ -73,11 +75,14 @@ class ExpertsView extends StatelessWidget {
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {},
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'), // User profile
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () => context.push(AppRoutes.myProfile),
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'), // User profile
+              ),
             ),
           ),
         ],
@@ -97,7 +102,11 @@ class ExpertsView extends StatelessWidget {
             return ListView.builder(
               itemCount: state.experts.length,
               itemBuilder: (context, index) {
-                return ExpertCard(expert: state.experts[index]);
+                final expert = state.experts[index];
+                return GestureDetector(
+                  onTap: () => context.push(AppRoutes.expertPublicProfile),
+                  child: ExpertCard(expert: expert),
+                );
               },
             );
           }

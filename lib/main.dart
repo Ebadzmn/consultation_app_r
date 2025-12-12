@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'features/experts/presentation/pages/experts_page.dart';
+
+import 'core/config/app_routes.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -13,14 +14,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Consultant App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF66BB6A)),
         useMaterial3: true,
       ),
-      home: const ExpertsPage(),
+      routerConfig: AppRouter,
     );
   }
 }
