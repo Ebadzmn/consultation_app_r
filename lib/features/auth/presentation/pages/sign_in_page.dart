@@ -31,6 +31,7 @@ class SignInView extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         titleSpacing: 0,
+        centerTitle: false,
         title: const Text(
           'Back',
           style: TextStyle(
