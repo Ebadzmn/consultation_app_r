@@ -449,10 +449,10 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 400;
+  double get maxExtent => 320;
 
   @override
-  double get minExtent => 110; // Increased height for collapsed header to fit stats, name, and tags
+  double get minExtent => 110;
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

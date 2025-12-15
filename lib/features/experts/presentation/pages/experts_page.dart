@@ -21,8 +21,31 @@ class ExpertsPage extends StatelessWidget {
   }
 }
 
-class ExpertsView extends StatelessWidget {
+class ExpertsView extends StatefulWidget {
   const ExpertsView({super.key});
+
+  @override
+  State<ExpertsView> createState() => _ExpertsViewState();
+}
+
+class _ExpertsViewState extends State<ExpertsView> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+      }
+    });
+  }
 
   void _showFilterSheet(BuildContext context) {
     showGeneralDialog(
@@ -60,32 +83,87 @@ class ExpertsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2E2E3E), // Dark background
+        backgroundColor:
+            _isSearching ? Colors.white : const Color(0xFF2E2E3E),
         elevation: 0,
-        title: const Text(
-          'Experts',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () => context.push(AppRoutes.myProfile),
-              child: const CircleAvatar(
-                radius: 16,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'), // User profile
+        titleSpacing: 0,
+        title: _isSearching
+            ? SizedBox(
+                height: 40,
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(
+                    color: Color(0xFF33354E),
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFFB0BEC5),
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Color(0xFFB0BEC5),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            _toggleSearch();
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Color(0xFFB0BEC5),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : const Text(
+                'Experts',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ),
-        ],
+        actions: _isSearching
+            ? []
+            : [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: _toggleSearch,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: GestureDetector(
+                    onTap: () => context.push(AppRoutes.myProfile),
+                    child: const CircleAvatar(
+                      radius: 16,
+                      backgroundImage: NetworkImage(
+                        'https://i.pravatar.cc/150?img=1',
+                      ), // User profile
+                    ),
+                  ),
+                ),
+              ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showFilterSheet(context),

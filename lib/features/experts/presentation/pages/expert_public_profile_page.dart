@@ -12,73 +12,160 @@ class ExpertPublicProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ExpertProfileBloc()..add(LoadExpertProfile()),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: const Color(
-            0xFF33354E,
-          ), // Dark header color implementation
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.white,
-              size: 20,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          titleSpacing: 0,
-          title: const Text(
-            'Main',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          centerTitle: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search, color: Colors.white, size: 24),
-              onPressed: () {},
-            ),
-          ],
-        ),
-        body: BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
-          builder: (context, state) {
-            if (state is ExpertProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ExpertProfileError) {
-              return Center(child: Text(state.message));
-            } else if (state is ExpertProfileLoaded) {
-              return ExpertProfileView(
-                expert: state.expert,
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF66BB6A), // Green button
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+      child: const _ExpertPublicProfileScaffold(),
+    );
+  }
+}
+
+class _ExpertPublicProfileScaffold extends StatefulWidget {
+  const _ExpertPublicProfileScaffold({super.key});
+
+  @override
+  State<_ExpertPublicProfileScaffold> createState() =>
+      _ExpertPublicProfileScaffoldState();
+}
+
+class _ExpertPublicProfileScaffoldState
+    extends State<_ExpertPublicProfileScaffold> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor:
+            _isSearching ? Colors.white : const Color(0xFF33354E),
+        elevation: 0,
+        leading: _isSearching
+            ? null
+            : IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.white,
+                  size: 20,
                 ),
-                elevation: 0,
+                onPressed: () => Navigator.of(context).pop(),
               ),
-              child: const Text(
-                'Consultation',
+        titleSpacing: 0,
+        title: _isSearching
+            ? SizedBox(
+                height: 40,
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(
+                    color: Color(0xFF33354E),
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFFB0BEC5),
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Color(0xFFB0BEC5),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            _toggleSearch();
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Color(0xFFB0BEC5),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : const Text(
+                'Main',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
                 ),
+              ),
+        centerTitle: false,
+        actions: _isSearching
+            ? []
+            : [
+                IconButton(
+                  icon: const Icon(Icons.search,
+                      color: Colors.white, size: 24),
+                  onPressed: _toggleSearch,
+                ),
+              ],
+      ),
+      body: BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
+        builder: (context, state) {
+          if (state is ExpertProfileLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ExpertProfileError) {
+            return Center(child: Text(state.message));
+          } else if (state is ExpertProfileLoaded) {
+            return ExpertProfileView(
+              expert: state.expert,
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF66BB6A), // Green button
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Consultation',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
