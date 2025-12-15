@@ -30,19 +30,21 @@ class ProfileSettingsBloc
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
-    emit(state.copyWith(
-      status: ProfileSettingsStatus.initial,
-      firstName: firstName,
-      lastName: lastName,
-      about: event.expert.description,
-      imageUrl: event.expert.imageUrl,
-      // Assuming first area is main category for now
-      category: event.expert.areas.isNotEmpty ? event.expert.areas.first : '',
-      cost: event.expert.cost,
-      // Logic to determine if cost is by agreement could be parsed from string
-      // For now, let's assume if it contains digits it's not by agreement
-      isByAgreement: !RegExp(r'\d').hasMatch(event.expert.cost),
-    ));
+    emit(
+      state.copyWith(
+        status: ProfileSettingsStatus.initial,
+        firstName: firstName,
+        lastName: lastName,
+        about: event.expert.description,
+        imageUrl: event.expert.imageUrl,
+        // Assuming first area is main category for now
+        category: event.expert.areas.isNotEmpty ? event.expert.areas.first : '',
+        cost: event.expert.cost,
+        // Logic to determine if cost is by agreement could be parsed from string
+        // For now, let's assume if it contains digits it's not by agreement
+        isByAgreement: !RegExp(r'\d').hasMatch(event.expert.cost),
+      ),
+    );
   }
 
   void _onUpdateFirstName(
@@ -59,25 +61,16 @@ class ProfileSettingsBloc
     emit(state.copyWith(lastName: event.lastName));
   }
 
-  void _onUpdateAbout(
-    UpdateAbout event,
-    Emitter<ProfileSettingsState> emit,
-  ) {
+  void _onUpdateAbout(UpdateAbout event, Emitter<ProfileSettingsState> emit) {
     emit(state.copyWith(about: event.about));
   }
 
-  void _onUpdatePhoto(
-    UpdatePhoto event,
-    Emitter<ProfileSettingsState> emit,
-  ) {
+  void _onUpdatePhoto(UpdatePhoto event, Emitter<ProfileSettingsState> emit) {
     // Logic to pick image would go here or be passed in
     // For now, just a placeholder
   }
 
-  void _onRemovePhoto(
-    RemovePhoto event,
-    Emitter<ProfileSettingsState> emit,
-  ) {
+  void _onRemovePhoto(RemovePhoto event, Emitter<ProfileSettingsState> emit) {
     emit(state.copyWith(imageUrl: ''));
   }
 
@@ -88,10 +81,7 @@ class ProfileSettingsBloc
     emit(state.copyWith(category: event.category));
   }
 
-  void _onUpdateCost(
-    UpdateCost event,
-    Emitter<ProfileSettingsState> emit,
-  ) {
+  void _onUpdateCost(UpdateCost event, Emitter<ProfileSettingsState> emit) {
     emit(state.copyWith(cost: event.cost));
   }
 
@@ -133,10 +123,12 @@ class ProfileSettingsBloc
       await Future.delayed(const Duration(seconds: 1));
       emit(state.copyWith(status: ProfileSettingsStatus.success));
     } catch (e) {
-      emit(state.copyWith(
-        status: ProfileSettingsStatus.error,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: ProfileSettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -144,6 +136,30 @@ class ProfileSettingsBloc
     DeleteProfile event,
     Emitter<ProfileSettingsState> emit,
   ) async {
-    // Handle delete logic
+    // In a real app, you would verify the password and then delete the profile.
+    emit(state.copyWith(status: ProfileSettingsStatus.loading));
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Check if password is correct (Mock)
+      if (event.password == "password") {
+        // Mock password check
+        emit(state.copyWith(status: ProfileSettingsStatus.success));
+        // In real implementation, you might want to navigate away or show a success message
+      } else {
+        // emit(state.copyWith(status: ProfileSettingsStatus.error, errorMessage: "Incorrect password"));
+        emit(
+          state.copyWith(status: ProfileSettingsStatus.success),
+        ); // Just letting it succeed for now as requested
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProfileSettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 }

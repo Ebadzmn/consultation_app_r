@@ -5,10 +5,7 @@ import '../pages/profile_settings_page.dart';
 class MyProfileView extends StatelessWidget {
   final ExpertProfile expert;
 
-  const MyProfileView({
-    super.key,
-    required this.expert,
-  });
+  const MyProfileView({super.key, required this.expert});
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +14,7 @@ class MyProfileView extends StatelessWidget {
       child: CustomScrollView(
         slivers: [
           SliverPersistentHeader(
-            delegate: _ExpertHeaderDelegate(
-              expert: expert,
-            ),
+            delegate: _ExpertHeaderDelegate(expert: expert),
             pinned: true,
           ),
           SliverToBoxAdapter(
@@ -229,14 +224,14 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   // Avatar
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: NetworkImage(expert.imageUrl),
                     backgroundColor: Colors.grey[200],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   // Name
                   Text(
                     expert.name,
@@ -246,62 +241,18 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       color: Color(0xFF33354E),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Rating
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Rating: ${expert.rating}',
-                        style: const TextStyle(
-                          color: Color(0xFF33354E),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(
-                        Icons.star_half,
-                        color: Colors.amber,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+
                   // Expert's areas
                   const Text(
-                    "Expert's areas",
+                    "Client",
                     style: TextStyle(
                       color: Color(0xFF33354E),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Tags
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        ...expert.areas.take(3).map((area) => _buildTag(area)),
-                        _buildTag('+6', isMore: true),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 16),
-                  // Stats Row 1
-                  Text(
-                    '${expert.articlesCount} articles  •  ${expert.pollsCount} polls  •  ${expert.reviewsCount} reviews  •  ${expert.answersCount} answers',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                  ),
-                  const SizedBox(height: 24),
+
                   // Action Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -361,12 +312,12 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: CircleAvatar(
-                        radius: 24,
+                        radius: 20,
                         backgroundImage: NetworkImage(expert.imageUrl),
                         backgroundColor: Colors.grey[200],
                       ),
@@ -376,42 +327,8 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Stats/Rating Row
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                color: Colors.amber,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${expert.rating}',
-                                style: const TextStyle(
-                                  color: Color(0xFF33354E),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Text(
-                                    'Reviews: ${expert.reviewsCount}  Articles: ${expert.articlesCount}  Polls: ${expert.pollsCount}',
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 11,
-                                    ),
-                                    softWrap: false,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
                           // Name
                           Text(
                             expert.name,
@@ -423,24 +340,13 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 6),
-                          // Tags Row
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                ...expert.areas
-                                    .take(3)
-                                    .map(
-                                      (area) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 6.0,
-                                        ),
-                                        child: _buildTag(area),
-                                      ),
-                                    ),
-                                _buildTag('+6', isMore: true),
-                              ],
+                          // Label
+                          const Text(
+                            "Client",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF33354E),
                             ),
                           ),
                         ],
@@ -456,46 +362,11 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  Widget _buildTag(String text, {bool isMore = false}) {
-    Color bgColor = const Color(0xFFF0F4C3); // Light yellow/green
-    Color textColor = const Color(0xFF827717); // Darker text
-
-    if (text == 'Finance' || text == 'Banking') {
-      bgColor = const Color(0xFFFFF9C4); // Yellowish
-      textColor = const Color(0xFFFBC02D);
-    } else if (text == 'IT') {
-      bgColor = const Color(0xFFE3F2FD); // Light Blue
-      textColor = const Color(0xFF1E88E5);
-    } else if (text == 'Banks' || text == 'Banking') {
-      bgColor = const Color(0xFFDCEDC8); // Light Green
-      textColor = const Color(0xFF689F38);
-    } else if (isMore) {
-      bgColor = Colors.grey[200]!;
-      textColor = Colors.grey[700]!;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
+  @override
+  double get maxExtent => 260; // Reduced from 400
 
   @override
-  double get maxExtent => 400;
-
-  @override
-  double get minExtent => 110; // Increased height for collapsed header to fit stats, name, and tags
+  double get minExtent => 80; // Standardize collapsed height
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

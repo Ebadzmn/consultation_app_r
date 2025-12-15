@@ -108,4 +108,11 @@ class UpdateRepeatPassword extends ProfileSettingsEvent {
 
 class SaveProfileSettings extends ProfileSettingsEvent {}
 
-class DeleteProfile extends ProfileSettingsEvent {}
+class DeleteProfile extends ProfileSettingsEvent {
+  final String password;
+
+  const DeleteProfile(this.password);
+
+  @override
+  List<Object?> get props => [password];
+}

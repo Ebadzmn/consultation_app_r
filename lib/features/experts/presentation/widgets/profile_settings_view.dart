@@ -84,9 +84,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildLabel('First name'),
             _buildTextField(
               controller: _firstNameController,
-              onChanged: (value) => context
-                  .read<ProfileSettingsBloc>()
-                  .add(UpdateFirstName(value)),
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateFirstName(value),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -94,8 +94,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildLabel('Last name'),
             _buildTextField(
               controller: _lastNameController,
-              onChanged: (value) =>
-                  context.read<ProfileSettingsBloc>().add(UpdateLastName(value)),
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateLastName(value),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -125,8 +126,11 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                           : null,
                       backgroundColor: Colors.grey[200],
                       child: state.imageUrl.isEmpty
-                          ? const Icon(Icons.person,
-                              size: 40, color: Colors.grey)
+                          ? const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.grey,
+                            )
                           : null,
                     );
                   },
@@ -157,7 +161,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       },
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 0),
+                          horizontal: 16,
+                          vertical: 0,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -191,16 +197,15 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       value: state.category.isNotEmpty ? state.category : null,
                       hint: const Text('Select category'),
                       items: ['Finance', 'IT', 'Legal', 'Health']
-                          .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
+                          .map(
+                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                          )
                           .toList(),
                       onChanged: (value) {
                         if (value != null) {
-                          context
-                              .read<ProfileSettingsBloc>()
-                              .add(UpdateCategory(value));
+                          context.read<ProfileSettingsBloc>().add(
+                            UpdateCategory(value),
+                          );
                         }
                       },
                     );
@@ -245,9 +250,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                           value: state.isByAgreement,
                           activeColor: const Color(0xFF33354E),
                           onChanged: (value) {
-                            context
-                                .read<ProfileSettingsBloc>()
-                                .add(ToggleAgreement(value ?? false));
+                            context.read<ProfileSettingsBloc>().add(
+                              ToggleAgreement(value ?? false),
+                            );
                           },
                         ),
                         const Text('By agreement'),
@@ -274,9 +279,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildTextField(
               controller: _oldPasswordController,
               obscureText: true,
-              onChanged: (value) => context
-                  .read<ProfileSettingsBloc>()
-                  .add(UpdateOldPassword(value)),
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateOldPassword(value),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -284,9 +289,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildTextField(
               controller: _newPasswordController,
               obscureText: true,
-              onChanged: (value) => context
-                  .read<ProfileSettingsBloc>()
-                  .add(UpdateNewPassword(value)),
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateNewPassword(value),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -294,9 +299,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildTextField(
               controller: _repeatPasswordController,
               obscureText: true,
-              onChanged: (value) => context
-                  .read<ProfileSettingsBloc>()
-                  .add(UpdateRepeatPassword(value)),
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateRepeatPassword(value),
+              ),
             ),
             const SizedBox(height: 32),
 
@@ -306,7 +311,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
               height: 48,
               child: ElevatedButton(
                 onPressed: () {
-                  context.read<ProfileSettingsBloc>().add(SaveProfileSettings());
+                  context.read<ProfileSettingsBloc>().add(
+                    SaveProfileSettings(),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF66BB6A),
@@ -330,14 +337,11 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Show confirmation dialog then delete
+                  _showDeleteProfileDialog(context);
                 },
                 child: const Text(
                   'Delete profile',
-                  style: TextStyle(
-                    color: Color(0xFFEF5350),
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: Color(0xFFEF5350), fontSize: 16),
                 ),
               ),
             ),
@@ -345,6 +349,138 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeleteProfileDialog(BuildContext context) {
+    final passwordController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'DELETE PROFILE',
+                      style: TextStyle(
+                        color: Color(0xFF33354E), // Dark color
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(bottomSheetContext).pop(),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'To confirm please provide your password',
+                  style: TextStyle(
+                    color: Color(0xFF33354E),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Your password',
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.read<ProfileSettingsBloc>().add(
+                            DeleteProfile(passwordController.text),
+                          );
+                          Navigator.of(bottomSheetContext).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEF5350), // Red color
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Remove profile',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(bottomSheetContext).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF33354E),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.grey[400]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -374,7 +510,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
       maxLines: maxLines,
       obscureText: obscureText,
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey[300]!),
           borderRadius: BorderRadius.circular(4),
