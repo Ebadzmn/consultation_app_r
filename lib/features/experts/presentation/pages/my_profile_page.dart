@@ -12,7 +12,7 @@ class MyProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ExpertProfileBloc()..add(LoadExpertProfile()),
-      child: const _MyProfileScaffold(),
+      child: const _MyProfileScaffold(key: ValueKey('my_profile_scaffold')),
     );
   }
 }
@@ -48,8 +48,7 @@ class _MyProfileScaffoldState extends State<_MyProfileScaffold> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor:
-            _isSearching ? Colors.white : const Color(0xFF33354E),
+        backgroundColor: _isSearching ? Colors.white : const Color(0xFF33354E),
         elevation: 0,
         leading: _isSearching
             ? null
@@ -124,8 +123,7 @@ class _MyProfileScaffoldState extends State<_MyProfileScaffold> {
             ? []
             : [
                 IconButton(
-                  icon: const Icon(Icons.search,
-                      color: Colors.white, size: 24),
+                  icon: const Icon(Icons.search, color: Colors.white, size: 24),
                   onPressed: _toggleSearch,
                 ),
               ],
@@ -137,9 +135,7 @@ class _MyProfileScaffoldState extends State<_MyProfileScaffold> {
           } else if (state is ExpertProfileError) {
             return Center(child: Text(state.message));
           } else if (state is ExpertProfileLoaded) {
-            return MyProfileView(
-              expert: state.expert,
-            );
+            return MyProfileView(expert: state.expert);
           }
           return const SizedBox.shrink();
         },

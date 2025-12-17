@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/l10n/app_localizations.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../bloc/profile_settings/profile_settings_bloc.dart';
 import '../bloc/profile_settings/profile_settings_event.dart';
@@ -12,6 +13,7 @@ class ProfileSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocProvider(
       create: (context) =>
           ProfileSettingsBloc()..add(LoadProfileSettings(expert)),
@@ -28,9 +30,9 @@ class ProfileSettingsPage extends StatelessWidget {
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
-            'To profile page',
-            style: TextStyle(
+          title: Text(
+            l10n.toProfilePage,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.normal,

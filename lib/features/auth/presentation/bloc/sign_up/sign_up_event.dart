@@ -23,6 +23,14 @@ class SignUpNameChanged extends SignUpEvent {
   List<Object?> get props => [name];
 }
 
+class SignUpSurnameChanged extends SignUpEvent {
+  final String surname;
+  const SignUpSurnameChanged(this.surname);
+
+  @override
+  List<Object?> get props => [surname];
+}
+
 class SignUpEmailChanged extends SignUpEvent {
   final String email;
   const SignUpEmailChanged(this.email);
@@ -53,6 +61,40 @@ class SignUpRepeatPasswordChanged extends SignUpEvent {
 
   @override
   List<Object?> get props => [repeatPassword];
+}
+
+class SignUpAboutMyselfChanged extends SignUpEvent {
+  final String aboutMyself;
+  const SignUpAboutMyselfChanged(this.aboutMyself);
+
+  @override
+  List<Object?> get props => [aboutMyself];
+}
+
+class SignUpExperienceChanged extends SignUpEvent {
+  final String experience;
+  const SignUpExperienceChanged(this.experience);
+
+  @override
+  List<Object?> get props => [experience];
+}
+
+class SignUpCostChanged extends SignUpEvent {
+  final String cost;
+  const SignUpCostChanged(this.cost);
+
+  @override
+  List<Object?> get props => [cost];
+}
+
+class SignUpCategoryToggled extends SignUpEvent {
+  final String category;
+  final bool selected;
+
+  const SignUpCategoryToggled({required this.category, required this.selected});
+
+  @override
+  List<Object?> get props => [category, selected];
 }
 
 class SignUpTermsChanged extends SignUpEvent {

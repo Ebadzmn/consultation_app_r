@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 import '../../domain/entities/expert_entity.dart';
 
 class ExpertCard extends StatelessWidget {
@@ -104,7 +106,9 @@ class ExpertCard extends StatelessWidget {
                 ],
               ),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push(AppRoutes.appointment, extra: expert);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF66BB6A), // Green button
                   shape: RoundedRectangleBorder(

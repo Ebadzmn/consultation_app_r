@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
+import 'package:consultant_app/l10n/app_localizations.dart';
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -21,25 +22,16 @@ class SignInView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
-          onPressed: () => context.pop(),
-        ),
+        
         titleSpacing: 0,
         centerTitle: false,
-        title: const Text(
-          'Back',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
+        
       ),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
@@ -57,8 +49,8 @@ class SignInView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                const Text(
-                  'SIGN IN',
+                Text(
+                  l10n.signInTitle,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -68,10 +60,10 @@ class SignInView extends StatelessWidget {
                 const SizedBox(height: 30),
                 _UserTypeToggle(),
                 const SizedBox(height: 30),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Email',
+                    l10n.email,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -89,22 +81,20 @@ class SignInView extends StatelessWidget {
                       // Handle phone sign in
                     },
                     child: Text(
-                      'Sign in with phone number',
+                      l10n.signInWithPhoneNumber,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.blue.withOpacity(
-                          0.5,
-                        ), // Light blue link style
+                        color: Colors.blue.withAlpha(128), // Light blue link style
                         decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Password',
+                    l10n.password,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -122,8 +112,8 @@ class SignInView extends StatelessWidget {
                     // Navigate to Sign Up
                     context.push('/sign-up');
                   },
-                  child: const Text(
-                    'Sign up',
+                  child: Text(
+                    l10n.signUp,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -146,6 +136,7 @@ class SignInView extends StatelessWidget {
 class _UserTypeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<LoginBloc, LoginState>(
       buildWhen: (previous, current) => previous.isExpert != current.isExpert,
       builder: (context, state) {
@@ -153,7 +144,7 @@ class _UserTypeToggle extends StatelessWidget {
           children: [
             Expanded(
               child: _ToggleButton(
-                label: 'Expert',
+                label: l10n.expert,
                 isSelected: state.isExpert,
                 onTap: () => context.read<LoginBloc>().add(
                   const LoginUserTypeChanged(true),
@@ -163,7 +154,7 @@ class _UserTypeToggle extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: _ToggleButton(
-                label: 'Client',
+                label: l10n.client,
                 isSelected: !state.isExpert,
                 onTap: () => context.read<LoginBloc>().add(
                   const LoginUserTypeChanged(false),
@@ -219,8 +210,16 @@ class _EmailInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.email != current.email,
+      buildWhen: (previous, current) =>
+          previous.email != current.email ||
+          previous.emailTouched != current.emailTouched ||
+          previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
+        final showError =
+            (state.emailTouched || state.submitAttempted) && !state.isEmailValid;
+        final borderColor =
+            showError ? Colors.red.shade300 : Colors.grey.shade300;
+
         return TextField(
           onChanged: (value) =>
               context.read<LoginBloc>().add(LoginEmailChanged(value)),
@@ -228,26 +227,15 @@ class _EmailInput extends StatelessWidget {
             hintText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.red.shade200,
-              ), // In screenshot it looks red/pink border?
-              // Wait, the screenshot has a red border on Email input. Maybe it's error state or focused style?
-              // The request says "design same to same". Even if it's weird, I should copy it.
-              // The screenshot shows empty email field with red border.
-              // The Password field has grey border.
-              // This implies validation error state OR default style.
-              // Given the error box at bottom says "Please fill in...", likely error state.
-              // But initially let's use grey, but maybe add error support.
+              borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.grey.shade300,
-              ), // Matching the red/pinkish color
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: borderColor),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -264,8 +252,16 @@ class _PasswordInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.password != current.password,
+      buildWhen: (previous, current) =>
+          previous.password != current.password ||
+          previous.passwordTouched != current.passwordTouched ||
+          previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
+        final showError = (state.passwordTouched || state.submitAttempted) &&
+            !state.isPasswordValid;
+        final borderColor =
+            showError ? Colors.red.shade300 : Colors.grey.shade300;
+
         return TextField(
           obscureText: true,
           onChanged: (value) =>
@@ -274,11 +270,15 @@ class _PasswordInput extends StatelessWidget {
             hintText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: borderColor),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -294,6 +294,7 @@ class _PasswordInput extends StatelessWidget {
 class _LoginButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         return SizedBox(
@@ -321,8 +322,8 @@ class _LoginButton extends StatelessWidget {
                       strokeWidth: 2,
                     ),
                   )
-                : const Text(
-                    'Sign in',
+                : Text(
+                    l10n.signIn,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -215,144 +215,141 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
         fit: StackFit.expand,
         children: [
           // Expanded Content (Fades out)
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isCollapsed ? 0.0 : 1.0,
-            child: SingleChildScrollView(
-              // Prevent overflow during shrink
-              physics: const NeverScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 10),
-                  // Avatar
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: NetworkImage(expert.imageUrl),
-                    backgroundColor: Colors.grey[200],
-                  ),
-                  const SizedBox(height: 8),
-                  // Name
-                  Text(
-                    expert.name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF33354E),
+          IgnorePointer(
+            ignoring: isCollapsed,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isCollapsed ? 0.0 : 1.0,
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 10),
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage(expert.imageUrl),
+                      backgroundColor: Colors.grey[200],
                     ),
-                  ),
-
-                  // Expert's areas
-                  const Text(
-                    "Client",
-                    style: TextStyle(
-                      color: Color(0xFF33354E),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 8),
+                    Text(
+                      expert.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF33354E),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProfileSettingsPage(expert: expert),
+                    const Text(
+                      "Client",
+                      style: TextStyle(
+                        color: Color(0xFF33354E),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProfileSettingsPage(expert: expert),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF33354E),
+                            side: const BorderSide(color: Color(0xFF33354E)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF33354E),
-                          side: const BorderSide(color: Color(0xFF33354E)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 10,
+                            ),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 10,
-                          ),
+                          child: const Text('Profile settings'),
                         ),
-                        child: const Text('Profile settings'),
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red[400],
-                          side: BorderSide(color: Colors.red[200]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                        const SizedBox(width: 12),
+                        OutlinedButton.icon(
+                          onPressed: () {},
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red[400],
+                            side: BorderSide(color: Colors.red[200]!),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
+                          icon: const Icon(Icons.logout, size: 18),
+                          label: const Text('Sign out'),
                         ),
-                        icon: const Icon(Icons.logout, size: 18),
-                        label: const Text('Sign out'),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
           // Collapsed Content (Fades in)
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isCollapsed ? 1.0 : 0.0,
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(expert.imageUrl),
-                        backgroundColor: Colors.grey[200],
+          IgnorePointer(
+            ignoring: !isCollapsed,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isCollapsed ? 1.0 : 0.0,
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(expert.imageUrl),
+                          backgroundColor: Colors.grey[200],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Name
-                          Text(
-                            expert.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF33354E),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              expert.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF33354E),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          // Label
-                          const Text(
-                            "Client",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF33354E),
+                            const Text(
+                              "Client",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF33354E),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

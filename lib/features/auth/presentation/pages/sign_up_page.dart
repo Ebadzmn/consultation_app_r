@@ -14,16 +14,8 @@ class SignUpPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
-          onPressed: () {
-            // Navigator.pop(context); // Handle back navigation
-          },
-        ),
-        title: Text(
-          "Back",
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
+      
+        
         centerTitle: false,
         titleSpacing: -10,
       ),

@@ -30,6 +30,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(
       state.copyWith(
         email: event.email,
+        emailTouched: true,
         status: LoginStatus.initial,
         errorMessage: null,
       ),
@@ -43,6 +44,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(
       state.copyWith(
         password: event.password,
+        passwordTouched: true,
         status: LoginStatus.initial,
         errorMessage: null,
       ),
@@ -57,10 +59,20 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginSubmitted event,
     Emitter<LoginState> emit,
   ) async {
+    emit(
+      state.copyWith(
+        submitAttempted: true,
+        emailTouched: true,
+        passwordTouched: true,
+        status: LoginStatus.initial,
+        errorMessage: null,
+      ),
+    );
+
     final email = state.email;
     final password = state.password;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (email.trim().isEmpty || password.trim().isEmpty) {
       emit(
         state.copyWith(
           status: LoginStatus.failure,
@@ -70,9 +82,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       return;
     }
 
-    // Basic email regex validation
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
+    if (!state.isEmailValid) {
       emit(
         state.copyWith(
           status: LoginStatus.failure,

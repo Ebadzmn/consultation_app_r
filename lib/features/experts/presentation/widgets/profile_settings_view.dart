@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/core/localization/app_locale.dart';
+import 'package:consultant_app/l10n/app_localizations.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../bloc/profile_settings/profile_settings_bloc.dart';
 import '../bloc/profile_settings/profile_settings_event.dart';
@@ -53,15 +55,16 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocListener<ProfileSettingsBloc, ProfileSettingsState>(
       listener: (context, state) {
         if (state.status == ProfileSettingsStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Settings saved successfully')),
+            SnackBar(content: Text(l10n.settingsSavedSuccessfully)),
           );
         } else if (state.status == ProfileSettingsStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage ?? 'An error occurred')),
+            SnackBar(content: Text(state.errorMessage ?? l10n.errorOccurred)),
           );
         }
       },
@@ -70,9 +73,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Profile settings',
-              style: TextStyle(
+            Text(
+              l10n.profileSettings,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF33354E),
@@ -80,8 +83,50 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 24),
 
+            _buildLabel(l10n.language),
+            const SizedBox(height: 8),
+            ValueListenableBuilder<Locale?>(
+              valueListenable: appLocale,
+              builder: (context, locale, _) {
+                final currentLocale = locale ?? Localizations.localeOf(context);
+                final selected = currentLocale.languageCode == 'ru'
+                    ? const Locale('ru')
+                    : const Locale('en');
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<Locale>(
+                      isExpanded: true,
+                      value: selected,
+                      items: [
+                        DropdownMenuItem(
+                          value: const Locale('en'),
+                          child: Text(l10n.english),
+                        ),
+                        DropdownMenuItem(
+                          value: const Locale('ru'),
+                          child: Text(l10n.russian),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        setAppLocale(value);
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+
             // First Name
-            _buildLabel('First name'),
+            _buildLabel(l10n.firstName),
             _buildTextField(
               controller: _firstNameController,
               onChanged: (value) => context.read<ProfileSettingsBloc>().add(
@@ -91,7 +136,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 16),
 
             // Last Name
-            _buildLabel('Last name'),
+            _buildLabel(l10n.lastName),
             _buildTextField(
               controller: _lastNameController,
               onChanged: (value) => context.read<ProfileSettingsBloc>().add(
@@ -101,7 +146,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 16),
 
             // About
-            _buildLabel('About'),
+            _buildLabel(l10n.about),
             _buildTextField(
               controller: _aboutController,
               maxLines: 6,
@@ -111,7 +156,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 24),
 
             // Photo
-            _buildLabel('Photo'),
+            _buildLabel(l10n.photo),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -150,9 +195,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      child: const Text(
-                        'Upload photo',
-                        style: TextStyle(color: Color(0xFF33354E)),
+                      child: Text(
+                        l10n.uploadPhoto,
+                        style: const TextStyle(color: Color(0xFF33354E)),
                       ),
                     ),
                     TextButton(
@@ -167,9 +212,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Remove photo',
-                        style: TextStyle(color: Color(0xFFEF5350)),
+                      child: Text(
+                        l10n.removePhoto,
+                        style: const TextStyle(color: Color(0xFFEF5350)),
                       ),
                     ),
                   ],
@@ -179,7 +224,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 24),
 
             // Expert's categories
-            _buildLabel('Expert\'s categories'),
+            _buildLabel(l10n.expertsCategories),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -195,7 +240,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     return DropdownButton<String>(
                       isExpanded: true,
                       value: state.category.isNotEmpty ? state.category : null,
-                      hint: const Text('Select category'),
+                      hint: Text(l10n.selectCategory),
                       items: ['Finance', 'IT', 'Legal', 'Health']
                           .map(
                             (e) => DropdownMenuItem(value: e, child: Text(e)),
@@ -216,7 +261,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 24),
 
             // Cost
-            _buildLabel('Стоимость консультации:'),
+            _buildLabel(l10n.consultationCost),
             const SizedBox(height: 8),
             BlocBuilder<ProfileSettingsBloc, ProfileSettingsState>(
               builder: (context, state) {
@@ -227,7 +272,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       enabled: !state.isByAgreement,
                       controller: _costController,
                       decoration: InputDecoration(
-                        hintText: 'Cost per hour in ₽',
+                        hintText: l10n.costPerHourHint,
                         filled: state.isByAgreement,
                         fillColor: state.isByAgreement
                             ? Colors.grey[200]
@@ -255,7 +300,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                             );
                           },
                         ),
-                        const Text('By agreement'),
+                        Text(l10n.byAgreement),
                       ],
                     ),
                   ],
@@ -265,9 +310,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 32),
 
             // Password Change Section
-            const Text(
-              'Смена пароля',
-              style: TextStyle(
+            Text(
+              l10n.passwordChange,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF33354E),
@@ -275,7 +320,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            _buildLabel('Старый пароль'),
+            _buildLabel(l10n.oldPassword),
             _buildTextField(
               controller: _oldPasswordController,
               obscureText: true,
@@ -285,7 +330,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            _buildLabel('Новый пароль'),
+            _buildLabel(l10n.newPassword),
             _buildTextField(
               controller: _newPasswordController,
               obscureText: true,
@@ -295,7 +340,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            _buildLabel('Повторите новый пароль'),
+            _buildLabel(l10n.repeatNewPassword),
             _buildTextField(
               controller: _repeatPasswordController,
               obscureText: true,
@@ -321,9 +366,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                child: const Text(
-                  'Save changes',
-                  style: TextStyle(
+                child: Text(
+                  l10n.saveChanges,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -339,9 +384,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 onPressed: () {
                   _showDeleteProfileDialog(context);
                 },
-                child: const Text(
-                  'Delete profile',
-                  style: TextStyle(color: Color(0xFFEF5350), fontSize: 16),
+                child: Text(
+                  l10n.deleteProfile,
+                  style: const TextStyle(color: Color(0xFFEF5350), fontSize: 16),
                 ),
               ),
             ),
@@ -353,6 +398,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   }
 
   void _showDeleteProfileDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final passwordController = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -376,9 +422,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'DELETE PROFILE',
-                      style: TextStyle(
+                    Text(
+                      l10n.deleteProfileTitle,
+                      style: const TextStyle(
                         color: Color(0xFF33354E), // Dark color
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -393,9 +439,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'To confirm please provide your password',
-                  style: TextStyle(
+                Text(
+                  l10n.toConfirmProvidePassword,
+                  style: const TextStyle(
                     color: Color(0xFF33354E),
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -406,7 +452,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                   controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: 'Your password',
+                    hintText: l10n.yourPassword,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -441,9 +487,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Remove profile',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.removeProfile,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -464,9 +510,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.cancel,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

@@ -11,11 +11,7 @@ class ExpertsSearchPage extends StatelessWidget {
         backgroundColor: const Color(0xFF33354E),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.white,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
@@ -36,9 +32,7 @@ class ExpertsSearchPage extends StatelessWidget {
           children: [
             Container(
               height: 40,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-              ),
+              decoration: const BoxDecoration(color: Colors.white),
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search',
@@ -49,22 +43,16 @@ class ExpertsSearchPage extends StatelessWidget {
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 10,
+                  ),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(
-                        Icons.search,
-                        size: 20,
-                        color: Color(0xFFB0BEC5),
-                      ),
+                      Icon(Icons.search, size: 20, color: Color(0xFFB0BEC5)),
                       SizedBox(width: 12),
-                      Icon(
-                        Icons.close,
-                        size: 20,
-                        color: Color(0xFFB0BEC5),
-                      ),
+                      Icon(Icons.close, size: 20, color: Color(0xFFB0BEC5)),
                       SizedBox(width: 8),
                     ],
                   ),

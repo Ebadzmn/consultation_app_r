@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/l10n/app_localizations.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
 import '../bloc/expert_profile/expert_profile_state.dart';
@@ -12,7 +13,9 @@ class ExpertPublicProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ExpertProfileBloc()..add(LoadExpertProfile()),
-      child: const _ExpertPublicProfileScaffold(),
+      child: const _ExpertPublicProfileScaffold(
+        key: ValueKey('expert_public_profile_scaffold'),
+      ),
     );
   }
 }
@@ -47,11 +50,11 @@ class _ExpertPublicProfileScaffoldState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor:
-            _isSearching ? Colors.white : const Color(0xFF33354E),
+        backgroundColor: _isSearching ? Colors.white : const Color(0xFF33354E),
         elevation: 0,
         leading: _isSearching
             ? null
@@ -75,7 +78,7 @@ class _ExpertPublicProfileScaffoldState
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search',
+                    hintText: l10n.search,
                     hintStyle: const TextStyle(
                       color: Color(0xFFB0BEC5),
                       fontSize: 14,
@@ -113,9 +116,9 @@ class _ExpertPublicProfileScaffoldState
                   ),
                 ),
               )
-            : const Text(
-                'Main',
-                style: TextStyle(
+            : Text(
+                l10n.main,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.normal,
@@ -126,8 +129,7 @@ class _ExpertPublicProfileScaffoldState
             ? []
             : [
                 IconButton(
-                  icon: const Icon(Icons.search,
-                      color: Colors.white, size: 24),
+                  icon: const Icon(Icons.search, color: Colors.white, size: 24),
                   onPressed: _toggleSearch,
                 ),
               ],
@@ -139,9 +141,7 @@ class _ExpertPublicProfileScaffoldState
           } else if (state is ExpertProfileError) {
             return Center(child: Text(state.message));
           } else if (state is ExpertProfileLoaded) {
-            return ExpertProfileView(
-              expert: state.expert,
-            );
+            return ExpertProfileView(expert: state.expert);
           }
           return const SizedBox.shrink();
         },
@@ -160,9 +160,9 @@ class _ExpertPublicProfileScaffoldState
               ),
               elevation: 0,
             ),
-            child: const Text(
-              'Consultation',
-              style: TextStyle(
+            child: Text(
+              l10n.consultation,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

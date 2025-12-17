@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
+import 'package:consultant_app/l10n/app_localizations.dart';
 import '../../../../injection_container.dart';
 import '../bloc/experts_bloc.dart';
 import '../bloc/experts_event.dart';
@@ -65,13 +66,10 @@ class _ExpertsViewState extends State<ExpertsView> {
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
+          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
           child: child,
         );
       },
@@ -80,11 +78,11 @@ class _ExpertsViewState extends State<ExpertsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor:
-            _isSearching ? Colors.white : const Color(0xFF2E2E3E),
+        backgroundColor: _isSearching ? Colors.white : const Color(0xFF2E2E3E),
         elevation: 0,
         titleSpacing: 0,
         title: _isSearching
@@ -98,7 +96,7 @@ class _ExpertsViewState extends State<ExpertsView> {
                     fontSize: 14,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search',
+                    hintText: l10n.search,
                     hintStyle: const TextStyle(
                       color: Color(0xFFB0BEC5),
                       fontSize: 14,
@@ -136,12 +134,15 @@ class _ExpertsViewState extends State<ExpertsView> {
                   ),
                 ),
               )
-            : const Text(
-                'Experts',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  l10n.experts,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
         actions: _isSearching
@@ -152,7 +153,7 @@ class _ExpertsViewState extends State<ExpertsView> {
                   onPressed: _toggleSearch,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
+                  padding: const EdgeInsets.only(right: 20.0),
                   child: GestureDetector(
                     onTap: () => context.push(AppRoutes.myProfile),
                     child: const CircleAvatar(
@@ -175,7 +176,9 @@ class _ExpertsViewState extends State<ExpertsView> {
           if (state.status == ExpertsStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state.status == ExpertsStatus.failure) {
-            return Center(child: Text(state.errorMessage ?? 'Error loading experts'));
+            return Center(
+              child: Text(state.errorMessage ?? 'Error loading experts'),
+            );
           } else if (state.status == ExpertsStatus.success) {
             return ListView.builder(
               itemCount: state.experts.length,
@@ -196,15 +199,23 @@ class _ExpertsViewState extends State<ExpertsView> {
         selectedItemColor: const Color(0xFF2E2E3E), // Active color
         unselectedItemColor: Colors.grey,
         currentIndex: 0, // Experts selected
+        onTap: (index) {
+          if (index == 0) return;
+          if (index == 3) {
+            context.go(AppRoutes.consultations);
+          }
+        },
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.star_border), // Using star for experts as icon isn't clear in image
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.star_border,
+            ), // Using star for experts as icon isn't clear in image
             activeIcon: Icon(Icons.star),
-            label: 'Experts',
+            label: l10n.experts,
           ),
-          const BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.bolt), // Materials icon guess
-            label: 'Materials',
+            label: l10n.materials,
           ),
           BottomNavigationBarItem(
             icon: Container(
@@ -217,9 +228,9 @@ class _ExpertsViewState extends State<ExpertsView> {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
-            label: 'Consultations',
+            label: l10n.consultations,
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -240,17 +251,14 @@ class _ExpertsViewState extends State<ExpertsView> {
                     ),
                     child: const Text(
                       '3',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 10),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                )
+                ),
               ],
             ),
-            label: 'Questions',
+            label: l10n.questions,
           ),
         ],
       ),
