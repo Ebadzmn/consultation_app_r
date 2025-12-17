@@ -23,6 +23,8 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     on<ConsultationsPreviousMonthPressed>(_onPreviousMonth);
     on<ConsultationsNextMonthPressed>(_onNextMonth);
     on<ConsultationsDateSelected>(_onDateSelected);
+    on<ConsultationsPreviousWeekPressed>(_onPreviousWeek);
+    on<ConsultationsNextWeekPressed>(_onNextWeek);
   }
 
   void _onTabChanged(ConsultationsTabChanged event, Emitter<ConsultationsState> emit) {
@@ -62,6 +64,41 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
   void _onDateSelected(ConsultationsDateSelected event, Emitter<ConsultationsState> emit) {
     final d = DateTime(event.date.year, event.date.month, event.date.day);
     emit(state.copyWith(selectedDate: d));
+  }
+
+  void _onPreviousWeek(
+    ConsultationsPreviousWeekPressed event,
+    Emitter<ConsultationsState> emit,
+  ) {
+    final newSelected = state.selectedDate.subtract(const Duration(days: 7));
+    _emitWithUpdatedMonth(newSelected, emit);
+  }
+
+  void _onNextWeek(
+    ConsultationsNextWeekPressed event,
+    Emitter<ConsultationsState> emit,
+  ) {
+    final newSelected = state.selectedDate.add(const Duration(days: 7));
+    _emitWithUpdatedMonth(newSelected, emit);
+  }
+
+  void _emitWithUpdatedMonth(DateTime newSelected, Emitter<ConsultationsState> emit) {
+    final normalizedSelected = DateTime(newSelected.year, newSelected.month, newSelected.day);
+    final newMonth = DateTime(normalizedSelected.year, normalizedSelected.month);
+    final currentMonth = DateTime(state.focusedMonth.year, state.focusedMonth.month);
+
+    if (newMonth == currentMonth) {
+      emit(state.copyWith(selectedDate: normalizedSelected));
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        selectedDate: normalizedSelected,
+        focusedMonth: newMonth,
+        appointments: _generateAppointmentsForMonth(newMonth),
+      ),
+    );
   }
 
   static List<ConsultationAppointment> _generateAppointmentsForMonth(DateTime month) {
@@ -148,4 +185,3 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     return appointments;
   }
 }
-

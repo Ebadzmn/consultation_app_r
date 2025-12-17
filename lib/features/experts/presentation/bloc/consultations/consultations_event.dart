@@ -30,6 +30,10 @@ class ConsultationsPreviousMonthPressed extends ConsultationsEvent {}
 
 class ConsultationsNextMonthPressed extends ConsultationsEvent {}
 
+class ConsultationsPreviousWeekPressed extends ConsultationsEvent {}
+
+class ConsultationsNextWeekPressed extends ConsultationsEvent {}
+
 class ConsultationsDateSelected extends ConsultationsEvent {
   final DateTime date;
 
@@ -38,4 +42,3 @@ class ConsultationsDateSelected extends ConsultationsEvent {
   @override
   List<Object?> get props => [date];
 }
-
