@@ -78,7 +78,7 @@ class ConsultationsCalendar extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
           child: _DaysGrid(
             focusedMonth: focusedMonth,
             selectedDate: selectedDate,
@@ -105,8 +105,8 @@ class _WeekdayLabel extends StatelessWidget {
         textAlign: TextAlign.center,
         style: const TextStyle(
           color: Color(0xFF9094BB),
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          fontSize: 17,
         ),
       ),
     );
@@ -143,8 +143,8 @@ class _DaysGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
         childAspectRatio: 1,
       ),
       itemCount: totalCells,
@@ -213,12 +213,12 @@ class _DaysGrid extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFF66BB6A) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   border: isSelected
                       ? null
                       : isToday
                       ? Border.all(color: const Color(0xFF66BB6A), width: 1.5)
-                      : Border.all(color: const Color(0xFFEEEEEE), width: 1),
+                      : Border.all(color: const Color(0xFFEEEEEE), width: 2),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -236,7 +236,7 @@ class _DaysGrid extends StatelessWidget {
                   right: 0,
                   child: Container(
                     constraints: const BoxConstraints(
-                      minWidth: 16,
+                      minWidth: 10,
                       minHeight: 14,
                     ),
                     padding: const EdgeInsets.fromLTRB(6, 2, 2, 6),
@@ -244,13 +244,13 @@ class _DaysGrid extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: badgeColor,
                       borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
+                        topRight: Radius.circular(10),
+                        bottomLeft: Radius.circular(16),
                       ),
                     ),
                     child: Center(
-                      widthFactor: 1.0,
-                      heightFactor: 1.0,
+                      widthFactor: 0.9,
+                      heightFactor: 1,
                       child: Text(
                         '$count',
                         style: const TextStyle(
@@ -280,14 +280,14 @@ class _OutOfMonthCell extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white, // Keep background clean
+        color: Colors.grey[200], // Keep background clean
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFFAFAFA), width: 1),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: Colors.grey[300], // Very faint text
+          color: Colors.grey[500], // Very faint text
           fontWeight: FontWeight.w400,
           fontSize: 16,
         ),

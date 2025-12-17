@@ -9,6 +9,7 @@ import '../bloc/consultations/consultations_event.dart';
 import '../bloc/consultations/consultations_state.dart';
 import '../models/consultation_appointment.dart';
 import '../widgets/consultations_calendar.dart';
+import '../widgets/weekly_scheduler_components.dart';
 
 class ConsultationsPage extends StatelessWidget {
   const ConsultationsPage({super.key});
@@ -22,8 +23,15 @@ class ConsultationsPage extends StatelessWidget {
   }
 }
 
-class _ConsultationsContent extends StatelessWidget {
+class _ConsultationsContent extends StatefulWidget {
   const _ConsultationsContent();
+
+  @override
+  State<_ConsultationsContent> createState() => _ConsultationsContentState();
+}
+
+class _ConsultationsContentState extends State<_ConsultationsContent> {
+  ConsultationAppointment? _selectedWeeklyAppointment;
 
   @override
   Widget build(BuildContext context) {
@@ -50,67 +58,117 @@ class _ConsultationsContent extends StatelessWidget {
         builder: (context, state) {
           return SafeArea(
             top: false,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-              children: [
-                _TabSwitcher(
-                  selected: state.tab,
-                  onChanged: (tab) => context.read<ConsultationsBloc>().add(
-                    ConsultationsTabChanged(tab),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _RangeSwitcher(
-                  selected: state.range,
-                  onChanged: (range) => context.read<ConsultationsBloc>().add(
-                    ConsultationsRangeChanged(range),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const _StatusLegend(),
-                const SizedBox(height: 16),
-                if (state.tab == ConsultationsTab.calendar) ...[
-                  if (state.range == ConsultationsRange.month)
-                    ConsultationsCalendar(
-                      focusedMonth: state.focusedMonth,
-                      selectedDate: state.selectedDate,
-                      appointments: state.appointments,
-                      onPreviousMonth: () => context
-                          .read<ConsultationsBloc>()
-                          .add(ConsultationsPreviousMonthPressed()),
-                      onNextMonth: () => context.read<ConsultationsBloc>().add(
-                        ConsultationsNextMonthPressed(),
-                      ),
-                      onDateSelected: (d) => context
-                          .read<ConsultationsBloc>()
-                          .add(ConsultationsDateSelected(d)),
-                    )
-                  else if (state.range == ConsultationsRange.week)
-                    _WeekStrip(
-                      selectedDate: state.selectedDate,
-                      appointments: state.appointments,
-                      onDateSelected: (d) => context
-                          .read<ConsultationsBloc>()
-                          .add(ConsultationsDateSelected(d)),
-                    )
-                  else
-                    _DayHeader(date: state.selectedDate),
-                  const SizedBox(height: 16),
-                  _AppointmentsSection(
-                    title: DateFormat('MMMM d').format(state.selectedDate),
-                    appointments: _filterAppointmentsForRange(
-                      appointments: state.appointments,
-                      selectedDate: state.selectedDate,
-                      range: state.range,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Column(
+                      children: [
+                        _TabSwitcher(
+                          selected: state.tab,
+                          onChanged: (tab) => context
+                              .read<ConsultationsBloc>()
+                              .add(ConsultationsTabChanged(tab)),
+                        ),
+                        const SizedBox(height: 12),
+                        _RangeSwitcher(
+                          selected: state.range,
+                          onChanged: (range) => context
+                              .read<ConsultationsBloc>()
+                              .add(ConsultationsRangeChanged(range)),
+                        ),
+                        const SizedBox(height: 16),
+                        const _StatusLegend(),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
-                ] else ...[
-                  _AppointmentsSection(
-                    title: 'Appointments',
-                    appointments: state.appointments,
-                    showDate: true,
+                ),
+                if (state.tab == ConsultationsTab.calendar &&
+                    state.range == ConsultationsRange.week) ...[
+                  SliverToBoxAdapter(
+                    child: WeeklyCalendarView(
+                      appointments: state.appointments,
+                      selectedDate: state.selectedDate,
+                      onPreviousWeek: () => context
+                          .read<ConsultationsBloc>()
+                          .add(ConsultationsPreviousWeekPressed()),
+                      onNextWeek: () => context
+                          .read<ConsultationsBloc>()
+                          .add(ConsultationsNextWeekPressed()),
+                      onAppointmentTap: (appointment) {
+                        context
+                            .read<ConsultationsBloc>()
+                            .add(ConsultationsDateSelected(appointment.dateTime));
+                        setState(() {
+                          _selectedWeeklyAppointment = appointment;
+                        });
+                      },
+                    ),
                   ),
-                ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverToBoxAdapter(
+                      child: _AppointmentsSection(
+                        title: DateFormat('MMMM d').format(state.selectedDate),
+                        appointments: _selectedWeeklyAppointment != null
+                            ? [_selectedWeeklyAppointment!]
+                            : _filterAppointmentsForRange(
+                                appointments: state.appointments,
+                                selectedDate: state.selectedDate,
+                                range: ConsultationsRange.day,
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 40)),
+                ] else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        if (state.tab == ConsultationsTab.calendar) ...[
+                          if (state.range == ConsultationsRange.month)
+                            ConsultationsCalendar(
+                              focusedMonth: state.focusedMonth,
+                              selectedDate: state.selectedDate,
+                              appointments: state.appointments,
+                              onPreviousMonth: () => context
+                                  .read<ConsultationsBloc>()
+                                  .add(ConsultationsPreviousMonthPressed()),
+                              onNextMonth: () => context
+                                  .read<ConsultationsBloc>()
+                                  .add(ConsultationsNextMonthPressed()),
+                              onDateSelected: (d) => context
+                                  .read<ConsultationsBloc>()
+                                  .add(ConsultationsDateSelected(d)),
+                            )
+                          else if (state.range == ConsultationsRange.day)
+                            _DayHeader(date: state.selectedDate),
+                          const SizedBox(height: 16),
+                          _AppointmentsSection(
+                            title: DateFormat(
+                              'MMMM d',
+                            ).format(state.selectedDate),
+                            appointments: _filterAppointmentsForRange(
+                              appointments: state.appointments,
+                              selectedDate: state.selectedDate,
+                              range: state.range,
+                            ),
+                          ),
+                        ] else ...[
+                          _AppointmentsSection(
+                            title: 'Appointments',
+                            appointments: state.appointments,
+                            showDate: true,
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                      ]),
+                    ),
+                  ),
               ],
             ),
           );
@@ -321,119 +379,6 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _WeekStrip extends StatelessWidget {
-  final DateTime selectedDate;
-  final List<ConsultationAppointment> appointments;
-  final ValueChanged<DateTime> onDateSelected;
-
-  const _WeekStrip({
-    required this.selectedDate,
-    required this.appointments,
-    required this.onDateSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final start = selectedDate.subtract(
-      Duration(days: selectedDate.weekday - 1),
-    );
-    final locale = Localizations.localeOf(context).toString();
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(7, (i) {
-          final date = start.add(Duration(days: i));
-          final isSelected =
-              date.year == selectedDate.year &&
-              date.month == selectedDate.month &&
-              date.day == selectedDate.day;
-          final count = appointments.where((a) {
-            return a.dateTime.year == date.year &&
-                a.dateTime.month == date.month &&
-                a.dateTime.day == date.day;
-          }).length;
-
-          return GestureDetector(
-            onTap: () => onDateSelected(date),
-            child: Container(
-              width: 44,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF66BB6A)
-                    : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    DateFormat('E', locale).format(date),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF90A4AE),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${date.day}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF33354E),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 18,
-                    height: 18,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: count > 0
-                          ? (isSelected
-                                ? Colors.white
-                                : const Color(0xFF33354E))
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Text(
-                      count > 0 ? '$count' : '',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected
-                            ? const Color(0xFF66BB6A)
-                            : Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
     );
   }
 }
