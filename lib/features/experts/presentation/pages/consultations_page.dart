@@ -10,6 +10,7 @@ import '../bloc/consultations/consultations_state.dart';
 import '../models/consultation_appointment.dart';
 import '../widgets/consultations_calendar.dart';
 import '../widgets/weekly_scheduler_components.dart';
+import '../widgets/appointment_cancellation_sheet.dart';
 
 class ConsultationsPage extends StatelessWidget {
   const ConsultationsPage({super.key});
@@ -94,13 +95,13 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                       onPreviousWeek: () => context
                           .read<ConsultationsBloc>()
                           .add(ConsultationsPreviousWeekPressed()),
-                      onNextWeek: () => context
-                          .read<ConsultationsBloc>()
-                          .add(ConsultationsNextWeekPressed()),
+                      onNextWeek: () => context.read<ConsultationsBloc>().add(
+                        ConsultationsNextWeekPressed(),
+                      ),
                       onAppointmentTap: (appointment) {
-                        context
-                            .read<ConsultationsBloc>()
-                            .add(ConsultationsDateSelected(appointment.dateTime));
+                        context.read<ConsultationsBloc>().add(
+                          ConsultationsDateSelected(appointment.dateTime),
+                        );
                         setState(() {
                           _selectedWeeklyAppointment = appointment;
                         });
@@ -494,103 +495,114 @@ class _AppointmentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = _statusMeta(appointment.status);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08000000), // Softer shadow
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Top Row: Time and Status
-          Row(
-            children: [
-              Text(
-                subtitle, // Time string passed from parent
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: status.$3, // Background color
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ), // More rounded capsule
-                ),
-                child: Text(
-                  status.$1,
-                  style: TextStyle(
-                    color: status.$2, // Text color
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Bottom Row: Profile and Chat
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(appointment.expertAvatarUrl),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  appointment.expertName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) =>
+              AppointmentCancellationSheet(appointment: appointment),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x08000000), // Softer shadow
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Top Row: Time and Status
+            Row(
+              children: [
+                Text(
+                  subtitle, // Time string passed from parent
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF33354E),
+                    color: Colors.black,
                   ),
                 ),
-              ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    color: Color(0xFFB0BEC5), // Light grey icon
-                    size: 24,
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  if (appointment.hasUnreadMessages)
-                    Positioned(
-                      top: -2,
-                      right: -2,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE53935), // Red dot
-                          shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    color: status.$3, // Background color
+                    borderRadius: BorderRadius.circular(
+                      20,
+                    ), // More rounded capsule
+                  ),
+                  child: Text(
+                    status.$1,
+                    style: TextStyle(
+                      color: status.$2, // Text color
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Bottom Row: Profile and Chat
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(appointment.expertAvatarUrl),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    appointment.expertName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF33354E),
+                    ),
+                  ),
+                ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: Color(0xFFB0BEC5), // Light grey icon
+                      size: 24,
+                    ),
+                    if (appointment.hasUnreadMessages)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE53935), // Red dot
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ],
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
