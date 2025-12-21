@@ -8,3 +8,12 @@ abstract class ExpertProfileEvent extends Equatable {
 }
 
 class LoadExpertProfile extends ExpertProfileEvent {}
+
+class ExpertProfileTabChanged extends ExpertProfileEvent {
+  final int index;
+
+  const ExpertProfileTabChanged(this.index);
+
+  @override
+  List<Object> get props => [index];
+}
