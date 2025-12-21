@@ -14,11 +14,22 @@ class ExpertProfileLoading extends ExpertProfileState {}
 
 class ExpertProfileLoaded extends ExpertProfileState {
   final ExpertProfile expert;
+  final int selectedIndex;
 
-  const ExpertProfileLoaded(this.expert);
+  const ExpertProfileLoaded(this.expert, {this.selectedIndex = 0});
 
   @override
-  List<Object> get props => [expert];
+  List<Object> get props => [expert, selectedIndex];
+
+  ExpertProfileLoaded copyWith({
+    ExpertProfile? expert,
+    int? selectedIndex,
+  }) {
+    return ExpertProfileLoaded(
+      expert ?? this.expert,
+      selectedIndex: selectedIndex ?? this.selectedIndex,
+    );
+  }
 }
 
 class ExpertProfileError extends ExpertProfileState {

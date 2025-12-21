@@ -6,6 +6,16 @@ import 'expert_profile_state.dart';
 class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
   ExpertProfileBloc() : super(ExpertProfileInitial()) {
     on<LoadExpertProfile>(_onLoadExpertProfile);
+    on<ExpertProfileTabChanged>(_onTabChanged);
+  }
+
+  void _onTabChanged(
+    ExpertProfileTabChanged event,
+    Emitter<ExpertProfileState> emit,
+  ) {
+    if (state is ExpertProfileLoaded) {
+      emit((state as ExpertProfileLoaded).copyWith(selectedIndex: event.index));
+    }
   }
 
   Future<void> _onLoadExpertProfile(

@@ -1,174 +1,207 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../pages/profile_settings_page.dart';
+import '../bloc/expert_profile/expert_profile_bloc.dart';
+import '../bloc/expert_profile/expert_profile_event.dart';
+import '../bloc/expert_profile/expert_profile_state.dart';
 
 class MyProfileView extends StatelessWidget {
   final ExpertProfile expert;
 
   const MyProfileView({super.key, required this.expert});
 
+  bool _hasData(ExpertProfile expert, int index) {
+    switch (index) {
+      case 0: // Notifications
+        return false;
+      case 1: // Appointments
+        return false;
+      case 2: // Reviews
+        return expert.reviewsCount > 0;
+      case 3: // Questions
+        return expert.questionsCount > 0;
+      default:
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: CustomScrollView(
-        slivers: [
-          SliverPersistentHeader(
-            delegate: _ExpertHeaderDelegate(expert: expert),
-            pinned: true,
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Info Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoRow('Education', expert.education),
-                      const SizedBox(height: 16),
-                      _buildInfoRow('Experience', expert.experience),
-                      const SizedBox(height: 16),
-                      Text(
-                        expert.description,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          height: 1.4,
-                          color: Color(0xFF33354E),
-                        ),
-                      ),
-                    ],
+    return BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
+      builder: (context, state) {
+        final selectedIndex = state is ExpertProfileLoaded ? state.selectedIndex : 0;
+        final currentTabHasData = _hasData(expert, selectedIndex);
+
+        return DefaultTabController(
+          length: 4,
+          initialIndex: selectedIndex,
+          child: Builder(
+            builder: (innerContext) {
+              return CustomScrollView(
+                key: ValueKey('my_profile_scroll_${selectedIndex}_${currentTabHasData}'),
+                physics: currentTabHasData 
+                    ? const AlwaysScrollableScrollPhysics() 
+                    : const NeverScrollableScrollPhysics(),
+                slivers: [
+                  SliverPersistentHeader(
+                    delegate: _ExpertHeaderDelegate(
+                      expert: expert,
+                      canCollapse: currentTabHasData,
+                    ),
+                    pinned: true,
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-          SliverPersistentHeader(
-            delegate: _StickyTabBarDelegate(
-              TabBar(
-                isScrollable: true,
-                labelColor: const Color(0xFF33354E),
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFF33354E),
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 14,
-                ),
-                tabs: [
-                  const Tab(text: 'Notifications'),
-                  const Tab(text: 'Appointments'),
-                  const Tab(text: 'Reviews'),
-                  Tab(text: 'Questions ${expert.questionsCount}'),
-                ],
-              ),
-            ),
-            pinned: true,
-          ),
-          SliverToBoxAdapter(
-            child: Builder(
-              builder: (innerContext) {
-                final controller = DefaultTabController.of(innerContext);
-                return AnimatedBuilder(
-                  animation: controller,
-                  builder: (context, _) {
-                    final current = controller.index;
-                    if (current == 0 || current == 1 || current == 2) {
-                      return const SizedBox(height: 80);
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: 15,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Info Section
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              _buildInfoRow('Education', expert.education),
+                              const SizedBox(height: 16),
+                              _buildInfoRow('Experience', expert.experience),
+                              const SizedBox(height: 16),
                               Text(
-                                '${expert.questionsCount > index ? "Question" : "Item"} #$index',
+                                expert.description,
                                 style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF33354E),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'What % of the total budget goes to operating expenses in IT in the banking sector? (Item $index)',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF33354E),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Publication description: ${expert.description.substring(0, 50)}...',
-                                style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
                                   height: 1.4,
+                                  color: Color(0xFF33354E),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 16,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '104',
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Icon(
-                                    Icons.calendar_today,
-                                    size: 16,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '30 minutes ago',
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: 32),
                             ],
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SliverPersistentHeader(
+                    delegate: _StickyTabBarDelegate(
+                      TabBar(
+                        onTap: (index) {
+                          context.read<ExpertProfileBloc>().add(ExpertProfileTabChanged(index));
+                        },
+                        isScrollable: true,
+                        labelColor: const Color(0xFF33354E),
+                        unselectedLabelColor: Colors.grey,
+                        indicatorColor: const Color(0xFF33354E),
+                        indicatorWeight: 3,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        ),
+                        tabs: [
+                          const Tab(text: 'Notifications'),
+                          const Tab(text: 'Appointments'),
+                          const Tab(text: 'Reviews'),
+                          Tab(text: 'Questions ${expert.questionsCount}'),
+                        ],
+                      ),
+                    ),
+                    pinned: true,
+                  ),
+                  SliverToBoxAdapter(
+                    child: Builder(
+                      builder: (context) {
+                        if (!currentTabHasData) {
+                          return const SizedBox(height: 80);
+                        }
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: 15,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${expert.questionsCount > index ? "Question" : "Item"} #$index',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF33354E),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'What % of the total budget goes to operating expenses in IT in the banking sector? (Item $index)',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF33354E),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Publication description: ${expert.description.substring(0, 50)}...',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.chat_bubble_outline,
+                                        size: 16,
+                                        color: Colors.grey[400],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '104',
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 16,
+                                        color: Colors.grey[400],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '30 minutes ago',
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(height: 32),
+                                ],
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  ),
+                  // Add extra padding at bottom to avoid content being hidden behind the button
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                ],
+              );
+            },
           ),
-          // Add extra padding at bottom to avoid content being hidden behind the button
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -194,8 +227,9 @@ class MyProfileView extends StatelessWidget {
 
 class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ExpertProfile expert;
+  final bool canCollapse;
 
-  _ExpertHeaderDelegate({required this.expert});
+  _ExpertHeaderDelegate({required this.expert, this.canCollapse = true});
 
   @override
   Widget build(
@@ -363,11 +397,12 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 260; // Reduced from 400
 
   @override
-  double get minExtent => 80; // Standardize collapsed height
+  double get minExtent => canCollapse ? 80 : 260; // Standardize collapsed height
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return true;
+  bool shouldRebuild(covariant _ExpertHeaderDelegate oldDelegate) {
+    return oldDelegate.canCollapse != canCollapse ||
+        oldDelegate.expert != expert;
   }
 }
 
