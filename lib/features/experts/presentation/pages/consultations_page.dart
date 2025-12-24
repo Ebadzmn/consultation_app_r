@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 import 'package:consultant_app/l10n/app_localizations.dart';
 import '../bloc/consultations/consultations_bloc.dart';
 import '../bloc/consultations/consultations_event.dart';
@@ -11,6 +12,12 @@ import '../models/consultation_appointment.dart';
 import '../widgets/consultations_calendar.dart';
 import '../widgets/weekly_scheduler_components.dart';
 import '../widgets/appointment_cancellation_sheet.dart';
+import '../widgets/expert_appointment_details_sheet.dart';
+
+import 'package:consultant_app/features/experts/presentation/widgets/schedule_settings_sheet.dart';
+
+import 'package:consultant_app/features/experts/presentation/widgets/add_menu_popup.dart';
+import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class ConsultationsPage extends StatelessWidget {
   const ConsultationsPage({super.key});
@@ -71,6 +78,10 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                           onChanged: (tab) => context
                               .read<ConsultationsBloc>()
                               .add(ConsultationsTabChanged(tab)),
+                          onSettingsTap:
+                              di.currentUser.value?.userType == 'Expert'
+                                  ? () => _showEditHoursSheet(context, state)
+                                  : null,
                         ),
                         const SizedBox(height: 12),
                         _RangeSwitcher(
@@ -108,6 +119,15 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                       },
                     ),
                   ),
+                  if (di.currentUser.value?.userType == 'Expert') ...[
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: _WorkingHoursSection(),
+                      ),
+                    ),
+                  ],
                   const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -149,6 +169,10 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                           else if (state.range == ConsultationsRange.day)
                             _DayHeader(date: state.selectedDate),
                           const SizedBox(height: 16),
+                          if (di.currentUser.value?.userType == 'Expert') ...[
+                            const _WorkingHoursSection(),
+                            const SizedBox(height: 16),
+                          ],
                           _AppointmentsSection(
                             title: DateFormat(
                               'MMMM d',
@@ -175,7 +199,7 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
           );
         },
       ),
-      bottomNavigationBar: _BottomNav(currentIndex: 3),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 3),
     );
   }
 
@@ -221,8 +245,13 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
 class _TabSwitcher extends StatelessWidget {
   final ConsultationsTab selected;
   final ValueChanged<ConsultationsTab> onChanged;
+  final VoidCallback? onSettingsTap;
 
-  const _TabSwitcher({required this.selected, required this.onChanged});
+  const _TabSwitcher({
+    required this.selected,
+    required this.onChanged,
+    this.onSettingsTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +274,26 @@ class _TabSwitcher extends StatelessWidget {
             onTap: () => onChanged(ConsultationsTab.list),
           ),
         ),
+        if (onSettingsTap != null) ...[
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: onSettingsTap,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
+                color: Colors.white,
+              ),
+              child: const Icon(
+                Icons.settings_outlined,
+                color: Color(0xFF33354E),
+                size: 24,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -497,13 +546,23 @@ class _AppointmentTile extends StatelessWidget {
     final status = _statusMeta(appointment.status);
     return GestureDetector(
       onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) =>
-              AppointmentCancellationSheet(appointment: appointment),
-        );
+        if (di.currentUser.value?.userType == 'Expert') {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) =>
+                ExpertAppointmentDetailsSheet(appointment: appointment),
+          );
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) =>
+                AppointmentCancellationSheet(appointment: appointment),
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -610,92 +669,178 @@ class _AppointmentTile extends StatelessWidget {
   static (String label, Color textColor, Color bgColor) _statusMeta(
     ConsultationStatus status,
   ) {
+    final isExpert = di.currentUser.value?.userType == 'Expert';
     switch (status) {
       case ConsultationStatus.paid:
-        return ('paid', const Color(0xFF66BB6A), const Color(0xFFE8F5E9));
+        return (
+          isExpert ? 'Confirmed' : 'paid',
+          const Color(0xFF66BB6A),
+          const Color(0xFFE8F5E9),
+        );
       case ConsultationStatus.needToPay:
-        return ('not paid', const Color(0xFFEF5350), const Color(0xFFFFEBEE));
+        return (
+          isExpert ? 'Requires confirmation' : 'not paid',
+          const Color(0xFFEF5350),
+          const Color(0xFFFFEBEE),
+        );
       case ConsultationStatus.completed:
         return ('completed', const Color(0xFF90A4AE), const Color(0xFFF5F5F5));
     }
   }
 }
 
-class _BottomNav extends StatelessWidget {
-  final int currentIndex;
-
-  const _BottomNav({required this.currentIndex});
+class _WorkingHoursSection extends StatelessWidget {
+  const _WorkingHoursSection();
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF2E2E3E),
-      unselectedItemColor: Colors.grey,
-      currentIndex: currentIndex,
-      onTap: (index) {
-        if (index == currentIndex) return;
-        if (index == 0) {
-          context.go(AppRoutes.experts);
-        } else if (index == 3) {
-          context.go(AppRoutes.consultations);
-        }
+    return BlocBuilder<ConsultationsBloc, ConsultationsState>(
+      builder: (context, state) {
+        return Column(
+          children: [
+            if (state.offHours.isNotEmpty || state.workingHours.isNotEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (state.offHours.isNotEmpty)
+                    Expanded(
+                      child: Column(
+                        children: state.offHours
+                            .map(
+                              (time) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _WorkingHoursCard(
+                                  title: 'Off hours',
+                                  time: time,
+                                  isWorking: false,
+                                  onDelete: () {
+                                    final newList =
+                                        List<String>.from(state.offHours)
+                                          ..remove(time);
+                                    context.read<ConsultationsBloc>().add(
+                                          WorkingHoursUpdated(
+                                            offHours: newList,
+                                            workingHours: state.workingHours,
+                                          ),
+                                        );
+                                  },
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  if (state.offHours.isNotEmpty && state.workingHours.isNotEmpty)
+                    const SizedBox(width: 12),
+                  if (state.workingHours.isNotEmpty)
+                    Expanded(
+                      child: Column(
+                        children: state.workingHours
+                            .map(
+                              (time) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _WorkingHoursCard(
+                                  title: 'Working hours',
+                                  time: time,
+                                  isWorking: true,
+                                  onDelete: () {
+                                    final newList =
+                                        List<String>.from(state.workingHours)
+                                          ..remove(time);
+                                    context.read<ConsultationsBloc>().add(
+                                          WorkingHoursUpdated(
+                                            offHours: state.offHours,
+                                            workingHours: newList,
+                                          ),
+                                        );
+                                  },
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        );
       },
-      items: [
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.star_border),
-          activeIcon: const Icon(Icons.star),
-          label: l10n.experts,
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.bolt),
-          label: l10n.materials,
-        ),
-        BottomNavigationBarItem(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E2E3E),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.add, color: Colors.white),
+    );
+  }
+}
+
+void _showEditHoursSheet(BuildContext context, ConsultationsState state) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const ScheduleSettingsSheet(),
+  );
+}
+
+class _WorkingHoursCard extends StatelessWidget {
+  final String title;
+  final String time;
+  final bool isWorking;
+  final VoidCallback onDelete;
+
+  const _WorkingHoursCard({
+    required this.title,
+    required this.time,
+    required this.isWorking,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.chat_bubble_outline),
-          label: l10n.consultations,
-        ),
-        BottomNavigationBarItem(
-          icon: Stack(
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.help_outline),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 14,
-                    minHeight: 14,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(color: Colors.white, fontSize: 10),
-                    textAlign: TextAlign.center,
-                  ),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF33354E),
+                ),
+              ),
+              InkWell(
+                onTap: onDelete,
+                child: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: Colors.grey[400],
                 ),
               ),
             ],
           ),
-          label: l10n.questions,
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            time,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

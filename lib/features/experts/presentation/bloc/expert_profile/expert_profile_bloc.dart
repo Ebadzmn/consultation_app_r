@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 import '../../../domain/entities/expert_profile.dart';
 import 'expert_profile_event.dart';
 import 'expert_profile_state.dart';
@@ -27,33 +28,58 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
       // Simulate network delay
       await Future.delayed(const Duration(milliseconds: 500));
 
-      final expert = ExpertProfile(
-        id: '1',
-        name: 'Anastasiya Ivanova',
-        rating: 4.9,
-        imageUrl:
-            'https://i.pravatar.cc/300?img=5', // Female avatar
-        areas: const [
-          'Finance',
-          'Banking',
-          'IT',
-          'Legal',
-          'Audit',
-          'Strategy',
-        ],
-        articlesCount: 10,
-        pollsCount: 30,
-        reviewsCount: 24,
-        answersCount: 14,
-        education: 'Higher School of Economics (National Research University)',
-        experience: '7 years',
-        description:
-            'Professional financial consultant with over 7 years of experience in banking sector analysis and IT integration. I specialize in optimizing business processes and implementing strategic financial planning for large enterprises. Dedicated to providing comprehensive market research and strategic planning to optimize business performance.',
-        cost: '\$50/hour',
-        researchCount: 30,
-        articleListCount: 10,
-        questionsCount: 12,
-      );
+      final isExpertUser = di.currentUser.value?.userType == 'Expert';
+      final expert = isExpertUser
+          ? const ExpertProfile(
+              id: 'e-1',
+              name: 'Anastasiya Ivanova',
+              rating: 4.5,
+              imageUrl: 'https://i.pravatar.cc/300?img=5',
+              areas: [
+                'Finance',
+                'Banking',
+                'IT',
+                'Finance',
+                'Banking',
+                'IT',
+                'Finance',
+                'Banking',
+              ],
+              articlesCount: 10,
+              pollsCount: 30,
+              reviewsCount: 24,
+              answersCount: 14,
+              education: 'Faculty of Economics, Lomonosov Moscow State University',
+              experience: '3 years',
+              description:
+                  'It is difficult to say why actively developing third world countries represent nothing more than the quintessence of the victory of marketing over reason and must be declared violating universal human norms of ethics and morality!',
+              cost: '1000₽/hour',
+              researchCount: 0,
+              articleListCount: 10,
+              questionsCount: 0,
+            )
+          : const ExpertProfile(
+              id: 'c-1',
+              name: 'Normal Client',
+              rating: 5.0,
+              imageUrl: 'https://i.pravatar.cc/300?img=15',
+              areas: [
+                'Business',
+                'Education',
+              ],
+              articlesCount: 0,
+              pollsCount: 0,
+              reviewsCount: 3,
+              answersCount: 0,
+              education: 'University of Dhaka',
+              experience: 'Student',
+              description:
+                  'Client profile with basic information. Book consultations with experts across various fields.',
+              cost: '—',
+              researchCount: 0,
+              articleListCount: 0,
+              questionsCount: 0,
+            );
 
       emit(ExpertProfileLoaded(expert));
     } catch (e) {

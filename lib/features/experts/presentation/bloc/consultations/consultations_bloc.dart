@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 import '../../models/consultation_appointment.dart';
 import 'consultations_event.dart';
 import 'consultations_state.dart';
@@ -25,6 +26,17 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     on<ConsultationsDateSelected>(_onDateSelected);
     on<ConsultationsPreviousWeekPressed>(_onPreviousWeek);
     on<ConsultationsNextWeekPressed>(_onNextWeek);
+    on<WorkingHoursUpdated>(_onWorkingHoursUpdated);
+  }
+
+  void _onWorkingHoursUpdated(
+    WorkingHoursUpdated event,
+    Emitter<ConsultationsState> emit,
+  ) {
+    emit(state.copyWith(
+      offHours: event.offHours,
+      workingHours: event.workingHours,
+    ));
   }
 
   void _onTabChanged(ConsultationsTabChanged event, Emitter<ConsultationsState> emit) {
@@ -105,18 +117,26 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     final base = DateTime(month.year, month.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
 
-    final experts = [
-      ('Александр Александров', 'https://i.pravatar.cc/150?img=12'),
-      ('Мария Кожевникова', 'https://i.pravatar.cc/150?img=32'),
-      ('Анна Петрова', 'https://i.pravatar.cc/150?img=44'),
-      ('Иван Смирнов', 'https://i.pravatar.cc/150?img=18'),
-    ];
+    final isExpertUser = di.currentUser.value?.userType == 'Expert';
+    final people = isExpertUser
+        ? [
+            ('Client A', 'https://i.pravatar.cc/150?img=7'),
+            ('Client B', 'https://i.pravatar.cc/150?img=8'),
+            ('Client C', 'https://i.pravatar.cc/150?img=9'),
+            ('Client D', 'https://i.pravatar.cc/150?img=10'),
+          ]
+        : [
+            ('Александр Александров', 'https://i.pravatar.cc/150?img=12'),
+            ('Мария Кожевникова', 'https://i.pravatar.cc/150?img=32'),
+            ('Анна Петрова', 'https://i.pravatar.cc/150?img=44'),
+            ('Иван Смирнов', 'https://i.pravatar.cc/150?img=18'),
+          ];
 
     final appointments = <ConsultationAppointment>[];
     for (var day = 1; day <= daysInMonth; day++) {
       final date = DateTime(base.year, base.month, day);
       if (day % 5 == 0) {
-        final e = experts[0];
+        final e = people[0];
         appointments.add(
           ConsultationAppointment(
             id: 'a-$day-1',
@@ -129,7 +149,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         );
       }
       if (day % 7 == 0) {
-        final e = experts[1];
+        final e = people[1];
         appointments.add(
           ConsultationAppointment(
             id: 'a-$day-2',
@@ -142,7 +162,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         );
       }
       if (day % 9 == 0) {
-        final e = experts[2];
+        final e = people[2];
         appointments.add(
           ConsultationAppointment(
             id: 'a-$day-3',
@@ -154,7 +174,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         );
       }
       if (day == 15) {
-        final e = experts[0];
+        final e = people[0];
         appointments.add(
           ConsultationAppointment(
             id: 'a-$day-fixed',
@@ -167,7 +187,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         );
       }
       if (day == 15) {
-        final e = experts[1];
+        final e = people[1];
         appointments.add(
           ConsultationAppointment(
             id: 'a-$day-fixed-2',
