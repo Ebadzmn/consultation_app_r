@@ -11,6 +11,8 @@ class ConsultationsState extends Equatable {
   final DateTime focusedMonth;
   final DateTime selectedDate;
   final List<ConsultationAppointment> appointments;
+  final List<String> offHours;
+  final List<String> workingHours;
 
   const ConsultationsState({
     this.tab = ConsultationsTab.calendar,
@@ -18,6 +20,8 @@ class ConsultationsState extends Equatable {
     required this.focusedMonth,
     required this.selectedDate,
     this.appointments = const [],
+    this.offHours = const ['09:00 - 11:00'],
+    this.workingHours = const ['18:00 - 22:00'],
   });
 
   ConsultationsState copyWith({
@@ -26,6 +30,8 @@ class ConsultationsState extends Equatable {
     DateTime? focusedMonth,
     DateTime? selectedDate,
     List<ConsultationAppointment>? appointments,
+    List<String>? offHours,
+    List<String>? workingHours,
   }) {
     return ConsultationsState(
       tab: tab ?? this.tab,
@@ -33,10 +39,20 @@ class ConsultationsState extends Equatable {
       focusedMonth: focusedMonth ?? this.focusedMonth,
       selectedDate: selectedDate ?? this.selectedDate,
       appointments: appointments ?? this.appointments,
+      offHours: offHours ?? this.offHours,
+      workingHours: workingHours ?? this.workingHours,
     );
   }
 
   @override
-  List<Object?> get props => [tab, range, focusedMonth, selectedDate, appointments];
+  List<Object?> get props => [
+        tab,
+        range,
+        focusedMonth,
+        selectedDate,
+        appointments,
+        offHours,
+        workingHours,
+      ];
 }
 

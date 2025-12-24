@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:flutter/foundation.dart';
+import 'features/auth/domain/entities/user_entity.dart';
 import 'features/auth/data/datasources/auth_remote_ds.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -10,6 +12,8 @@ import 'features/experts/domain/usecases/get_experts_usecase.dart';
 import 'features/experts/presentation/bloc/experts_bloc.dart';
 
 final sl = GetIt.instance;
+
+final ValueNotifier<UserEntity?> currentUser = ValueNotifier<UserEntity?>(null);
 
 Future<void> init() async {
   // Bloc

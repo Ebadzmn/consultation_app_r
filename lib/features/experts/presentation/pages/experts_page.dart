@@ -9,6 +9,7 @@ import '../bloc/experts_event.dart';
 import '../bloc/experts_state.dart';
 import '../widgets/expert_card.dart';
 import '../widgets/experts_filter_sheet.dart';
+import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class ExpertsPage extends StatelessWidget {
   const ExpertsPage({super.key});
@@ -194,74 +195,7 @@ class _ExpertsViewState extends State<ExpertsView> {
           return const SizedBox.shrink();
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2E2E3E), // Active color
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0, // Experts selected
-        onTap: (index) {
-          if (index == 0) return;
-          if (index == 3) {
-            context.go(AppRoutes.consultations);
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.star_border,
-            ), // Using star for experts as icon isn't clear in image
-            activeIcon: Icon(Icons.star),
-            label: l10n.experts,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bolt), // Materials icon guess
-            label: l10n.materials,
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2E2E3E),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: l10n.consultations,
-          ),
-          BottomNavigationBarItem(
-            icon: Stack(
-              children: [
-                const Icon(Icons.help_outline),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: const Text(
-                      '3',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            label: l10n.questions,
-          ),
-        ],
-      ),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
     );
   }
 }
