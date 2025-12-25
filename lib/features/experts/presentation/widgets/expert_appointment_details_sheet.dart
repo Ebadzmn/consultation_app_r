@@ -39,10 +39,11 @@ class ExpertAppointmentDetailsSheet extends StatelessWidget {
           topRight: Radius.circular(24),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header with Close Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,8 +238,9 @@ class ExpertAppointmentDetailsSheet extends StatelessWidget {
           const SizedBox(height: 16),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildExpertActions(BuildContext context, bool isConfirmed) {
     return Column(

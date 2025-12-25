@@ -13,6 +13,7 @@ import '../widgets/consultations_calendar.dart';
 import '../widgets/weekly_scheduler_components.dart';
 import '../widgets/appointment_cancellation_sheet.dart';
 import '../widgets/expert_appointment_details_sheet.dart';
+import 'package:consultant_app/features/experts/presentation/widgets/edit_daily_schedule_sheet.dart';
 
 import 'package:consultant_app/features/experts/presentation/widgets/schedule_settings_sheet.dart';
 
@@ -697,8 +698,9 @@ class _WorkingHoursSection extends StatelessWidget {
     return BlocBuilder<ConsultationsBloc, ConsultationsState>(
       builder: (context, state) {
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (state.offHours.isNotEmpty || state.workingHours.isNotEmpty)
+            if (state.offHours.isNotEmpty || state.workingHours.isNotEmpty) ...[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -762,6 +764,29 @@ class _WorkingHoursSection extends StatelessWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showEditDailyScheduleSheet(context, state.selectedDate),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.settings,
+                      color: Color(0xFF66BB6A),
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Change working hours for this day',
+                      style: TextStyle(
+                        color: Color(0xFF66BB6A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         );
       },
@@ -775,6 +800,15 @@ void _showEditHoursSheet(BuildContext context, ConsultationsState state) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => const ScheduleSettingsSheet(),
+  );
+}
+
+void _showEditDailyScheduleSheet(BuildContext context, DateTime date) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => EditDailyScheduleSheet(date: date),
   );
 }
 
