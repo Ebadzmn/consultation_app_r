@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 
 class AddMenuPopup extends StatelessWidget {
-  const AddMenuPopup({super.key});
+  final VoidCallback? onDismiss;
+  const AddMenuPopup({super.key, this.onDismiss});
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +14,6 @@ class AddMenuPopup extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          
           Container(
             width: 280,
             decoration: BoxDecoration(
@@ -30,7 +32,10 @@ class AddMenuPopup extends StatelessWidget {
                 _buildMenuItem(
                   icon: Icons.people_outline,
                   label: 'New project',
-                  onTap: () {},
+                  onTap: () {
+                    onDismiss?.call();
+                    context.push(AppRoutes.newProject);
+                  },
                 ),
                 _buildDivider(),
                 _buildMenuItem(
@@ -55,11 +60,7 @@ class AddMenuPopup extends StatelessWidget {
           ),
           ClipPath(
             clipper: _ArrowClipper(),
-            child: Container(
-              width: 24,
-              height: 12,
-              color: Colors.white,
-            ),
+            child: Container(width: 24, height: 12, color: Colors.white),
           ),
         ],
       ),

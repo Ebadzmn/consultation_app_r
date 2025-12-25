@@ -49,7 +49,8 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
               pollsCount: 30,
               reviewsCount: 24,
               answersCount: 14,
-              education: 'Faculty of Economics, Lomonosov Moscow State University',
+              education:
+                  'Faculty of Economics, Lomonosov Moscow State University',
               experience: '3 years',
               description:
                   'It is difficult to say why actively developing third world countries represent nothing more than the quintessence of the victory of marketing over reason and must be declared violating universal human norms of ethics and morality!',
@@ -57,16 +58,14 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
               researchCount: 0,
               articleListCount: 10,
               questionsCount: 0,
+              projectsCount: 5,
             )
           : const ExpertProfile(
               id: 'c-1',
               name: 'Normal Client',
               rating: 5.0,
               imageUrl: 'https://i.pravatar.cc/300?img=15',
-              areas: [
-                'Business',
-                'Education',
-              ],
+              areas: ['Business', 'Education'],
               articlesCount: 0,
               pollsCount: 0,
               reviewsCount: 3,
@@ -79,6 +78,7 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
               researchCount: 0,
               articleListCount: 0,
               questionsCount: 0,
+              projectsCount: 0,
             );
 
       emit(ExpertProfileLoaded(expert));

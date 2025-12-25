@@ -7,6 +7,7 @@ import 'package:consultant_app/features/experts/presentation/pages/appointment_p
 import 'package:consultant_app/features/experts/presentation/pages/consultations_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/pay_now_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/pay_success_page.dart';
+import 'package:consultant_app/features/experts/presentation/pages/new_project_page.dart';
 import 'package:consultant_app/features/experts/presentation/models/pay_now_args.dart';
 import 'package:consultant_app/features/experts/domain/entities/expert_entity.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class AppRoutes {
   static const String myProfile = '/my-profile';
   static const String experts = '/experts';
   static const String consultations = '/consultations';
+  static const String newProject = '/new-project';
 
   static Page<dynamic> fadeTransitionPage({
     required BuildContext context,
@@ -126,6 +128,14 @@ final GoRouter appRouter = GoRouter(
         context: context,
         state: state,
         child: const SignInPage(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.newProject,
+      pageBuilder: (context, state) => AppRoutes.fadeTransitionPage(
+        context: context,
+        state: state,
+        child: const NewProjectPage(),
       ),
     ),
   ],

@@ -8,10 +8,7 @@ import '../bloc/expert_profile/expert_profile_state.dart';
 class ExpertProfileView extends StatelessWidget {
   final ExpertProfile expert;
 
-  const ExpertProfileView({
-    super.key,
-    required this.expert,
-  });
+  const ExpertProfileView({super.key, required this.expert});
 
   bool _hasData(ExpertProfile expert, int index) {
     switch (index) {
@@ -19,13 +16,15 @@ class ExpertProfileView extends StatelessWidget {
         return expert.researchCount > 0;
       case 1: // Articles
         return expert.articleListCount > 0;
-      case 2: // Questions
+      case 2: // Projects
+        return expert.projectsCount > 0;
+      case 3: // Questions
         return expert.questionsCount > 0;
-      case 3: // Notifications
+      case 4: // Notifications
         return false;
-      case 4: // Appointments
+      case 5: // Appointments
         return false;
-      case 5: // Reviews
+      case 6: // Reviews
         return expert.reviewsCount > 0;
       default:
         return false;
@@ -36,18 +35,22 @@ class ExpertProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
       builder: (context, state) {
-        final selectedIndex = state is ExpertProfileLoaded ? state.selectedIndex : 0;
+        final selectedIndex = state is ExpertProfileLoaded
+            ? state.selectedIndex
+            : 0;
         final currentTabHasData = _hasData(expert, selectedIndex);
 
         return DefaultTabController(
-          length: 6,
+          length: 7,
           initialIndex: selectedIndex,
           child: Builder(
             builder: (innerContext) {
               return CustomScrollView(
-                key: ValueKey('expert_profile_scroll_${selectedIndex}_${currentTabHasData}'),
-                physics: currentTabHasData 
-                    ? const AlwaysScrollableScrollPhysics() 
+                key: ValueKey(
+                  'expert_profile_scroll_${selectedIndex}_${currentTabHasData}',
+                ),
+                physics: currentTabHasData
+                    ? const AlwaysScrollableScrollPhysics()
                     : const NeverScrollableScrollPhysics(),
                 slivers: [
                   SliverPersistentHeader(
@@ -80,7 +83,10 @@ class ExpertProfileView extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              _buildInfoRow('Cost of consultation', expert.cost),
+                              _buildInfoRow(
+                                'Cost of consultation',
+                                expert.cost,
+                              ),
                             ],
                           ),
                         ),
@@ -92,7 +98,9 @@ class ExpertProfileView extends StatelessWidget {
                     delegate: _StickyTabBarDelegate(
                       TabBar(
                         onTap: (index) {
-                          context.read<ExpertProfileBloc>().add(ExpertProfileTabChanged(index));
+                          context.read<ExpertProfileBloc>().add(
+                            ExpertProfileTabChanged(index),
+                          );
                         },
                         isScrollable: true,
                         labelColor: const Color(0xFF33354E),
@@ -110,6 +118,7 @@ class ExpertProfileView extends StatelessWidget {
                         tabs: [
                           Tab(text: 'Research ${expert.researchCount}'),
                           Tab(text: 'Articles ${expert.articleListCount}'),
+                          Tab(text: 'Projects ${expert.projectsCount}'),
                           Tab(text: 'Questions ${expert.questionsCount}'),
                           const Tab(text: 'Notifications'),
                           const Tab(text: 'Appointments'),
@@ -127,8 +136,11 @@ class ExpertProfileView extends StatelessWidget {
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 15,
+                          itemCount: 5, // Mock count
                           itemBuilder: (context, index) {
+                            if (selectedIndex == 2) {
+                              return _buildProjectCard(index);
+                            }
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -212,6 +224,99 @@ class ExpertProfileView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProjectCard(int index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Modern development methodology has dotted all the i\'s',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF33354E),
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'In general, of course, the new model of organizational activity creates prerequisites for the prioritization of reason over emotions.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              SizedBox(
+                width: 96, // Increased width to fit 3 avatars + count overlap
+                height: 32,
+                child: Stack(
+                  children: [
+                    for (int i = 0; i < 3; i++)
+                      Positioned(
+                        left: i * 20.0,
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundImage: NetworkImage(
+                            'https://i.pravatar.cc/150?u=${10 + i + index}',
+                          ),
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    Positioned(
+                      left: 60.0,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF33354E),
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          '+3',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.chat_bubble_outline,
+                size: 16,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '104',
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              ),
+              const SizedBox(width: 16),
+              Icon(Icons.calendar_today, size: 16, color: Colors.grey[400]),
+              const SizedBox(width: 4),
+              Text(
+                '30 minutes ago',
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        ],
+      ),
     );
   }
 

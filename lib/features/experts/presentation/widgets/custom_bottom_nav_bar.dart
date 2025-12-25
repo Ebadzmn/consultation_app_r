@@ -12,7 +12,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.only(top: 16, bottom: 20),
@@ -118,14 +118,14 @@ class _AddButton extends StatelessWidget {
             child: GestureDetector(
               onTap: () => overlayEntry.remove(),
               behavior: HitTestBehavior.opaque,
-              child: Container(color: Colors.transparent),
+              child: Container(color: Colors.black.withOpacity(0.5)),
             ),
           ),
           // Popup
           Positioned(
             left: offset.dx - (280 - size.width) / 2, // Center horizontally
-            top: offset.dy - 350, // Approximate height of menu
-            child: const AddMenuPopup(),
+            top: offset.dy - 300, // Adjusted height to be closer
+            child: AddMenuPopup(onDismiss: () => overlayEntry.remove()),
           ),
         ],
       ),
