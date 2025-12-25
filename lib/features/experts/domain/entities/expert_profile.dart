@@ -16,6 +16,7 @@ class ExpertProfile {
   final int
   articleListCount; // "Articles 10" in stats vs list count? Design shows "Researches 30", "Articles 10", "Questions 12" tab like headers
   final int questionsCount;
+  final int projectsCount;
 
   const ExpertProfile({
     required this.id,
@@ -34,5 +35,6 @@ class ExpertProfile {
     required this.researchCount,
     required this.articleListCount,
     required this.questionsCount,
+    required this.projectsCount,
   });
 }
