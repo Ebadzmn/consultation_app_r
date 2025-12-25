@@ -1,3 +1,4 @@
+import 'package:consultant_app/features/experts/domain/entities/project.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:consultant_app/injection_container.dart' as di;
 import '../../../domain/entities/expert_profile.dart';
@@ -30,7 +31,7 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
 
       final isExpertUser = di.currentUser.value?.userType == 'Expert';
       final expert = isExpertUser
-          ? const ExpertProfile(
+          ? ExpertProfile(
               id: 'e-1',
               name: 'Anastasiya Ivanova',
               rating: 4.5,
@@ -59,6 +60,77 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
               articleListCount: 10,
               questionsCount: 0,
               projectsCount: 5,
+              projects: [
+                Project(
+                  id: 'p-1',
+                  title: 'Modern development methodology has dotted all the i\'s',
+                  description:
+                      'In general, of course, the new model of organizational activity creates prerequisites for the prioritization of reason over emotions.',
+                  participantAvatars: [
+                    'https://i.pravatar.cc/150?u=11',
+                    'https://i.pravatar.cc/150?u=12',
+                    'https://i.pravatar.cc/150?u=13',
+                  ],
+                  additionalParticipantsCount: 3,
+                  commentsCount: 104,
+                  date: DateTime.now().subtract(const Duration(minutes: 30)),
+                ),
+                Project(
+                  id: 'p-2',
+                  title: 'Another interesting project about AI',
+                  description:
+                      'Artificial intelligence is reshaping how we approach complex problems in modern software engineering.',
+                  participantAvatars: [
+                    'https://i.pravatar.cc/150?u=14',
+                    'https://i.pravatar.cc/150?u=15',
+                  ],
+                  additionalParticipantsCount: 0,
+                  commentsCount: 42,
+                  date: DateTime.now().subtract(const Duration(hours: 2)),
+                ),
+                Project(
+                  id: 'p-3',
+                  title: 'Digital Transformation in Banking Sector',
+                  description:
+                      'Implementing modern digital solutions to streamline banking operations and improve customer experience.',
+                  participantAvatars: [
+                    'https://i.pravatar.cc/150?u=16',
+                    'https://i.pravatar.cc/150?u=17',
+                    'https://i.pravatar.cc/150?u=18',
+                    'https://i.pravatar.cc/150?u=19',
+                  ],
+                  additionalParticipantsCount: 5,
+                  commentsCount: 89,
+                  date: DateTime.now().subtract(const Duration(days: 1)),
+                ),
+                Project(
+                  id: 'p-4',
+                  title: 'Blockchain for Financial Transactions',
+                  description:
+                      'Exploring the potential of blockchain technology to secure and speed up international money transfers.',
+                  participantAvatars: [
+                    'https://i.pravatar.cc/150?u=20',
+                    'https://i.pravatar.cc/150?u=21',
+                  ],
+                  additionalParticipantsCount: 1,
+                  commentsCount: 56,
+                  date: DateTime.now().subtract(const Duration(days: 3)),
+                ),
+                Project(
+                  id: 'p-5',
+                  title: 'AI-driven Credit Scoring Model',
+                  description:
+                      'Developing a machine learning model to assess credit risk more accurately using alternative data sources.',
+                  participantAvatars: [
+                    'https://i.pravatar.cc/150?u=22',
+                    'https://i.pravatar.cc/150?u=23',
+                    'https://i.pravatar.cc/150?u=24',
+                  ],
+                  additionalParticipantsCount: 2,
+                  commentsCount: 34,
+                  date: DateTime.now().subtract(const Duration(days: 5)),
+                ),
+              ],
             )
           : const ExpertProfile(
               id: 'c-1',

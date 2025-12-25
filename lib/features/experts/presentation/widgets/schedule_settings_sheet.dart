@@ -30,9 +30,10 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
       ),
       padding: const EdgeInsets.all(24),
       height: MediaQuery.of(context).size.height * 0.85, // Occupy most of screen
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -95,59 +96,59 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
           const SizedBox(height: 24),
 
           // Days List
-          Expanded(
-            child: ListView.separated(
-              itemCount: _schedule.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final item = _schedule[index];
-                return Row(
-                  children: [
-                    // Checkbox
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: item.isEnabled,
-                        activeColor: const Color(0xFF33354E),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        onChanged: (val) {
-                          setState(() {
-                            item.isEnabled = val ?? false;
-                          });
-                        },
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _schedule.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final item = _schedule[index];
+              return Row(
+                children: [
+                  // Checkbox
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: item.isEnabled,
+                      activeColor: const Color(0xFF33354E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          item.isEnabled = val ?? false;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Day Name
+                  Expanded(
+                    child: Text(
+                      item.day,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF33354E),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    
-                    // Day Name
-                    Expanded(
-                      child: Text(
-                        item.day,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF33354E),
-                        ),
-                      ),
-                    ),
-                    
-                    // Start Time
-                    _buildTimeBox(context, item.startTime, (newTime) {
-                      setState(() => item.startTime = newTime);
-                    }),
-                    const SizedBox(width: 8),
-                    
-                    // End Time
-                    _buildTimeBox(context, item.endTime, (newTime) {
-                      setState(() => item.endTime = newTime);
-                    }),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  
+                  // Start Time
+                  _buildTimeBox(context, item.startTime, (newTime) {
+                    setState(() => item.startTime = newTime);
+                  }),
+                  const SizedBox(width: 8),
+                  
+                  // End Time
+                  _buildTimeBox(context, item.endTime, (newTime) {
+                    setState(() => item.endTime = newTime);
+                  }),
+                ],
+              );
+            },
           ),
           
           const SizedBox(height: 24),
@@ -205,8 +206,9 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTimeBox(BuildContext context, String time, Function(String) onChanged) {
     return GestureDetector(

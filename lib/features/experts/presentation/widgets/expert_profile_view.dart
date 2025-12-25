@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/config/app_routes.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
@@ -12,20 +14,16 @@ class ExpertProfileView extends StatelessWidget {
 
   bool _hasData(ExpertProfile expert, int index) {
     switch (index) {
-      case 0: // Research
+      case 0: // Researches
         return expert.researchCount > 0;
       case 1: // Articles
         return expert.articleListCount > 0;
-      case 2: // Projects
-        return expert.projectsCount > 0;
-      case 3: // Questions
+      case 2: // Questions
         return expert.questionsCount > 0;
-      case 4: // Notifications
-        return false;
-      case 5: // Appointments
-        return false;
-      case 6: // Reviews
+      case 3: // Reviews
         return expert.reviewsCount > 0;
+      case 4: // Projects
+        return expert.projectsCount > 0;
       default:
         return false;
     }
@@ -41,7 +39,7 @@ class ExpertProfileView extends StatelessWidget {
         final currentTabHasData = _hasData(expert, selectedIndex);
 
         return DefaultTabController(
-          length: 7,
+          length: 5,
           initialIndex: selectedIndex,
           child: Builder(
             builder: (innerContext) {
@@ -116,13 +114,11 @@ class ExpertProfileView extends StatelessWidget {
                           fontSize: 14,
                         ),
                         tabs: [
-                          Tab(text: 'Research ${expert.researchCount}'),
+                          Tab(text: 'Researches ${expert.researchCount}'),
                           Tab(text: 'Articles ${expert.articleListCount}'),
-                          Tab(text: 'Projects ${expert.projectsCount}'),
                           Tab(text: 'Questions ${expert.questionsCount}'),
-                          const Tab(text: 'Notifications'),
-                          const Tab(text: 'Appointments'),
-                          const Tab(text: 'Reviews'),
+                          Tab(text: 'Reviews ${expert.reviewsCount}'),
+                          Tab(text: 'Projects ${expert.projectsCount}'),
                         ],
                       ),
                     ),
@@ -138,9 +134,26 @@ class ExpertProfileView extends StatelessWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: 5, // Mock count
                           itemBuilder: (context, index) {
-                            if (selectedIndex == 2) {
-                              return _buildProjectCard(index);
+                            if (selectedIndex == 4) {
+                              return _buildProjectCard(context, index);
                             }
+
+                            String titlePrefix = 'Item';
+                            switch (selectedIndex) {
+                              case 0:
+                                titlePrefix = 'Research';
+                                break;
+                              case 1:
+                                titlePrefix = 'Article';
+                                break;
+                              case 2:
+                                titlePrefix = 'Question';
+                                break;
+                              case 3:
+                                titlePrefix = 'Review';
+                                break;
+                            }
+
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -150,7 +163,7 @@ class ExpertProfileView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${expert.questionsCount > index ? "Question" : "Item"} #$index',
+                                    '$titlePrefix #${index + 1}',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -227,10 +240,12 @@ class ExpertProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildProjectCard(int index) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Column(
+  Widget _buildProjectCard(BuildContext context, int index) {
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.projectDetails),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -317,8 +332,9 @@ class ExpertProfileView extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildInfoRow(String label, String value) {
     return RichText(

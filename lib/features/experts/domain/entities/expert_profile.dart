@@ -1,3 +1,5 @@
+import 'project.dart';
+
 class ExpertProfile {
   final String id;
   final String name;
@@ -17,6 +19,7 @@ class ExpertProfile {
   articleListCount; // "Articles 10" in stats vs list count? Design shows "Researches 30", "Articles 10", "Questions 12" tab like headers
   final int questionsCount;
   final int projectsCount;
+  final List<Project> projects;
 
   const ExpertProfile({
     required this.id,
@@ -36,5 +39,6 @@ class ExpertProfile {
     required this.articleListCount,
     required this.questionsCount,
     required this.projectsCount,
+    this.projects = const [],
   });
 }

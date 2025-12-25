@@ -1,7 +1,10 @@
+import 'package:consultant_app/features/experts/domain/entities/expert_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:consultant_app/injection_container.dart' as di;
-import '../../domain/entities/expert_profile.dart';
+import '../../domain/entities/project.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/config/app_routes.dart';
 import '../pages/profile_settings_page.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
@@ -14,14 +17,24 @@ class MyProfileView extends StatelessWidget {
 
   bool _hasData(ExpertProfile expert, int index, bool isExpert) {
     if (isExpert) {
-      // Expert Tabs: Consultations, Reviews, Notifications
+      // Expert Tabs: Researches, Articles, Questions, Reviews, Projects, Appointments, Notifications, Your rating
       switch (index) {
-        case 0: // Consultations
-          return false;
-        case 1: // Reviews
+        case 0: // Researches
+          return expert.researchCount > 0;
+        case 1: // Articles
+          return expert.articleListCount > 0;
+        case 2: // Questions
+          return expert.questionsCount > 0;
+        case 3: // Reviews
           return expert.reviewsCount > 0;
-        case 2: // Notifications
+        case 4: // Projects
+          return expert.projectsCount > 0;
+        case 5: // Appointments
+          return false; // Assuming no data for now, or check specific list
+        case 6: // Notifications
           return false;
+        case 7: // Your rating
+          return false; // Just a rating view, maybe always show content?
         default:
           return false;
       }
@@ -48,9 +61,14 @@ class MyProfileView extends StatelessWidget {
 
     final tabs = isExpert
         ? [
-            const Tab(text: 'Consultations'),
-            const Tab(text: 'Reviews'),
+            Tab(text: 'Researches ${expert.researchCount}'),
+            Tab(text: 'Articles ${expert.articleListCount}'),
+            Tab(text: 'Questions ${expert.questionsCount}'),
+            Tab(text: 'Reviews ${expert.reviewsCount}'),
+            Tab(text: 'Projects ${expert.projectsCount}'),
+            const Tab(text: 'Appointments'),
             const Tab(text: 'Notifications 0'),
+            Tab(text: 'Your rating ${expert.rating}'),
           ]
         : [
             const Tab(text: 'Notifications'),
@@ -155,8 +173,16 @@ class MyProfileView extends StatelessWidget {
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 15,
+                          itemCount: (isExpert && selectedIndex == 4)
+                              ? expert.projects.length
+                              : 15,
                           itemBuilder: (context, index) {
+                            if (isExpert && selectedIndex == 4) {
+                              return _buildProjectCard(
+                                  context, expert.projects[index]);
+                            }
+
+                            String titlePrefix = 'Item';
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -241,6 +267,121 @@ class MyProfileView extends StatelessWidget {
         );
       },
     );
+  }
+
+  Widget _buildProjectCard(BuildContext context, Project project) {
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.projectDetails),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              project.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF33354E),
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              project.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (project.participantAvatars.isNotEmpty)
+                  SizedBox(
+                    width: 96,
+                    height: 32,
+                    child: Stack(
+                      children: [
+                        for (int i = 0;
+                            i <
+                                (project.participantAvatars.length > 3
+                                    ? 3
+                                    : project.participantAvatars.length);
+                            i++)
+                          Positioned(
+                            left: i * 20.0,
+                            child: CircleAvatar(
+                              radius: 16,
+                              backgroundImage:
+                                  NetworkImage(project.participantAvatars[i]),
+                              backgroundColor: Colors.white,
+                            ),
+                          ),
+                        if (project.additionalParticipantsCount > 0)
+                          Positioned(
+                            left: 60.0,
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF33354E),
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '+${project.additionalParticipantsCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                const Spacer(),
+                Icon(
+                  Icons.chat_bubble_outline,
+                  size: 16,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${project.commentsCount}',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+                const SizedBox(width: 16),
+                Icon(Icons.calendar_today, size: 16, color: Colors.grey[400]),
+                const SizedBox(width: 4),
+                Text(
+                  _formatDate(project.date),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   Widget _buildInfoRow(String label, String value) {
