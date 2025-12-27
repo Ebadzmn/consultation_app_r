@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
@@ -152,7 +154,12 @@ class _ExpertPublicProfileScaffoldState
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              // Navigate to Consultation Page
+              // Assuming you have a route for consultation or want to use go_router
+              // For now, let's navigate to ConsultationsPage
+              context.push(AppRoutes.consultations); 
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF66BB6A), // Green button
               shape: RoundedRectangleBorder(

@@ -697,96 +697,142 @@ class _WorkingHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ConsultationsBloc, ConsultationsState>(
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (state.offHours.isNotEmpty || state.workingHours.isNotEmpty) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (state.offHours.isNotEmpty)
-                    Expanded(
-                      child: Column(
-                        children: state.offHours
-                            .map(
-                              (time) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: _WorkingHoursCard(
-                                  title: 'Off hours',
-                                  time: time,
-                                  isWorking: false,
-                                  onDelete: () {
-                                    final newList =
-                                        List<String>.from(state.offHours)
-                                          ..remove(time);
-                                    context.read<ConsultationsBloc>().add(
-                                          WorkingHoursUpdated(
-                                            offHours: newList,
-                                            workingHours: state.workingHours,
-                                          ),
-                                        );
-                                  },
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
+        final allItems = <({String title, String time, bool isWorking, VoidCallback onDelete})>[];
+        
+        for (final time in state.offHours) {
+          allItems.add((
+            title: 'Off hours',
+            time: time,
+            isWorking: false,
+            onDelete: () {
+              final newList = List<String>.from(state.offHours)..remove(time);
+              context.read<ConsultationsBloc>().add(
+                    WorkingHoursUpdated(
+                      offHours: newList,
+                      workingHours: state.workingHours,
                     ),
-                  if (state.offHours.isNotEmpty && state.workingHours.isNotEmpty)
-                    const SizedBox(width: 12),
-                  if (state.workingHours.isNotEmpty)
-                    Expanded(
-                      child: Column(
-                        children: state.workingHours
-                            .map(
-                              (time) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: _WorkingHoursCard(
-                                  title: 'Working hours',
-                                  time: time,
-                                  isWorking: true,
-                                  onDelete: () {
-                                    final newList =
-                                        List<String>.from(state.workingHours)
-                                          ..remove(time);
-                                    context.read<ConsultationsBloc>().add(
-                                          WorkingHoursUpdated(
-                                            offHours: state.offHours,
-                                            workingHours: newList,
-                                          ),
-                                        );
-                                  },
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
+                  );
+            },
+          ));
+        }
+
+        for (final time in state.workingHours) {
+          allItems.add((
+            title: 'Working hours',
+            time: time,
+            isWorking: true,
+            onDelete: () {
+              final newList = List<String>.from(state.workingHours)..remove(time);
+              context.read<ConsultationsBloc>().add(
+                    WorkingHoursUpdated(
+                      offHours: state.offHours,
+                      workingHours: newList,
                     ),
-                ],
+                  );
+            },
+          ));
+        }
+
+        if (allItems.isEmpty) return const SizedBox.shrink();
+
+        Widget content;
+        if (allItems.length == 1) {
+          final item = allItems[0];
+          content = _WorkingHoursCard(
+            title: item.title,
+            time: item.time,
+            isWorking: item.isWorking,
+            onDelete: item.onDelete,
+          );
+        } else if (allItems.length == 2) {
+          content = Row(
+            children: [
+              Expanded(
+                child: _WorkingHoursCard(
+                  title: allItems[0].title,
+                  time: allItems[0].time,
+                  isWorking: allItems[0].isWorking,
+                  onDelete: allItems[0].onDelete,
+                ),
               ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showEditDailyScheduleSheet(context, state.selectedDate),
-                child: Row(
-                  children: const [
-                    Icon(
-                      Icons.settings,
-                      color: Color(0xFF66BB6A),
-                      size: 18,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Change working hours for this day',
-                      style: TextStyle(
-                        color: Color(0xFF66BB6A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: _WorkingHoursCard(
+                  title: allItems[1].title,
+                  time: allItems[1].time,
+                  isWorking: allItems[1].isWorking,
+                  onDelete: allItems[1].onDelete,
                 ),
               ),
             ],
+          );
+        } else {
+          // Calculate width so that 2 items fit perfectly (50% each with spacing), matching the 2-item layout
+          // Available width = ScreenWidth - (Horizontal Padding * 2)
+          // Card Width = (Available Width - Spacing) / 2
+          final availableWidth = MediaQuery.of(context).size.width - 32; 
+          final cardWidth = (availableWidth - 12) / 2;
+          
+          content = SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: allItems.map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: SizedBox(
+                    width: cardWidth,
+                    child: _WorkingHoursCard(
+                      title: item.title,
+                      time: item.time,
+                      isWorking: item.isWorking,
+                      onDelete: item.onDelete,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            content,
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _showEditDailyScheduleSheet(
+                context,
+                state.selectedDate,
+                state.offHours,
+                state.workingHours,
+                (off, working) {
+                  context.read<ConsultationsBloc>().add(
+                        WorkingHoursUpdated(
+                          offHours: off,
+                          workingHours: working,
+                        ),
+                      );
+                },
+              ),
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.settings,
+                    color: Color(0xFF66BB6A),
+                    size: 18,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Change working hours for this day',
+                    style: TextStyle(
+                      color: Color(0xFF66BB6A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -803,12 +849,23 @@ void _showEditHoursSheet(BuildContext context, ConsultationsState state) {
   );
 }
 
-void _showEditDailyScheduleSheet(BuildContext context, DateTime date) {
+void _showEditDailyScheduleSheet(
+  BuildContext context,
+  DateTime date,
+  List<String> offHours,
+  List<String> workingHours,
+  Function(List<String>, List<String>) onSave,
+) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => EditDailyScheduleSheet(date: date),
+    builder: (_) => EditDailyScheduleSheet(
+      date: date,
+      initialOffHours: offHours,
+      initialWorkingHours: workingHours,
+      onSave: onSave,
+    ),
   );
 }
 

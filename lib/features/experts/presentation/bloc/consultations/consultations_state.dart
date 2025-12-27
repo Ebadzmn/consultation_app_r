@@ -20,8 +20,8 @@ class ConsultationsState extends Equatable {
     required this.focusedMonth,
     required this.selectedDate,
     this.appointments = const [],
-    this.offHours = const ['09:00 - 11:00'],
-    this.workingHours = const ['18:00 - 22:00'],
+    this.offHours = const ['09:00 - 11:00', '13:00 - 14:00'],
+    this.workingHours = const ['18:00 - 22:00', '22:00 - 00:00'],
   });
 
   ConsultationsState copyWith({

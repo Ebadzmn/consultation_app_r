@@ -141,6 +141,8 @@ class MyProfileView extends StatelessWidget {
                   SliverPersistentHeader(
                     delegate: _StickyTabBarDelegate(
                       TabBar(
+                        tabAlignment: TabAlignment.start,
+                        padding: EdgeInsets.zero,
                         onTap: (index) {
                           context
                               .read<ExpertProfileBloc>()
@@ -587,7 +589,9 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.go(AppRoutes.signIn);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFEBEE),
                             foregroundColor: Colors.red[400],
