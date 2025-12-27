@@ -3,18 +3,73 @@ import 'package:intl/intl.dart';
 
 class EditDailyScheduleSheet extends StatefulWidget {
   final DateTime date;
+  final List<String> initialOffHours;
+  final List<String> initialWorkingHours;
+  final Function(List<String> offHours, List<String> workingHours) onSave;
 
-  const EditDailyScheduleSheet({super.key, required this.date});
+  const EditDailyScheduleSheet({
+    super.key,
+    required this.date,
+    required this.initialOffHours,
+    required this.initialWorkingHours,
+    required this.onSave,
+  });
 
   @override
   State<EditDailyScheduleSheet> createState() => _EditDailyScheduleSheetState();
 }
 
 class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
-  final List<_ScheduleInterval> _intervals = [
-    _ScheduleInterval(type: 'Not working', startTime: '09:00', endTime: '18:00'),
-    _ScheduleInterval(type: 'Working', startTime: '09:00', endTime: '18:00'),
-  ];
+  late List<_ScheduleInterval> _intervals;
+
+  @override
+  void initState() {
+    super.initState();
+    _intervals = [];
+    
+    for (var range in widget.initialOffHours) {
+      final parts = range.split(' - ');
+      if (parts.length == 2) {
+        _intervals.add(_ScheduleInterval(
+          type: 'Not working',
+          startTime: parts[0],
+          endTime: parts[1],
+        ));
+      }
+    }
+
+    for (var range in widget.initialWorkingHours) {
+      final parts = range.split(' - ');
+      if (parts.length == 2) {
+        _intervals.add(_ScheduleInterval(
+          type: 'Working',
+          startTime: parts[0],
+          endTime: parts[1],
+        ));
+      }
+    }
+    
+    if (_intervals.isEmpty) {
+       _intervals.add(_ScheduleInterval(type: 'Working', startTime: '09:00', endTime: '18:00'));
+    }
+  }
+
+  void _handleSave() {
+    final offHours = <String>[];
+    final workingHours = <String>[];
+
+    for (var interval in _intervals) {
+      final range = '${interval.startTime} - ${interval.endTime}';
+      if (interval.type == 'Not working') {
+        offHours.add(range);
+      } else {
+        workingHours.add(range);
+      }
+    }
+
+    widget.onSave(offHours, workingHours);
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +149,7 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _handleSave,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF66BB6A),
                 elevation: 0,

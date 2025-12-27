@@ -95,6 +95,8 @@ class ExpertProfileView extends StatelessWidget {
                     pinned: true,
                     delegate: _StickyTabBarDelegate(
                       TabBar(
+                        tabAlignment: TabAlignment.start,
+                        padding: EdgeInsets.zero,
                         onTap: (index) {
                           context.read<ExpertProfileBloc>().add(
                             ExpertProfileTabChanged(index),
