@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'core/config/app_routes.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 import 'core/localization/app_locale.dart';
 import 'injection_container.dart' as di;
 import 'l10n/app_localizations.dart';
@@ -23,8 +23,9 @@ class MyApp extends StatelessWidget {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            colorScheme:
-                ColorScheme.fromSeed(seedColor: const Color(0xFF66BB6A)),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF66BB6A),
+            ),
             useMaterial3: true,
           ),
           localizationsDelegates: AppLocalizations.localizationsDelegates,

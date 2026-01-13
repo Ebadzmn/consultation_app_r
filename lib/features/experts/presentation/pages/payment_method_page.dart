@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/pay_now_args.dart';
-import '../../../../core/config/app_routes.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 
 class PaymentMethodPage extends StatelessWidget {
   final PayNowArgs args;

@@ -1,5 +1,6 @@
 import 'package:consultant_app/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:consultant_app/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:consultant_app/features/auth/presentation/pages/splash_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/my_profile_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/expert_public_profile_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/experts_page.dart';
@@ -10,12 +11,14 @@ import 'package:consultant_app/features/experts/presentation/pages/payment_metho
 import 'package:consultant_app/features/experts/presentation/pages/pay_success_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/new_project_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/project_details_page.dart';
+import 'package:consultant_app/features/experts/presentation/bloc/consultations/consultations_state.dart';
 import 'package:consultant_app/features/experts/presentation/models/pay_now_args.dart';
 import 'package:consultant_app/features/experts/domain/entities/expert_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRoutes {
+  static const String splash = '/';
   static const String signUp = '/sign-up';
   static const String signIn = '/sign-in';
   static const String expertPublicProfile = '/expert-public-profile';
@@ -45,8 +48,16 @@ class AppRoutes {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: AppRoutes.signIn,
+  initialLocation: AppRoutes.splash,
   routes: [
+    GoRoute(
+      path: AppRoutes.splash,
+      pageBuilder: (context, state) => AppRoutes.fadeTransitionPage(
+        context: context,
+        state: state,
+        child: const SplashPage(),
+      ),
+    ),
     GoRoute(
       path: AppRoutes.signUp,
       pageBuilder: (context, state) => AppRoutes.fadeTransitionPage(
@@ -134,7 +145,11 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => AppRoutes.fadeTransitionPage(
         context: context,
         state: state,
-        child: const ConsultationsPage(),
+        child: ConsultationsPage(
+          initialTab: state.extra is ConsultationsTab
+              ? state.extra as ConsultationsTab
+              : null,
+        ),
       ),
     ),
     GoRoute(

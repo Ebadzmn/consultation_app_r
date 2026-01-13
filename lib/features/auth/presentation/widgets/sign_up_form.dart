@@ -20,9 +20,7 @@ class SignUpForm extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage ?? l10n.signUpFailure),
-              ),
+              SnackBar(content: Text(state.errorMessage ?? l10n.signUpFailure)),
             );
         } else if (state.status == SignUpStatus.success) {
           ScaffoldMessenger.of(context)
@@ -113,9 +111,9 @@ class _UserTypeToggle extends StatelessWidget {
               child: _ToggleButton(
                 label: l10n.expert,
                 isSelected: isExpert,
-                onTap: () => context
-                    .read<SignUpBloc>()
-                    .add(const SignUpUserTypeChanged('Expert')),
+                onTap: () => context.read<SignUpBloc>().add(
+                  const SignUpUserTypeChanged('Expert'),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -123,9 +121,9 @@ class _UserTypeToggle extends StatelessWidget {
               child: _ToggleButton(
                 label: l10n.client,
                 isSelected: !isExpert,
-                onTap: () => context
-                    .read<SignUpBloc>()
-                    .add(const SignUpUserTypeChanged('Client')),
+                onTap: () => context.read<SignUpBloc>().add(
+                  const SignUpUserTypeChanged('Client'),
+                ),
               ),
             ),
           ],
@@ -185,8 +183,9 @@ class _NameInput extends StatelessWidget {
       builder: (context, state) {
         final showError =
             (state.nameTouched || state.submitAttempted) && !state.isNameValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,10 +234,12 @@ class _SurnameInput extends StatelessWidget {
           previous.surnameTouched != current.surnameTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.surnameTouched || state.submitAttempted) &&
+        final showError =
+            (state.surnameTouched || state.submitAttempted) &&
             !state.isSurnameValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,10 +288,12 @@ class _EmailInput extends StatelessWidget {
           previous.emailTouched != current.emailTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.emailTouched || state.submitAttempted) &&
+        final showError =
+            (state.emailTouched || state.submitAttempted) &&
             !state.isEmailValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,10 +343,12 @@ class _PhoneInput extends StatelessWidget {
           previous.phoneTouched != current.phoneTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.phoneTouched || state.submitAttempted) &&
+        final showError =
+            (state.phoneTouched || state.submitAttempted) &&
             !state.isPhoneValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,10 +398,12 @@ class _AboutMyselfInput extends StatelessWidget {
           previous.aboutMyselfTouched != current.aboutMyselfTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.aboutMyselfTouched || state.submitAttempted) &&
+        final showError =
+            (state.aboutMyselfTouched || state.submitAttempted) &&
             !state.isAboutMyselfValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,9 +414,9 @@ class _AboutMyselfInput extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
-              onChanged: (value) => context
-                  .read<SignUpBloc>()
-                  .add(SignUpAboutMyselfChanged(value)),
+              onChanged: (value) => context.read<SignUpBloc>().add(
+                SignUpAboutMyselfChanged(value),
+              ),
               keyboardType: TextInputType.multiline,
               maxLines: 4,
               decoration: InputDecoration(
@@ -450,9 +457,10 @@ class _ExperienceInput extends StatelessWidget {
       builder: (context, state) {
         final showError =
             (state.experienceTouched || state.submitAttempted) &&
-                !state.isExperienceValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+            !state.isExperienceValid;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,9 +471,9 @@ class _ExperienceInput extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
-              onChanged: (value) => context
-                  .read<SignUpBloc>()
-                  .add(SignUpExperienceChanged(value)),
+              onChanged: (value) => context.read<SignUpBloc>().add(
+                SignUpExperienceChanged(value),
+              ),
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -504,8 +512,9 @@ class _CostInput extends StatelessWidget {
       builder: (context, state) {
         final showError =
             (state.costTouched || state.submitAttempted) && !state.isCostValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,13 +555,13 @@ class _CostInput extends StatelessWidget {
 }
 
 class _CategoriesOfExpertiseInput extends StatelessWidget {
-  static const _categories = <String>[
-    'Finance',
-    'IT',
-    'Legal',
-    'Health',
-    'Banking',
-  ];
+  static const _categoryMap = {
+    'Finance': '1',
+    'IT': '2',
+    'Legal': '3',
+    'Health': '4',
+    'Banking': '5',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -563,10 +572,12 @@ class _CategoriesOfExpertiseInput extends StatelessWidget {
           previous.categoriesTouched != current.categoriesTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.categoriesTouched || state.submitAttempted) &&
+        final showError =
+            (state.categoriesTouched || state.submitAttempted) &&
             !state.isCategoriesValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,22 +598,24 @@ class _CategoriesOfExpertiseInput extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final category in _categories)
+                  for (final entry in _categoryMap.entries)
                     FilterChip(
-                      label: Text(category),
-                      selected: state.categoriesOfExpertise.contains(category),
+                      label: Text(entry.key),
+                      selected: state.categoriesOfExpertise.contains(
+                        entry.value,
+                      ),
                       onSelected: (selected) {
                         context.read<SignUpBloc>().add(
-                              SignUpCategoryToggled(
-                                category: category,
-                                selected: selected,
-                              ),
-                            );
+                          SignUpCategoryToggled(
+                            category: entry.value,
+                            selected: selected,
+                          ),
+                        );
                       },
                       selectedColor: const Color(0xFF5B5E7D),
                       checkmarkColor: Colors.white,
                       labelStyle: TextStyle(
-                        color: state.categoriesOfExpertise.contains(category)
+                        color: state.categoriesOfExpertise.contains(entry.value)
                             ? Colors.white
                             : const Color(0xFF2E2E3E),
                       ),
@@ -629,10 +642,12 @@ class _PasswordInput extends StatelessWidget {
           previous.passwordTouched != current.passwordTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.passwordTouched || state.submitAttempted) &&
+        final showError =
+            (state.passwordTouched || state.submitAttempted) &&
             !state.isPasswordValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -684,9 +699,10 @@ class _RepeatPasswordInput extends StatelessWidget {
       builder: (context, state) {
         final showError =
             (state.repeatPasswordTouched || state.submitAttempted) &&
-                !state.isRepeatPasswordValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+            !state.isRepeatPasswordValid;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -738,9 +754,11 @@ class _TermsCheckbox extends StatelessWidget {
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
         final showError =
-            (state.termsTouched || state.submitAttempted) && !state.isTermsValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.transparent;
+            (state.termsTouched || state.submitAttempted) &&
+            !state.isTermsValid;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.transparent;
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -760,8 +778,8 @@ class _TermsCheckbox extends StatelessWidget {
                   activeColor: const Color(0xFF5B5E7D),
                   onChanged: (value) {
                     context.read<SignUpBloc>().add(
-                          SignUpTermsChanged(value ?? false),
-                        );
+                      SignUpTermsChanged(value ?? false),
+                    );
                   },
                 ),
               ),
@@ -770,8 +788,10 @@ class _TermsCheckbox extends StatelessWidget {
                 child: RichText(
                   text: TextSpan(
                     text: l10n.agreePrefix,
-                    style:
-                        const TextStyle(color: Color(0xFF2E2E3E), fontSize: 14),
+                    style: const TextStyle(
+                      color: Color(0xFF2E2E3E),
+                      fontSize: 14,
+                    ),
                     children: [
                       TextSpan(
                         text: l10n.agreePolicy,

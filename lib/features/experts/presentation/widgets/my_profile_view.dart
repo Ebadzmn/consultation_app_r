@@ -1,4 +1,5 @@
 import 'package:consultant_app/core/config/app_routes.dart';
+import 'package:consultant_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:consultant_app/features/experts/domain/entities/expert_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -553,8 +554,20 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton(
-                          onPressed: () {
-                            context.go(AppRoutes.signIn);
+                          onPressed: () async {
+                            final result = await di
+                                .sl<AuthRepository>()
+                                .logout();
+                            result.fold(
+                              (failure) =>
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(failure.message)),
+                                  ),
+                              (_) {
+                                di.currentUser.value = null;
+                                context.go(AppRoutes.signIn);
+                              },
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFEBEE),

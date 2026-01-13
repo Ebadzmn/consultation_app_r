@@ -1,11 +1,21 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/network/dio_client.dart';
+import 'core/network/token_storage.dart';
+import 'core/network/auth_interceptor.dart';
+import 'core/network/logger_interceptor.dart';
+
 import 'features/auth/domain/entities/user_entity.dart';
 import 'features/auth/data/datasources/auth_remote_ds.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/domain/usecases/sign_up_usecase.dart';
+import 'features/auth/domain/usecases/sign_in_usecase.dart';
 import 'features/auth/presentation/bloc/sign_up/sign_up_bloc.dart';
+import 'features/auth/presentation/bloc/login/login_bloc.dart';
+
 import 'features/experts/data/repositories/experts_repository_impl.dart';
 import 'features/experts/domain/repositories/experts_repository.dart';
 import 'features/experts/domain/usecases/get_experts_usecase.dart';
@@ -17,27 +27,40 @@ final ValueNotifier<UserEntity?> currentUser = ValueNotifier<UserEntity?>(null);
 
 Future<void> init() async {
   // Bloc
-  sl.registerFactory(
-    () => SignUpBloc(signUpUseCase: sl()),
-  );
-  sl.registerFactory(
-    () => ExpertsBloc(getExperts: sl()),
-  );
+  sl.registerFactory(() => SignUpBloc(signUpUseCase: sl()));
+  sl.registerFactory(() => LoginBloc(signInUseCase: sl()));
+  sl.registerFactory(() => ExpertsBloc(getExperts: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => GetExpertsUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl()),
+    () => AuthRepositoryImpl(remoteDataSource: sl(), tokenStorage: sl()),
   );
-  sl.registerLazySingleton<ExpertsRepository>(
-    () => ExpertsRepositoryImpl(),
-  );
+  sl.registerLazySingleton<ExpertsRepository>(() => ExpertsRepositoryImpl());
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(),
+    () => AuthRemoteDataSourceImpl(sl()),
   );
+
+  // External
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+  sl.registerLazySingleton(() => Dio());
+  sl.registerLazySingleton(() => TokenStorage(sl()));
+  sl.registerLazySingleton(() => AuthInterceptor(sl()));
+  sl.registerLazySingleton(() => LoggerInterceptor());
+
+  sl.registerLazySingleton(() {
+    final dioClient = DioClient(sl());
+    dioClient.addInterceptor(sl<AuthInterceptor>());
+    if (kDebugMode) {
+      dioClient.addInterceptor(sl<LoggerInterceptor>());
+    }
+    return dioClient;
+  });
 }

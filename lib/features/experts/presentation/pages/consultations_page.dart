@@ -18,12 +18,15 @@ import 'package:consultant_app/features/experts/presentation/widgets/schedule_se
 import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class ConsultationsPage extends StatelessWidget {
-  const ConsultationsPage({super.key});
+  final ConsultationsTab? initialTab;
+  const ConsultationsPage({super.key, this.initialTab});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ConsultationsBloc(),
+      create: (_) => ConsultationsBloc(
+        initialTab: initialTab ?? ConsultationsTab.calendar,
+      ),
       child: const _ConsultationsContent(),
     );
   }
@@ -78,8 +81,8 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                               .add(ConsultationsTabChanged(tab)),
                           onSettingsTap:
                               di.currentUser.value?.userType == 'Expert'
-                                  ? () => _showEditHoursSheet(context, state)
-                                  : null,
+                              ? () => _showEditHoursSheet(context, state)
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         _RangeSwitcher(
@@ -197,7 +200,15 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
           );
         },
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 3),
+      bottomNavigationBar: BlocBuilder<ConsultationsBloc, ConsultationsState>(
+        builder: (context, state) {
+          final isExpert = di.currentUser.value?.userType == 'Expert';
+          final index = isExpert
+              ? (state.tab == ConsultationsTab.calendar ? 0 : 1)
+              : 3;
+          return CustomBottomNavBar(currentIndex: index);
+        },
+      ),
     );
   }
 
@@ -694,8 +705,16 @@ class _WorkingHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ConsultationsBloc, ConsultationsState>(
       builder: (context, state) {
-        final allItems = <({String title, String time, bool isWorking, VoidCallback onDelete})>[];
-        
+        final allItems =
+            <
+              ({
+                String title,
+                String time,
+                bool isWorking,
+                VoidCallback onDelete,
+              })
+            >[];
+
         for (final time in state.offHours) {
           allItems.add((
             title: 'Off hours',
@@ -704,11 +723,11 @@ class _WorkingHoursSection extends StatelessWidget {
             onDelete: () {
               final newList = List<String>.from(state.offHours)..remove(time);
               context.read<ConsultationsBloc>().add(
-                    WorkingHoursUpdated(
-                      offHours: newList,
-                      workingHours: state.workingHours,
-                    ),
-                  );
+                WorkingHoursUpdated(
+                  offHours: newList,
+                  workingHours: state.workingHours,
+                ),
+              );
             },
           ));
         }
@@ -719,13 +738,14 @@ class _WorkingHoursSection extends StatelessWidget {
             time: time,
             isWorking: true,
             onDelete: () {
-              final newList = List<String>.from(state.workingHours)..remove(time);
+              final newList = List<String>.from(state.workingHours)
+                ..remove(time);
               context.read<ConsultationsBloc>().add(
-                    WorkingHoursUpdated(
-                      offHours: state.offHours,
-                      workingHours: newList,
-                    ),
-                  );
+                WorkingHoursUpdated(
+                  offHours: state.offHours,
+                  workingHours: newList,
+                ),
+              );
             },
           ));
         }
@@ -767,9 +787,9 @@ class _WorkingHoursSection extends StatelessWidget {
           // Calculate width so that 2 items fit perfectly (50% each with spacing), matching the 2-item layout
           // Available width = ScreenWidth - (Horizontal Padding * 2)
           // Card Width = (Available Width - Spacing) / 2
-          final availableWidth = MediaQuery.of(context).size.width - 32; 
+          final availableWidth = MediaQuery.of(context).size.width - 32;
           final cardWidth = (availableWidth - 12) / 2;
-          
+
           content = SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -804,20 +824,13 @@ class _WorkingHoursSection extends StatelessWidget {
                 state.workingHours,
                 (off, working) {
                   context.read<ConsultationsBloc>().add(
-                        WorkingHoursUpdated(
-                          offHours: off,
-                          workingHours: working,
-                        ),
-                      );
+                    WorkingHoursUpdated(offHours: off, workingHours: working),
+                  );
                 },
               ),
               child: Row(
                 children: const [
-                  Icon(
-                    Icons.settings,
-                    color: Color(0xFF66BB6A),
-                    size: 18,
-                  ),
+                  Icon(Icons.settings, color: Color(0xFF66BB6A), size: 18),
                   SizedBox(width: 8),
                   Text(
                     'Change working hours for this day',
@@ -911,22 +924,12 @@ class _WorkingHoursCard extends StatelessWidget {
               ),
               InkWell(
                 onTap: onDelete,
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: Colors.grey[400],
-                ),
+                child: Icon(Icons.close, size: 18, color: Colors.grey[400]),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            time,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(time, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
         ],
       ),
     );
