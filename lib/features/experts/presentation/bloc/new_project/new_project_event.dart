@@ -48,6 +48,46 @@ class CategoryChanged extends NewProjectEvent {
   List<Object?> get props => [category];
 }
 
+class CompanyChanged extends NewProjectEvent {
+  final String company;
+  const CompanyChanged(this.company);
+
+  @override
+  List<Object?> get props => [company];
+}
+
+class YearChanged extends NewProjectEvent {
+  final String year;
+  const YearChanged(this.year);
+
+  @override
+  List<Object?> get props => [year];
+}
+
+class ResultsChanged extends NewProjectEvent {
+  final String results;
+  const ResultsChanged(this.results);
+
+  @override
+  List<Object?> get props => [results];
+}
+
+class AddFile extends NewProjectEvent {
+  final String fileName;
+  const AddFile(this.fileName);
+
+  @override
+  List<Object?> get props => [fileName];
+}
+
+class RemoveFile extends NewProjectEvent {
+  final String fileName;
+  const RemoveFile(this.fileName);
+
+  @override
+  List<Object?> get props => [fileName];
+}
+
 class AddParticipants extends NewProjectEvent {
   final List<ProjectParticipant> participants;
   const AddParticipants(this.participants);

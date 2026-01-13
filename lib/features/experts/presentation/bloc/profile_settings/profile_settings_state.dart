@@ -8,7 +8,7 @@ class ProfileSettingsState extends Equatable {
   final String lastName;
   final String about;
   final String imageUrl; // For display
-  final String category;
+  final List<String> categories;
   final String cost;
   final bool isByAgreement;
   final String oldPassword;
@@ -22,7 +22,7 @@ class ProfileSettingsState extends Equatable {
     this.lastName = '',
     this.about = '',
     this.imageUrl = '',
-    this.category = '',
+    this.categories = const [],
     this.cost = '',
     this.isByAgreement = false,
     this.oldPassword = '',
@@ -37,7 +37,7 @@ class ProfileSettingsState extends Equatable {
     String? lastName,
     String? about,
     String? imageUrl,
-    String? category,
+    List<String>? categories,
     String? cost,
     bool? isByAgreement,
     String? oldPassword,
@@ -51,7 +51,7 @@ class ProfileSettingsState extends Equatable {
       lastName: lastName ?? this.lastName,
       about: about ?? this.about,
       imageUrl: imageUrl ?? this.imageUrl,
-      category: category ?? this.category,
+      categories: categories ?? this.categories,
       cost: cost ?? this.cost,
       isByAgreement: isByAgreement ?? this.isByAgreement,
       oldPassword: oldPassword ?? this.oldPassword,
@@ -68,7 +68,7 @@ class ProfileSettingsState extends Equatable {
         lastName,
         about,
         imageUrl,
-        category,
+        categories,
         cost,
         isByAgreement,
         oldPassword,

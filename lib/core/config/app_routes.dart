@@ -6,6 +6,7 @@ import 'package:consultant_app/features/experts/presentation/pages/experts_page.
 import 'package:consultant_app/features/experts/presentation/pages/appointment_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/consultations_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/pay_now_page.dart';
+import 'package:consultant_app/features/experts/presentation/pages/payment_method_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/pay_success_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/new_project_page.dart';
 import 'package:consultant_app/features/experts/presentation/pages/project_details_page.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String expertPublicProfile = '/expert-public-profile';
   static const String appointment = '/appointment';
   static const String payNow = '/pay-now';
+  static const String paymentMethod = '/payment-method';
   static const String paySuccess = '/pay-success';
   static const String myProfile = '/my-profile';
   static const String experts = '/experts';
@@ -95,6 +97,17 @@ final GoRouter appRouter = GoRouter(
           context: context,
           state: state,
           child: PaySuccessPage(args: args),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.paymentMethod,
+      pageBuilder: (context, state) {
+        final args = state.extra as PayNowArgs;
+        return AppRoutes.fadeTransitionPage(
+          context: context,
+          state: state,
+          child: PaymentMethodPage(args: args),
         );
       },
     ),

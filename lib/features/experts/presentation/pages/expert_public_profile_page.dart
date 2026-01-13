@@ -22,33 +22,8 @@ class ExpertPublicProfilePage extends StatelessWidget {
   }
 }
 
-class _ExpertPublicProfileScaffold extends StatefulWidget {
+class _ExpertPublicProfileScaffold extends StatelessWidget {
   const _ExpertPublicProfileScaffold({super.key});
-
-  @override
-  State<_ExpertPublicProfileScaffold> createState() =>
-      _ExpertPublicProfileScaffoldState();
-}
-
-class _ExpertPublicProfileScaffoldState
-    extends State<_ExpertPublicProfileScaffold> {
-  bool _isSearching = false;
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchController.clear();
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,85 +31,27 @@ class _ExpertPublicProfileScaffoldState
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: _isSearching ? Colors.white : const Color(0xFF33354E),
+        backgroundColor: const Color(0xFF33354E),
         elevation: 0,
-        leading: _isSearching
-            ? null
-            : IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         titleSpacing: 0,
-        title: _isSearching
-            ? SizedBox(
-                height: 40,
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  style: const TextStyle(
-                    color: Color(0xFF33354E),
-                    fontSize: 14,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: l10n.search,
-                    hintStyle: const TextStyle(
-                      color: Color(0xFFB0BEC5),
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.search,
-                          size: 20,
-                          color: Color(0xFFB0BEC5),
-                        ),
-                        const SizedBox(width: 12),
-                        GestureDetector(
-                          onTap: () {
-                            _searchController.clear();
-                            _toggleSearch();
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Color(0xFFB0BEC5),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            : Text(
-                l10n.main,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
+        title: Text(
+          l10n.main,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
         centerTitle: false,
-        actions: _isSearching
-            ? []
-            : [
-                IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white, size: 24),
-                  onPressed: _toggleSearch,
-                ),
-              ],
+        actions: const [],
       ),
       body: BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
         builder: (context, state) {
@@ -155,10 +72,7 @@ class _ExpertPublicProfileScaffoldState
           height: 48,
           child: ElevatedButton(
             onPressed: () {
-              // Navigate to Consultation Page
-              // Assuming you have a route for consultation or want to use go_router
-              // For now, let's navigate to ConsultationsPage
-              context.push(AppRoutes.consultations); 
+              context.push(AppRoutes.consultations);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF66BB6A), // Green button

@@ -113,11 +113,12 @@ class _PayNowContent extends StatelessWidget {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: state.status == PayNowStatus.paying
-                              ? null
-                              : () => context.read<PayNowBloc>().add(
-                                  PayNowPressed(),
-                                ),
+                          onPressed: () {
+                            context.push(
+                              AppRoutes.paymentMethod,
+                              extra: state.args,
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF66BB6A),
                             foregroundColor: Colors.white,
@@ -126,11 +127,9 @@ class _PayNowContent extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: Text(
-                            state.status == PayNowStatus.paying
-                                ? 'Paying...'
-                                : 'Pay now',
-                            style: const TextStyle(
+                          child: const Text(
+                            'Pay now',
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

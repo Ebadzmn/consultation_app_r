@@ -17,6 +17,7 @@ class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
               avatarUrl: 'https://i.pravatar.cc/150?img=32',
             ),
           ],
+          files: ['Presentation.pdf', 'Project_report.pdf'],
         ),
       ) {
     on<TitleChanged>(_onTitleChanged);
@@ -24,10 +25,36 @@ class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
     on<CoverImageChanged>(_onCoverImageChanged);
     on<TextContentChanged>(_onTextContentChanged);
     on<CategoryChanged>(_onCategoryChanged);
+    on<CompanyChanged>(_onCompanyChanged);
+    on<YearChanged>(_onYearChanged);
+    on<ResultsChanged>(_onResultsChanged);
+    on<AddFile>(_onAddFile);
+    on<RemoveFile>(_onRemoveFile);
     on<AddParticipant>(_onAddParticipant);
     on<AddParticipants>(_onAddParticipants);
     on<RemoveParticipant>(_onRemoveParticipant);
     on<PublishProject>(_onPublishProject);
+  }
+
+  void _onCompanyChanged(CompanyChanged event, Emitter<NewProjectState> emit) {
+    emit(state.copyWith(company: event.company));
+  }
+
+  void _onYearChanged(YearChanged event, Emitter<NewProjectState> emit) {
+    emit(state.copyWith(year: event.year));
+  }
+
+  void _onResultsChanged(ResultsChanged event, Emitter<NewProjectState> emit) {
+    emit(state.copyWith(results: event.results));
+  }
+
+  void _onAddFile(AddFile event, Emitter<NewProjectState> emit) {
+    emit(state.copyWith(files: [...state.files, event.fileName]));
+  }
+
+  void _onRemoveFile(RemoveFile event, Emitter<NewProjectState> emit) {
+    final updatedFiles = state.files.where((f) => f != event.fileName).toList();
+    emit(state.copyWith(files: updatedFiles));
   }
 
   void _onTitleChanged(TitleChanged event, Emitter<NewProjectState> emit) {

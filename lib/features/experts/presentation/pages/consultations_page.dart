@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/injection_container.dart' as di;
 import 'package:consultant_app/l10n/app_localizations.dart';
 import '../bloc/consultations/consultations_bloc.dart';
@@ -17,7 +15,6 @@ import 'package:consultant_app/features/experts/presentation/widgets/edit_daily_
 
 import 'package:consultant_app/features/experts/presentation/widgets/schedule_settings_sheet.dart';
 
-import 'package:consultant_app/features/experts/presentation/widgets/add_menu_popup.dart';
 import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class ConsultationsPage extends StatelessWidget {

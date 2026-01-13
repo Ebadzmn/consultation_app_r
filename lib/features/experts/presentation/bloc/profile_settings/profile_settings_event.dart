@@ -53,12 +53,12 @@ class UpdatePhoto extends ProfileSettingsEvent {
 class RemovePhoto extends ProfileSettingsEvent {}
 
 class UpdateCategory extends ProfileSettingsEvent {
-  final String category;
+  final List<String> categories;
 
-  const UpdateCategory(this.category);
+  const UpdateCategory(this.categories);
 
   @override
-  List<Object?> get props => [category];
+  List<Object?> get props => [categories];
 }
 
 class UpdateCost extends ProfileSettingsEvent {

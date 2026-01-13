@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/config/app_routes.dart';
+
 import '../../domain/entities/expert_profile.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
 import '../bloc/expert_profile/expert_profile_state.dart';
+import 'project_card.dart';
+import 'project_categories_sheet.dart';
+import 'project_details_sheet.dart';
+import '../../domain/entities/project.dart';
 
 class ExpertProfileView extends StatelessWidget {
   final ExpertProfile expert;
@@ -18,12 +21,10 @@ class ExpertProfileView extends StatelessWidget {
         return expert.researchCount > 0;
       case 1: // Articles
         return expert.articleListCount > 0;
-      case 2: // Questions
-        return expert.questionsCount > 0;
+      case 2: // Project
+        return expert.projectsCount > 0;
       case 3: // Reviews
         return expert.reviewsCount > 0;
-      case 4: // Projects
-        return expert.projectsCount > 0;
       default:
         return false;
     }
@@ -39,13 +40,13 @@ class ExpertProfileView extends StatelessWidget {
         final currentTabHasData = _hasData(expert, selectedIndex);
 
         return DefaultTabController(
-          length: 5,
+          length: 4,
           initialIndex: selectedIndex,
           child: Builder(
             builder: (innerContext) {
               return CustomScrollView(
                 key: ValueKey(
-                  'expert_profile_scroll_${selectedIndex}_${currentTabHasData}',
+                  'expert_profile_scroll_${selectedIndex}_$currentTabHasData',
                 ),
                 physics: currentTabHasData
                     ? const AlwaysScrollableScrollPhysics()
@@ -106,7 +107,8 @@ class ExpertProfileView extends StatelessWidget {
                         labelColor: const Color(0xFF33354E),
                         unselectedLabelColor: Colors.grey,
                         indicatorColor: const Color(0xFF33354E),
-                        indicatorWeight: 3,
+                        indicatorWeight: 4,
+                        dividerColor: Colors.transparent,
                         labelStyle: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -115,16 +117,66 @@ class ExpertProfileView extends StatelessWidget {
                           fontWeight: FontWeight.normal,
                           fontSize: 14,
                         ),
-                        tabs: [
-                          Tab(text: 'Researches ${expert.researchCount}'),
-                          Tab(text: 'Articles ${expert.articleListCount}'),
-                          Tab(text: 'Questions ${expert.questionsCount}'),
-                          Tab(text: 'Reviews ${expert.reviewsCount}'),
-                          Tab(text: 'Projects ${expert.projectsCount}'),
+                        tabs: const [
+                          Tab(text: 'Исследования 30'),
+                          Tab(text: 'Статьи 10'),
+                          Tab(text: 'Project'),
+                          Tab(text: 'Отзывы'),
                         ],
                       ),
                     ),
                   ),
+                  if (selectedIndex == 2)
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(
+                            height: 2,
+                            thickness: 2,
+                            color: Color(0xFF33354E),
+                            indent: 0,
+                            endIndent: 300,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => ProjectCategoriesSheet(
+                                  selectedCategories: const [],
+                                  onApply: (categories) {
+                                    // Handle logic if needed
+                                  },
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.sort,
+                                    color: Color(0xFF66BB6A),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'All categories',
+                                    style: TextStyle(
+                                      color: Color(0xFF66BB6A),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   SliverToBoxAdapter(
                     child: Builder(
                       builder: (context) {
@@ -136,8 +188,9 @@ class ExpertProfileView extends StatelessWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: 5, // Mock count
                           itemBuilder: (context, index) {
-                            if (selectedIndex == 4) {
-                              return _buildProjectCard(context, index);
+                            if (selectedIndex == 2) {
+                              // Project index
+                              return const SizedBox.shrink(); // Will use SliverGrid instead
                             }
 
                             String titlePrefix = 'Item';
@@ -231,8 +284,59 @@ class ExpertProfileView extends StatelessWidget {
                       },
                     ),
                   ),
+                  if (selectedIndex == 2 && currentTabHasData)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 1.1,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          // Mock project data matching the design image exactly
+                          final mockProject = Project(
+                            id: 'project_$index',
+                            title: index == 0
+                                ? "Project's title"
+                                : "Взрывное название проекта",
+                            description: "Description",
+                            viewsCount: 249,
+                            likesCount: 45,
+                            categories: index == 0
+                                ? ["Category"]
+                                : (index == 2 ? ["Статегии"] : ["ИИ / ML"]),
+                            participantAvatars: const [
+                              'https://i.pravatar.cc/150?u=1',
+                              'https://i.pravatar.cc/150?u=2',
+                              'https://i.pravatar.cc/150?u=3',
+                            ],
+                            additionalParticipantsCount: 3,
+                            commentsCount: 10,
+                            date: DateTime.now(),
+                          );
+                          return ProjectCard(
+                            project: mockProject,
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) =>
+                                    ProjectDetailsSheet(project: mockProject),
+                              );
+                            },
+                          );
+                        }, childCount: 6),
+                      ),
+                    ),
                   // Add extra padding at bottom to avoid content being hidden behind the button
-                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 40)),
                 ],
               );
             },
@@ -241,102 +345,6 @@ class ExpertProfileView extends StatelessWidget {
       },
     );
   }
-
-  Widget _buildProjectCard(BuildContext context, int index) {
-    return GestureDetector(
-      onTap: () => context.push(AppRoutes.projectDetails),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Modern development methodology has dotted all the i\'s',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF33354E),
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'In general, of course, the new model of organizational activity creates prerequisites for the prioritization of reason over emotions.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 96, // Increased width to fit 3 avatars + count overlap
-                height: 32,
-                child: Stack(
-                  children: [
-                    for (int i = 0; i < 3; i++)
-                      Positioned(
-                        left: i * 20.0,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundImage: NetworkImage(
-                            'https://i.pravatar.cc/150?u=${10 + i + index}',
-                          ),
-                          backgroundColor: Colors.white,
-                        ),
-                      ),
-                    Positioned(
-                      left: 60.0,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF33354E),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          '+3',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Icon(
-                Icons.chat_bubble_outline,
-                size: 16,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '104',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.calendar_today, size: 16, color: Colors.grey[400]),
-              const SizedBox(width: 4),
-              Text(
-                '30 minutes ago',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-        ],
-      ),
-    ),
-  );
-}
 
   Widget _buildInfoRow(String label, String value) {
     return RichText(
