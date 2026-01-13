@@ -1,13 +1,18 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:consultant_app/injection_container.dart' as di;
-import 'package:consultant_app/features/auth/domain/entities/user_entity.dart';
+import 'package:consultant_app/features/auth/data/models/user_model.dart';
+import 'package:consultant_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:consultant_app/features/auth/domain/usecases/sign_in_usecase.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(const LoginState()) {
+  final SignInUseCase signInUseCase;
+
+  LoginBloc({required this.signInUseCase}) : super(const LoginState()) {
     on<LoginUserTypeChanged>(_onUserTypeChanged);
     on<LoginEmailChanged>(_onEmailChanged);
     on<LoginPasswordChanged>(_onPasswordChanged);
@@ -19,6 +24,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginUserTypeChanged event,
     Emitter<LoginState> emit,
   ) {
+    debugPrint(
+      'LoginBloc: UserType changed to ${event.isExpert ? "Expert" : "Client"}',
+    );
     emit(
       state.copyWith(
         isExpert: event.isExpert,
@@ -96,55 +104,44 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     emit(state.copyWith(status: LoginStatus.loading));
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
+    final result = await signInUseCase(
+      SignInParams(username: email.trim(), password: password.trim()),
+    );
 
-    try {
-      final trimmedEmail = email.trim();
-      final trimmedPassword = password.trim();
-
-      UserEntity? user;
-      if (trimmedEmail == 'ebadzmn1@gmail.com' && trimmedPassword == '112233') {
-        user = const UserEntity(
-          id: 'c-1',
-          name: 'Normal Client',
-          email: 'ebadzmn1@gmail.com',
-          userType: 'Client',
-        );
-      } else if (trimmedEmail == 'ebadzmn2@gmail.com' &&
-          trimmedPassword == '11223344') {
-        user = const UserEntity(
-          id: 'e-1',
-          name: 'Expert Client',
-          email: 'ebadzmn2@gmail.com',
-          userType: 'Expert',
-        );
-      }
-
-      if (user == null) {
+    result.fold(
+      (failure) {
         emit(
           state.copyWith(
             status: LoginStatus.failure,
-            errorMessage: 'Invalid credentials',
+            errorMessage: failure.message,
           ),
         );
-        return;
-      }
+      },
+      (user) {
+        // Prioritize the UI selection for navigation and dashboard mode
+        final isExpertResult = state.isExpert;
 
-      di.currentUser.value = user;
-      emit(
-        state.copyWith(
-          status: LoginStatus.success,
-          isExpert: user.userType == 'Expert',
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: 'Authentication failed',
-        ),
-      );
-    }
+        debugPrint(
+          'LoginBloc: Success. UI selected isExpert: ${state.isExpert}, Server said: ${user.userType}. Using Final: $isExpertResult',
+        );
+
+        // Update global user with the UI-selected role for consistency in navigation/dashboard
+        if (user is UserModel) {
+          final updatedUser = user.copyWith(
+            userType: isExpertResult ? 'Expert' : 'Client',
+          );
+          di.currentUser.value = updatedUser;
+          // Persist the spoofed user so it survives app restart
+          di.sl<AuthRepository>().persistUser(updatedUser);
+        } else {
+          di.currentUser.value = user;
+          di.sl<AuthRepository>().persistUser(user);
+        }
+
+        emit(
+          state.copyWith(status: LoginStatus.success, isExpert: isExpertResult),
+        );
+      },
+    );
   }
 }

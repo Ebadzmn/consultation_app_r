@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
 import 'package:consultant_app/features/experts/presentation/widgets/add_menu_popup.dart';
+import 'package:consultant_app/features/experts/presentation/bloc/consultations/consultations_state.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -12,6 +14,8 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final user = di.currentUser.value;
+    final isExpert = user?.userType == 'Expert';
 
     return Container(
       color: Colors.white,
@@ -44,7 +48,16 @@ class CustomBottomNavBar extends StatelessWidget {
             isSelected: currentIndex == 3,
             onTap: () {
               if (currentIndex != 3) {
-                context.go(AppRoutes.consultations);
+                if (isExpert) {
+                  // Experts go to Calendar (Schedule) view
+                  context.go(
+                    AppRoutes.consultations,
+                    extra: ConsultationsTab.calendar,
+                  );
+                } else {
+                  // Clients go to standard Consultations list
+                  context.go(AppRoutes.consultations);
+                }
               }
             },
           ),
@@ -53,7 +66,7 @@ class CustomBottomNavBar extends StatelessWidget {
             label: l10n.questions,
             isSelected: currentIndex == 4,
             onTap: () {
-              // Navigate to Questions if route exists
+              // Navigate to Questions
             },
           ),
         ],

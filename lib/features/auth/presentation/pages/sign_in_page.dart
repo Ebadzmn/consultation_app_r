@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -11,7 +12,7 @@ class SignInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc(),
+      create: (context) => di.sl<LoginBloc>(),
       child: const SignInView(),
     );
   }
@@ -28,18 +29,24 @@ class SignInView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        
+
         titleSpacing: 0,
         centerTitle: false,
-        
       ),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status == LoginStatus.failure) {
-            
+            debugPrint('SignInView: Login Failure: ${state.errorMessage}');
           }
           if (state.status == LoginStatus.success) {
-            context.go(AppRoutes.experts);
+            debugPrint(
+              'SignInView: Login Success. isExpert: ${state.isExpert}',
+            );
+            if (state.isExpert) {
+              context.go(AppRoutes.experts);
+            } else {
+              context.go(AppRoutes.experts);
+            }
           }
         },
         child: SafeArea(
@@ -84,7 +91,9 @@ class SignInView extends StatelessWidget {
                       l10n.signInWithPhoneNumber,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.blue.withAlpha(128), // Light blue link style
+                        color: Colors.blue.withAlpha(
+                          128,
+                        ), // Light blue link style
                         decoration: TextDecoration.underline,
                       ),
                     ),
@@ -216,9 +225,11 @@ class _EmailInput extends StatelessWidget {
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
         final showError =
-            (state.emailTouched || state.submitAttempted) && !state.isEmailValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+            (state.emailTouched || state.submitAttempted) &&
+            !state.isEmailValid;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return TextField(
           onChanged: (value) =>
@@ -257,10 +268,12 @@ class _PasswordInput extends StatelessWidget {
           previous.passwordTouched != current.passwordTouched ||
           previous.submitAttempted != current.submitAttempted,
       builder: (context, state) {
-        final showError = (state.passwordTouched || state.submitAttempted) &&
+        final showError =
+            (state.passwordTouched || state.submitAttempted) &&
             !state.isPasswordValid;
-        final borderColor =
-            showError ? Colors.red.shade300 : Colors.grey.shade300;
+        final borderColor = showError
+            ? Colors.red.shade300
+            : Colors.grey.shade300;
 
         return TextField(
           obscureText: true,

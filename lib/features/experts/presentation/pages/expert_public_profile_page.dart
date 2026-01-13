@@ -34,11 +34,7 @@ class _ExpertPublicProfileScaffold extends StatelessWidget {
         backgroundColor: const Color(0xFF33354E),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.white,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,

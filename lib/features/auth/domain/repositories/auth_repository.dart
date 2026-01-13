@@ -15,4 +15,17 @@ abstract class AuthRepository {
     String? cost,
     List<String>? categoriesOfExpertise,
   });
+
+  Future<Either<Failure, UserEntity>> signIn({
+    required String username,
+    required String password,
+  });
+
+  Future<String?> getToken();
+
+  Future<Either<Failure, void>> logout();
+
+  Future<Either<Failure, UserEntity?>> tryAutoLogin();
+
+  Future<void> persistUser(UserEntity user);
 }

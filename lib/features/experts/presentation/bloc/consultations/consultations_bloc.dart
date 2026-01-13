@@ -5,20 +5,21 @@ import 'consultations_event.dart';
 import 'consultations_state.dart';
 
 class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
-  ConsultationsBloc()
-      : super(
-          ConsultationsState(
-            focusedMonth: DateTime(DateTime.now().year, DateTime.now().month),
-            selectedDate: DateTime(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day,
-            ),
-            appointments: _generateAppointmentsForMonth(
-              DateTime(DateTime.now().year, DateTime.now().month),
-            ),
+  ConsultationsBloc({ConsultationsTab initialTab = ConsultationsTab.calendar})
+    : super(
+        ConsultationsState(
+          tab: initialTab,
+          focusedMonth: DateTime(DateTime.now().year, DateTime.now().month),
+          selectedDate: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
           ),
-        ) {
+          appointments: _generateAppointmentsForMonth(
+            DateTime(DateTime.now().year, DateTime.now().month),
+          ),
+        ),
+      ) {
     on<ConsultationsTabChanged>(_onTabChanged);
     on<ConsultationsRangeChanged>(_onRangeChanged);
     on<ConsultationsPreviousMonthPressed>(_onPreviousMonth);
@@ -33,13 +34,18 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     WorkingHoursUpdated event,
     Emitter<ConsultationsState> emit,
   ) {
-    emit(state.copyWith(
-      offHours: event.offHours,
-      workingHours: event.workingHours,
-    ));
+    emit(
+      state.copyWith(
+        offHours: event.offHours,
+        workingHours: event.workingHours,
+      ),
+    );
   }
 
-  void _onTabChanged(ConsultationsTabChanged event, Emitter<ConsultationsState> emit) {
+  void _onTabChanged(
+    ConsultationsTabChanged event,
+    Emitter<ConsultationsState> emit,
+  ) {
     emit(state.copyWith(tab: event.tab));
   }
 
@@ -54,7 +60,10 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     ConsultationsPreviousMonthPressed event,
     Emitter<ConsultationsState> emit,
   ) {
-    final prev = DateTime(state.focusedMonth.year, state.focusedMonth.month - 1);
+    final prev = DateTime(
+      state.focusedMonth.year,
+      state.focusedMonth.month - 1,
+    );
     emit(
       state.copyWith(
         focusedMonth: prev,
@@ -63,8 +72,14 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     );
   }
 
-  void _onNextMonth(ConsultationsNextMonthPressed event, Emitter<ConsultationsState> emit) {
-    final next = DateTime(state.focusedMonth.year, state.focusedMonth.month + 1);
+  void _onNextMonth(
+    ConsultationsNextMonthPressed event,
+    Emitter<ConsultationsState> emit,
+  ) {
+    final next = DateTime(
+      state.focusedMonth.year,
+      state.focusedMonth.month + 1,
+    );
     emit(
       state.copyWith(
         focusedMonth: next,
@@ -73,7 +88,10 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     );
   }
 
-  void _onDateSelected(ConsultationsDateSelected event, Emitter<ConsultationsState> emit) {
+  void _onDateSelected(
+    ConsultationsDateSelected event,
+    Emitter<ConsultationsState> emit,
+  ) {
     final d = DateTime(event.date.year, event.date.month, event.date.day);
     emit(state.copyWith(selectedDate: d));
   }
@@ -94,10 +112,23 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     _emitWithUpdatedMonth(newSelected, emit);
   }
 
-  void _emitWithUpdatedMonth(DateTime newSelected, Emitter<ConsultationsState> emit) {
-    final normalizedSelected = DateTime(newSelected.year, newSelected.month, newSelected.day);
-    final newMonth = DateTime(normalizedSelected.year, normalizedSelected.month);
-    final currentMonth = DateTime(state.focusedMonth.year, state.focusedMonth.month);
+  void _emitWithUpdatedMonth(
+    DateTime newSelected,
+    Emitter<ConsultationsState> emit,
+  ) {
+    final normalizedSelected = DateTime(
+      newSelected.year,
+      newSelected.month,
+      newSelected.day,
+    );
+    final newMonth = DateTime(
+      normalizedSelected.year,
+      normalizedSelected.month,
+    );
+    final currentMonth = DateTime(
+      state.focusedMonth.year,
+      state.focusedMonth.month,
+    );
 
     if (newMonth == currentMonth) {
       emit(state.copyWith(selectedDate: normalizedSelected));
@@ -113,7 +144,9 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     );
   }
 
-  static List<ConsultationAppointment> _generateAppointmentsForMonth(DateTime month) {
+  static List<ConsultationAppointment> _generateAppointmentsForMonth(
+    DateTime month,
+  ) {
     final base = DateTime(month.year, month.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
 
