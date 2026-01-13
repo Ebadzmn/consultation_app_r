@@ -200,15 +200,7 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
           );
         },
       ),
-      bottomNavigationBar: BlocBuilder<ConsultationsBloc, ConsultationsState>(
-        builder: (context, state) {
-          final isExpert = di.currentUser.value?.userType == 'Expert';
-          final index = isExpert
-              ? (state.tab == ConsultationsTab.calendar ? 0 : 1)
-              : 3;
-          return CustomBottomNavBar(currentIndex: index);
-        },
-      ),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 3),
     );
   }
 
