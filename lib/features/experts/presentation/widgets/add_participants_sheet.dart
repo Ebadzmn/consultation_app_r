@@ -171,40 +171,50 @@ class AddParticipantsSheet extends StatelessWidget {
             color: Colors.white,
             border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
           ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF66BB6A),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF66BB6A),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      final selected = state.selectedParticipants;
+                      context.pop(selected);
+                    },
+                    child: const Text(
+                      'Send invitation',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              onPressed: () {
-                // Get selected participants
-                final selected = state.selectedParticipants;
-                // Add to NewProjectsBloc (we need access to it)
-                // Since this sheet is pushed on top, we might need to pass the bloc or use a callback
-                // Or we can assume NewProjectBloc is provided in parent (it is).
-                // However, we are in a new BlocProvider for AddParticipantsBloc.
-                // We can access NewProjectBloc if it's up the tree.
-                // But showModalBottomSheet puts it in a new tree usually unless useRootNavigator: true is used or context is passed correctly.
-                // Let's assume we can access it via context.read<NewProjectBloc>() if we pass the context correctly to the sheet builder.
-
-                // Better pattern: return the selected list to the caller.
-                context.pop(selected);
-              },
-              child: const Text(
-                'Send invitation',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 12),
+              Container(
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF66BB6A),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.reply, color: Colors.white, size: 24),
+                  onPressed: () {
+                    // Handle share action
+                  },
                 ),
               ),
-            ),
+            ],
           ),
         );
       },

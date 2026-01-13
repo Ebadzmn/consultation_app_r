@@ -37,8 +37,7 @@ class ProfileSettingsBloc
         lastName: lastName,
         about: event.expert.description,
         imageUrl: event.expert.imageUrl,
-        // Assuming first area is main category for now
-        category: event.expert.areas.isNotEmpty ? event.expert.areas.first : '',
+        categories: const [],
         cost: event.expert.cost,
         // Logic to determine if cost is by agreement could be parsed from string
         // For now, let's assume if it contains digits it's not by agreement
@@ -78,7 +77,7 @@ class ProfileSettingsBloc
     UpdateCategory event,
     Emitter<ProfileSettingsState> emit,
   ) {
-    emit(state.copyWith(category: event.category));
+    emit(state.copyWith(categories: event.categories));
   }
 
   void _onUpdateCost(UpdateCost event, Emitter<ProfileSettingsState> emit) {

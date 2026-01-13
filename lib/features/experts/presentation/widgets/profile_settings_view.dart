@@ -24,6 +24,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   late TextEditingController _oldPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _repeatPasswordController;
+  final List<String> _allCategories = const ['Finance', 'IT', 'Legal', 'Health'];
 
   @override
   void initState() {
@@ -232,30 +233,49 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: DropdownButtonHideUnderline(
-                child: BlocBuilder<ProfileSettingsBloc, ProfileSettingsState>(
-                  buildWhen: (previous, current) =>
-                      previous.category != current.category,
-                  builder: (context, state) {
-                    return DropdownButton<String>(
-                      isExpanded: true,
-                      value: state.category.isNotEmpty ? state.category : null,
-                      hint: Text(l10n.selectCategory),
-                      items: ['Finance', 'IT', 'Legal', 'Health']
-                          .map(
-                            (e) => DropdownMenuItem(value: e, child: Text(e)),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          context.read<ProfileSettingsBloc>().add(
-                            UpdateCategory(value),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
+              child: BlocBuilder<ProfileSettingsBloc, ProfileSettingsState>(
+                buildWhen: (previous, current) =>
+                    previous.categories != current.categories,
+                builder: (context, state) {
+                  final selected = state.categories;
+                  final hasSelection = selected.isNotEmpty;
+                  final text = hasSelection
+                      ? selected.join(', ')
+                      : l10n.selectCategory;
+                  final textStyle = TextStyle(
+                    color: hasSelection
+                        ? const Color(0xFF33354E)
+                        : const Color(0xFFB0BEC5),
+                    fontSize: 14,
+                  );
+                  return Builder(
+                    builder: (innerContext) {
+                      return InkWell(
+                        onTap: () {
+                          _openCategorySelector(innerContext, selected, l10n);
+                        },
+                        child: SizedBox(
+                          height: 48,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  text,
+                                  style: textStyle,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: Color(0xFFB0BEC5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -395,6 +415,126 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
         ),
       ),
     );
+  }
+
+  Future<List<String>?> _showCategorySelector(
+    BuildContext context,
+    List<String> current,
+    AppLocalizations l10n,
+  ) {
+    return showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        final selected = current.toSet();
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      l10n.expertsCategories,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF33354E),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._allCategories.map(
+                    (c) => CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: selected.contains(c),
+                      title: Text(
+                        c,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF33354E),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            selected.add(c);
+                          } else {
+                            selected.remove(c);
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop<List<String>?>(null);
+                        },
+                        child: Text(
+                          l10n.cancel,
+                          style: const TextStyle(
+                            color: Color(0xFF33354E),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop<List<String>>(
+                            selected.toList(),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF33354E),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(l10n.saveChanges),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _openCategorySelector(
+    BuildContext context,
+    List<String> current,
+    AppLocalizations l10n,
+  ) async {
+    final bloc = context.read<ProfileSettingsBloc>();
+    _showCategorySelector(context, current, l10n).then((updated) {
+      if (updated == null) {
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      bloc.add(UpdateCategory(updated));
+    });
   }
 
   void _showDeleteProfileDialog(BuildContext context) {

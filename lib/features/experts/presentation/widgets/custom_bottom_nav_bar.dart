@@ -118,7 +118,7 @@ class _AddButton extends StatelessWidget {
             child: GestureDetector(
               onTap: () => overlayEntry.remove(),
               behavior: HitTestBehavior.opaque,
-              child: Container(color: Colors.black.withOpacity(0.5)),
+              child: Container(color: Colors.black.withValues(alpha: 0.5)),
             ),
           ),
           // Popup
@@ -147,7 +147,7 @@ class _AddButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF33354E).withOpacity(0.3),
+              color: const Color(0xFF33354E).withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

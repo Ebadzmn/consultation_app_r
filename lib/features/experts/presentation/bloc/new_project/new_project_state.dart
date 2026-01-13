@@ -21,6 +21,10 @@ class NewProjectState extends Equatable {
   final String? coverImagePath;
   final String textContent;
   final String category;
+  final String company;
+  final String year;
+  final String results;
+  final List<String> files;
   final List<ProjectParticipant> participants;
   final bool isPublishing;
   final bool publishSuccess;
@@ -31,6 +35,10 @@ class NewProjectState extends Equatable {
     this.coverImagePath,
     this.textContent = '',
     this.category = '',
+    this.company = '',
+    this.year = '',
+    this.results = '',
+    this.files = const [],
     this.participants = const [],
     this.isPublishing = false,
     this.publishSuccess = false,
@@ -42,6 +50,10 @@ class NewProjectState extends Equatable {
     String? coverImagePath,
     String? textContent,
     String? category,
+    String? company,
+    String? year,
+    String? results,
+    List<String>? files,
     List<ProjectParticipant>? participants,
     bool? isPublishing,
     bool? publishSuccess,
@@ -52,6 +64,10 @@ class NewProjectState extends Equatable {
       coverImagePath: coverImagePath ?? this.coverImagePath,
       textContent: textContent ?? this.textContent,
       category: category ?? this.category,
+      company: company ?? this.company,
+      year: year ?? this.year,
+      results: results ?? this.results,
+      files: files ?? this.files,
       participants: participants ?? this.participants,
       isPublishing: isPublishing ?? this.isPublishing,
       publishSuccess: publishSuccess ?? this.publishSuccess,
@@ -65,6 +81,10 @@ class NewProjectState extends Equatable {
     coverImagePath,
     textContent,
     category,
+    company,
+    year,
+    results,
+    files,
     participants,
     isPublishing,
     publishSuccess,

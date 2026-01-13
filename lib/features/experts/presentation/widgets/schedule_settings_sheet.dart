@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ScheduleSettingsSheet extends StatefulWidget {
-  const ScheduleSettingsSheet({Key? key}) : super(key: key);
+  const ScheduleSettingsSheet({super.key});
 
   @override
   State<ScheduleSettingsSheet> createState() => _ScheduleSettingsSheetState();
