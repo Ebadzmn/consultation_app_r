@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../../injection_container.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
@@ -19,7 +20,14 @@ class AppointmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AppointmentBloc(initialDate: DateTime.now()),
+      create: (_) => AppointmentBloc(
+        expertId: expert.id,
+        initialDate: DateTime.now(),
+        getAvailableWorkDatesUseCase: sl(),
+        getAvailableTimeSlotsUseCase: sl(),
+      )
+        ..add(LoadAvailableWorkDates(expert.id))
+        ..add(AppointmentDateChanged(DateTime.now())),
       child: _AppointmentContent(expert: expert),
     );
   }
@@ -105,14 +113,22 @@ class _AppointmentContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                    AppointmentCalendar(
-                      selectedDate: state.selectedDate,
-                      onDateSelected: (date) {
-                        context.read<AppointmentBloc>().add(
-                          AppointmentDateChanged(date),
-                        );
-                      },
-                    ),
+                    if (state.status ==
+                        AppointmentStatus.loadingAvailability) ...[
+                      const SizedBox(height: 50),
+                      const Center(child: CircularProgressIndicator.adaptive()),
+                      const SizedBox(height: 50),
+                    ] else ...[
+                      AppointmentCalendar(
+                        selectedDate: state.selectedDate,
+                        notWorkingDates: state.notWorkingDates,
+                        onDateSelected: (date) {
+                          context.read<AppointmentBloc>().add(
+                            AppointmentDateChanged(date),
+                          );
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
