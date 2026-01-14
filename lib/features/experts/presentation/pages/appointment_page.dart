@@ -25,6 +25,7 @@ class AppointmentPage extends StatelessWidget {
         initialDate: DateTime.now(),
         getAvailableWorkDatesUseCase: sl(),
         getAvailableTimeSlotsUseCase: sl(),
+        createAppointmentUseCase: sl(),
       )
         ..add(LoadAvailableWorkDates(expert.id))
         ..add(AppointmentDateChanged(DateTime.now())),
@@ -142,7 +143,20 @@ class _AppointmentContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildTimeSelector(context, state),
+                    if (state.status ==
+                            AppointmentStatus.loadingAvailability &&
+                        state.timeSlots.isEmpty) ...[
+                      SizedBox(
+                        height: 40,
+                        child: Center(
+                          child: CircularProgressIndicator.adaptive(
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      _buildTimeSelector(context, state),
+                    ],
                     const SizedBox(height: 8),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),

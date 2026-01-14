@@ -12,4 +12,11 @@ abstract class ExpertsRepository {
     required String expertId,
     required DateTime selectedDate,
   });
+  Future<Either<Failure, void>> createAppointment({
+    required String expertId,
+    required DateTime appointmentDate,
+    required String appointmentTime,
+    required int categoryId,
+    required String notes,
+  });
 }

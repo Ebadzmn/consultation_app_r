@@ -8,6 +8,13 @@ abstract class ExpertsRemoteDataSource {
     String expertId,
     DateTime selectedDate,
   );
+  Future<void> createAppointment({
+    required String expertId,
+    required DateTime appointmentDate,
+    required String appointmentTime,
+    required int categoryId,
+    required String notes,
+  });
 }
 
 class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
@@ -62,5 +69,33 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     }
 
     return [];
+  }
+
+  @override
+  Future<void> createAppointment({
+    required String expertId,
+    required DateTime appointmentDate,
+    required String appointmentTime,
+    required int categoryId,
+    required String notes,
+  }) async {
+    final formattedDate =
+        '${appointmentDate.year.toString().padLeft(4, '0')}-'
+        '${appointmentDate.month.toString().padLeft(2, '0')}-'
+        '${appointmentDate.day.toString().padLeft(2, '0')}';
+
+    final timeWithSeconds =
+        appointmentTime.length == 5 ? '$appointmentTime:00' : appointmentTime;
+
+    await _dioClient.post(
+      '/appointment/create/',
+      data: {
+        'expert_id': int.tryParse(expertId) ?? expertId,
+        'appointment_date': formattedDate,
+        'appointment_time': timeWithSeconds,
+        'category_id': categoryId,
+        'notes': notes,
+      },
+    );
   }
 }

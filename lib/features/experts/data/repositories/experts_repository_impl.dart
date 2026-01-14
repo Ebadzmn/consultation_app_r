@@ -57,8 +57,8 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
         ),
         const ExpertModel(
           id: '4',
-          name: 'Alexander Alexandrov',
-          avatarUrl: 'https://i.pravatar.cc/150?img=11',
+          name: 'Ivan Smirnov',
+          avatarUrl: 'https://i.pravatar.cc/150?img=18',
           rating: 4.5,
           reviewsCount: 24,
           articlesCount: 10,
@@ -67,6 +67,84 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
           description:
               'In our pursuit of improving user experience we miss that interactive prototypes are exposed...',
           price: 1000,
+        ),
+        const ExpertModel(
+          id: '5',
+          name: 'Dmitry Ivanov',
+          avatarUrl: 'https://i.pravatar.cc/150?img=21',
+          rating: 4.2,
+          reviewsCount: 18,
+          articlesCount: 8,
+          pollsCount: 20,
+          tags: ['IT', 'Startups'],
+          description:
+              'Helps early-stage startups with product strategy and technical architecture.',
+          price: 15000,
+        ),
+        const ExpertModel(
+          id: '6',
+          name: 'Olga Sidorova',
+          avatarUrl: 'https://i.pravatar.cc/150?img=29',
+          rating: 4.8,
+          reviewsCount: 40,
+          articlesCount: 15,
+          pollsCount: 50,
+          tags: ['Marketing', 'Branding'],
+          description:
+              'Brand and marketing strategist with focus on digital promotion.',
+          price: 8000,
+        ),
+        const ExpertModel(
+          id: '7',
+          name: 'Sergey Kuznetsov',
+          avatarUrl: 'https://i.pravatar.cc/150?img=35',
+          rating: 4.3,
+          reviewsCount: 19,
+          articlesCount: 6,
+          pollsCount: 17,
+          tags: ['Banking', 'Risk'],
+          description:
+              'Expert in banking risk management and regulatory compliance.',
+          price: 12000,
+        ),
+        const ExpertModel(
+          id: '8',
+          name: 'Ekaterina Volkova',
+          avatarUrl: 'https://i.pravatar.cc/150?img=41',
+          rating: 4.9,
+          reviewsCount: 52,
+          articlesCount: 22,
+          pollsCount: 60,
+          tags: ['HR', 'Coaching'],
+          description:
+              'Helps managers with career development and team communications.',
+          price: 6000,
+        ),
+        const ExpertModel(
+          id: '9',
+          name: 'Andrey Pavlov',
+          avatarUrl: 'https://i.pravatar.cc/150?img=48',
+          rating: 4.4,
+          reviewsCount: 27,
+          articlesCount: 9,
+          pollsCount: 25,
+          tags: ['Project Management', 'Agile'],
+          description:
+              'Practical guidance on agile transformations and project delivery.',
+          price: 9000,
+        ),
+        const ExpertModel(
+          id: '10',
+          name: 'Natalia Romanova',
+          avatarUrl: 'https://i.pravatar.cc/150?img=52',
+          rating: 4.6,
+          reviewsCount: 33,
+          articlesCount: 12,
+          pollsCount: 28,
+          tags: ['Finance', 'Investments'],
+          description:
+              'Consults on personal investments and long-term financial planning.',
+          price: 20000,
         ),
       ];
 
@@ -101,6 +179,28 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
       return Right(result);
     } catch (e) {
       return const Left(ServerFailure('Failed to load available timeslots'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> createAppointment({
+    required String expertId,
+    required DateTime appointmentDate,
+    required String appointmentTime,
+    required int categoryId,
+    required String notes,
+  }) async {
+    try {
+      await remoteDataSource.createAppointment(
+        expertId: expertId,
+        appointmentDate: appointmentDate,
+        appointmentTime: appointmentTime,
+        categoryId: categoryId,
+        notes: notes,
+      );
+      return const Right(null);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to create appointment'));
     }
   }
 }
