@@ -2,62 +2,94 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'appointment_event.dart';
 import 'appointment_state.dart';
 
-class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
-  static const List<String> _baseTimeSlots = ['09:00', '11:00', '12:00', '15:00'];
+import '../../../domain/usecases/get_available_work_dates_use_case.dart';
+import '../../../domain/usecases/get_available_time_slots_use_case.dart';
 
-  AppointmentBloc({DateTime? initialDate})
-      : super(
-          _initialState(initialDate ?? DateTime.now()),
-        ) {
+class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
+  final String expertId;
+  final GetAvailableWorkDatesUseCase? getAvailableWorkDatesUseCase;
+  final GetAvailableTimeSlotsUseCase? getAvailableTimeSlotsUseCase;
+
+  AppointmentBloc({
+    required this.expertId,
+    DateTime? initialDate,
+    this.getAvailableWorkDatesUseCase,
+    this.getAvailableTimeSlotsUseCase,
+  }) : super(_initialState(initialDate ?? DateTime.now())) {
     on<AppointmentDateChanged>(_onDateChanged);
     on<AppointmentTimeChanged>(_onTimeChanged);
     on<AppointmentCategoryChanged>(_onCategoryChanged);
     on<AppointmentCommentChanged>(_onCommentChanged);
     on<AppointmentSubmitted>(_onSubmitted);
     on<AppointmentSlotWarningDismissed>(_onSlotWarningDismissed);
+    on<LoadAvailableWorkDates>(_onLoadAvailableWorkDates);
   }
 
   static AppointmentState _initialState(DateTime date) {
     final normalized = DateTime(date.year, date.month, date.day);
     return AppointmentState(
       selectedDate: normalized,
-      timeSlots: _baseTimeSlots,
-      unavailableTimes: _unavailableTimesForDate(normalized),
+      timeSlots: const [],
+      unavailableTimes: const {},
     );
   }
 
-  static Set<String> _unavailableTimesForDate(DateTime date) {
-    final day = date.day;
-    if (day % 2 == 0) {
-      return {'11:00', '15:00'};
-    }
-    if (day % 3 == 0) {
-      return {'09:00', '12:00'};
-    }
-    return {'12:00'};
-  }
-
-  void _onDateChanged(
+  Future<void> _onDateChanged(
     AppointmentDateChanged event,
     Emitter<AppointmentState> emit,
-  ) {
-    final normalized = DateTime(event.date.year, event.date.month, event.date.day);
-    final unavailableTimes = _unavailableTimesForDate(normalized);
-    final selectedTime = state.selectedTime;
-    final clearedSelectedTime =
-        selectedTime != null && unavailableTimes.contains(selectedTime)
-            ? null
-            : selectedTime;
+  ) async {
+    final normalized = DateTime(
+      event.date.year,
+      event.date.month,
+      event.date.day,
+    );
 
     emit(
       state.copyWith(
         selectedDate: normalized,
-        selectedTime: clearedSelectedTime,
-        unavailableTimes: unavailableTimes,
+        selectedTime: null,
+        unavailableTimes: const {},
+        timeSlots: const [],
         showSlotWarning: false,
-        status: AppointmentStatus.initial,
+        status: AppointmentStatus.loadingAvailability,
         errorMessage: null,
       ),
+    );
+
+    if (getAvailableTimeSlotsUseCase == null) {
+      emit(
+        state.copyWith(
+          status: AppointmentStatus.initial,
+        ),
+      );
+      return;
+    }
+
+    final result = await getAvailableTimeSlotsUseCase!(
+      GetAvailableTimeSlotsParams(
+        expertId: expertId,
+        selectedDate: normalized,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: AppointmentStatus.failure,
+            errorMessage: 'Failed to load available times',
+          ),
+        );
+      },
+      (slots) {
+        emit(
+          state.copyWith(
+            status: AppointmentStatus.initial,
+            timeSlots: slots,
+            unavailableTimes: const {},
+          ),
+        );
+      },
     );
   }
 
@@ -121,15 +153,13 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       emit(state.copyWith(showSlotWarning: true));
       return;
     }
-    emit(state.copyWith(status: AppointmentStatus.submitting, errorMessage: null));
+    emit(
+      state.copyWith(status: AppointmentStatus.submitting, errorMessage: null),
+    );
     await Future.delayed(const Duration(milliseconds: 300));
     emit(state.copyWith(status: AppointmentStatus.success));
     await Future.delayed(const Duration(milliseconds: 300));
-    emit(
-      state.copyWith(
-        status: AppointmentStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: AppointmentStatus.initial));
   }
 
   void _onSlotWarningDismissed(
@@ -137,5 +167,37 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     Emitter<AppointmentState> emit,
   ) {
     emit(state.copyWith(showSlotWarning: false));
+  }
+
+  Future<void> _onLoadAvailableWorkDates(
+    LoadAvailableWorkDates event,
+    Emitter<AppointmentState> emit,
+  ) async {
+    if (getAvailableWorkDatesUseCase == null) return;
+
+    emit(state.copyWith(status: AppointmentStatus.loadingAvailability));
+
+    final result = await getAvailableWorkDatesUseCase!(event.expertId);
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: AppointmentStatus.failure,
+            errorMessage: 'Failed to load availability',
+          ),
+        );
+      },
+      (availability) {
+        emit(
+          state.copyWith(
+            status: AppointmentStatus.initial,
+            notWorkingDates: availability.notWorkingDates,
+            availabilityStart: availability.start,
+            availabilityEnd: availability.end,
+          ),
+        );
+      },
+    );
   }
 }

@@ -17,8 +17,11 @@ import 'features/auth/presentation/bloc/sign_up/sign_up_bloc.dart';
 import 'features/auth/presentation/bloc/login/login_bloc.dart';
 
 import 'features/experts/data/repositories/experts_repository_impl.dart';
+import 'features/experts/data/data_sources/experts_remote_data_source.dart';
 import 'features/experts/domain/repositories/experts_repository.dart';
 import 'features/experts/domain/usecases/get_experts_usecase.dart';
+import 'features/experts/domain/usecases/get_available_work_dates_use_case.dart';
+import 'features/experts/domain/usecases/get_available_time_slots_use_case.dart';
 import 'features/experts/presentation/bloc/experts_bloc.dart';
 
 final sl = GetIt.instance;
@@ -35,16 +38,23 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => GetExpertsUseCase(sl()));
+  sl.registerLazySingleton(() => GetAvailableWorkDatesUseCase(sl()));
+   sl.registerLazySingleton(() => GetAvailableTimeSlotsUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: sl(), tokenStorage: sl()),
   );
-  sl.registerLazySingleton<ExpertsRepository>(() => ExpertsRepositoryImpl());
+  sl.registerLazySingleton<ExpertsRepository>(
+    () => ExpertsRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<ExpertsRemoteDataSource>(
+    () => ExpertsRemoteDataSourceImpl(sl()),
   );
 
   // External

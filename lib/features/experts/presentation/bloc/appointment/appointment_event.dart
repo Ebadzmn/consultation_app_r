@@ -46,3 +46,12 @@ class AppointmentCommentChanged extends AppointmentEvent {
 class AppointmentSubmitted extends AppointmentEvent {}
 
 class AppointmentSlotWarningDismissed extends AppointmentEvent {}
+
+class LoadAvailableWorkDates extends AppointmentEvent {
+  final String expertId;
+
+  const LoadAvailableWorkDates(this.expertId);
+
+  @override
+  List<Object?> get props => [expertId];
+}
