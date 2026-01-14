@@ -4,17 +4,20 @@ import 'appointment_state.dart';
 
 import '../../../domain/usecases/get_available_work_dates_use_case.dart';
 import '../../../domain/usecases/get_available_time_slots_use_case.dart';
+import '../../../domain/usecases/create_appointment_use_case.dart';
 
 class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
   final String expertId;
   final GetAvailableWorkDatesUseCase? getAvailableWorkDatesUseCase;
   final GetAvailableTimeSlotsUseCase? getAvailableTimeSlotsUseCase;
+  final CreateAppointmentUseCase? createAppointmentUseCase;
 
   AppointmentBloc({
     required this.expertId,
     DateTime? initialDate,
     this.getAvailableWorkDatesUseCase,
     this.getAvailableTimeSlotsUseCase,
+    this.createAppointmentUseCase,
   }) : super(_initialState(initialDate ?? DateTime.now())) {
     on<AppointmentDateChanged>(_onDateChanged);
     on<AppointmentTimeChanged>(_onTimeChanged);
@@ -153,13 +156,50 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       emit(state.copyWith(showSlotWarning: true));
       return;
     }
+    if (createAppointmentUseCase == null) {
+      emit(
+        state.copyWith(
+          status: AppointmentStatus.failure,
+          errorMessage: 'Appointment creation is not configured',
+        ),
+      );
+      return;
+    }
+
     emit(
       state.copyWith(status: AppointmentStatus.submitting, errorMessage: null),
     );
-    await Future.delayed(const Duration(milliseconds: 300));
-    emit(state.copyWith(status: AppointmentStatus.success));
-    await Future.delayed(const Duration(milliseconds: 300));
-    emit(state.copyWith(status: AppointmentStatus.initial));
+
+    final categoryId = _mapCategoryToId(state.selectedCategory);
+
+    final result = await createAppointmentUseCase!(
+      CreateAppointmentParams(
+        expertId: expertId,
+        appointmentDate: state.selectedDate,
+        appointmentTime: state.selectedTime!,
+        categoryId: categoryId,
+        notes: state.comment,
+      ),
+    );
+
+    await result.fold<Future<void>>(
+      (failure) async {
+        if (emit.isDone) return;
+        emit(
+          state.copyWith(
+            status: AppointmentStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (_) async {
+        if (emit.isDone) return;
+        emit(state.copyWith(status: AppointmentStatus.success));
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (emit.isDone) return;
+        emit(state.copyWith(status: AppointmentStatus.initial));
+      },
+    );
   }
 
   void _onSlotWarningDismissed(
@@ -199,5 +239,21 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
         );
       },
     );
+  }
+
+  int _mapCategoryToId(String? category) {
+    switch (category) {
+      case 'Finance':
+      case 'Финансы':
+        return 1;
+      case 'Banking':
+      case 'Банки':
+        return 2;
+      case 'IT':
+      case 'ИТ':
+        return 3;
+      default:
+        return 1;
+    }
   }
 }
