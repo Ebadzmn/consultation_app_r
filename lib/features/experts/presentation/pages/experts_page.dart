@@ -186,7 +186,10 @@ class _ExpertsViewState extends State<ExpertsView> {
               itemBuilder: (context, index) {
                 final expert = state.experts[index];
                 return GestureDetector(
-                  onTap: () => context.push(AppRoutes.expertPublicProfile),
+                  onTap: () => context.push(
+                    AppRoutes.expertPublicProfile,
+                    extra: expert.id,
+                  ),
                   child: ExpertCard(expert: expert),
                 );
               },

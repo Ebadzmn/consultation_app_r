@@ -17,5 +17,8 @@ class ApiClient {
   // Experts
   static const String getExperts = '/experts';
 
+  // Categories
+  static const String categories = '/categories/';
+
   // Add other endpoints here as needed
 }

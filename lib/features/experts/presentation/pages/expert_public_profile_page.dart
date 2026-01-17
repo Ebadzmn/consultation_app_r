@@ -9,12 +9,15 @@ import '../bloc/expert_profile/expert_profile_state.dart';
 import '../widgets/expert_profile_view.dart';
 
 class ExpertPublicProfilePage extends StatelessWidget {
-  const ExpertPublicProfilePage({super.key});
+  final String? expertId;
+
+  const ExpertPublicProfilePage({super.key, this.expertId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ExpertProfileBloc()..add(LoadExpertProfile()),
+      create: (context) => ExpertProfileBloc()
+        ..add(LoadExpertProfile(expertId: expertId)),
       child: const _ExpertPublicProfileScaffold(
         key: ValueKey('expert_public_profile_scaffold'),
       ),

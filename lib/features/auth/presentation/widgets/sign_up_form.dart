@@ -555,14 +555,6 @@ class _CostInput extends StatelessWidget {
 }
 
 class _CategoriesOfExpertiseInput extends StatelessWidget {
-  static const _categoryMap = {
-    'Finance': '1',
-    'IT': '2',
-    'Legal': '3',
-    'Health': '4',
-    'Banking': '5',
-  };
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -570,7 +562,8 @@ class _CategoriesOfExpertiseInput extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.categoriesOfExpertise != current.categoriesOfExpertise ||
           previous.categoriesTouched != current.categoriesTouched ||
-          previous.submitAttempted != current.submitAttempted,
+          previous.submitAttempted != current.submitAttempted ||
+          previous.availableCategories != current.availableCategories,
       builder: (context, state) {
         final showError =
             (state.categoriesTouched || state.submitAttempted) &&
@@ -598,16 +591,16 @@ class _CategoriesOfExpertiseInput extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final entry in _categoryMap.entries)
+                  for (final category in state.availableCategories)
                     FilterChip(
-                      label: Text(entry.key),
+                      label: Text(category.name),
                       selected: state.categoriesOfExpertise.contains(
-                        entry.value,
+                        category.id.toString(),
                       ),
                       onSelected: (selected) {
                         context.read<SignUpBloc>().add(
                           SignUpCategoryToggled(
-                            category: entry.value,
+                            category: category.id.toString(),
                             selected: selected,
                           ),
                         );
@@ -615,7 +608,8 @@ class _CategoriesOfExpertiseInput extends StatelessWidget {
                       selectedColor: const Color(0xFF5B5E7D),
                       checkmarkColor: Colors.white,
                       labelStyle: TextStyle(
-                        color: state.categoriesOfExpertise.contains(entry.value)
+                        color: state.categoriesOfExpertise
+                                .contains(category.id.toString())
                             ? Colors.white
                             : const Color(0xFF2E2E3E),
                       ),

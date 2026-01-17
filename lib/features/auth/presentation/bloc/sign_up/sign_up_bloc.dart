@@ -1,12 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/usecases/sign_up_usecase.dart';
+import '../../../domain/usecases/get_categories_usecase.dart';
 import 'sign_up_event.dart';
 import 'sign_up_state.dart';
 
 class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   final SignUpUseCase signUpUseCase;
+  final GetCategoriesUseCase getCategoriesUseCase;
 
-  SignUpBloc({required this.signUpUseCase}) : super(const SignUpState()) {
+  SignUpBloc({
+    required this.signUpUseCase,
+    required this.getCategoriesUseCase,
+  }) : super(const SignUpState()) {
     on<SignUpUserTypeChanged>(_onUserTypeChanged);
     on<SignUpNameChanged>(_onNameChanged);
     on<SignUpSurnameChanged>(_onSurnameChanged);
@@ -20,6 +25,9 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<SignUpCategoryToggled>(_onCategoryToggled);
     on<SignUpTermsChanged>(_onTermsChanged);
     on<SignUpSubmitted>(_onSubmitted);
+    on<SignUpCategoriesRequested>(_onCategoriesRequested);
+
+    add(const SignUpCategoriesRequested());
   }
 
   void _onUserTypeChanged(
@@ -221,6 +229,24 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       (failure) => emit(state.copyWith(
           status: SignUpStatus.failure, errorMessage: failure.message)),
       (user) => emit(state.copyWith(status: SignUpStatus.success)),
+    );
+  }
+
+  Future<void> _onCategoriesRequested(
+    SignUpCategoriesRequested event,
+    Emitter<SignUpState> emit,
+  ) async {
+    final result = await getCategoriesUseCase(
+      const GetCategoriesParams(page: 1, pageSize: 10),
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(errorMessage: failure.message),
+      ),
+      (categories) => emit(
+        state.copyWith(availableCategories: categories),
+      ),
     );
   }
 }

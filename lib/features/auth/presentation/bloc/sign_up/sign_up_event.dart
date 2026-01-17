@@ -108,3 +108,7 @@ class SignUpTermsChanged extends SignUpEvent {
 class SignUpSubmitted extends SignUpEvent {
   const SignUpSubmitted();
 }
+
+class SignUpCategoriesRequested extends SignUpEvent {
+  const SignUpCategoriesRequested();
+}
