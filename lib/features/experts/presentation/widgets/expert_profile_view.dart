@@ -48,9 +48,7 @@ class ExpertProfileView extends StatelessWidget {
                 key: ValueKey(
                   'expert_profile_scroll_${selectedIndex}_$currentTabHasData',
                 ),
-                physics: currentTabHasData
-                    ? const AlwaysScrollableScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPersistentHeader(
                     delegate: _ExpertHeaderDelegate(

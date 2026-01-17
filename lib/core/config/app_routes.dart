@@ -70,10 +70,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.expertPublicProfile,
       pageBuilder: (context, state) {
+        final expertId = state.extra as String?;
         return AppRoutes.fadeTransitionPage(
           context: context,
           state: state,
-          child: const ExpertPublicProfilePage(),
+          child: ExpertPublicProfilePage(expertId: expertId),
         );
       },
     ),

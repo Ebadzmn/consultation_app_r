@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../models/expert_register_request.dart';
 import '../models/client_register_request.dart';
 import '../models/login_request.dart';
+import '../models/category_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signUp({
@@ -22,6 +23,11 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> signIn({
     required String username,
     required String password,
+  });
+
+  Future<List<CategoryModel>> getCategories({
+    int page,
+    int pageSize,
   });
 }
 
@@ -106,5 +112,32 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // Assuming the response contains access token in data or top level
     // format might be { "status": "success", "data": { "access": "...", "refresh": "..." } }
     return response.data;
+  }
+
+  @override
+  Future<List<CategoryModel>> getCategories({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final response = await _dioClient.get(
+      ApiClient.categories,
+      queryParameters: {
+        'page': page,
+        'page_size': pageSize,
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final results = data['results'];
+      if (results is List) {
+        return results
+            .whereType<Map<String, dynamic>>()
+            .map(CategoryModel.fromJson)
+            .toList();
+      }
+    }
+
+    return [];
   }
 }

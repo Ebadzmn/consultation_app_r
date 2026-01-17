@@ -13,6 +13,7 @@ import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/domain/usecases/sign_up_usecase.dart';
 import 'features/auth/domain/usecases/sign_in_usecase.dart';
+import 'features/auth/domain/usecases/get_categories_usecase.dart';
 import 'features/auth/presentation/bloc/sign_up/sign_up_bloc.dart';
 import 'features/auth/presentation/bloc/login/login_bloc.dart';
 
@@ -31,13 +32,17 @@ final ValueNotifier<UserEntity?> currentUser = ValueNotifier<UserEntity?>(null);
 
 Future<void> init() async {
   // Bloc
-  sl.registerFactory(() => SignUpBloc(signUpUseCase: sl()));
+  sl.registerFactory(() => SignUpBloc(
+        signUpUseCase: sl(),
+        getCategoriesUseCase: sl(),
+      ));
   sl.registerFactory(() => LoginBloc(signInUseCase: sl()));
   sl.registerFactory(() => ExpertsBloc(getExperts: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => SignInUseCase(sl()));
+  sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
   sl.registerLazySingleton(() => GetExpertsUseCase(sl()));
   sl.registerLazySingleton(() => GetAvailableWorkDatesUseCase(sl()));
   sl.registerLazySingleton(() => GetAvailableTimeSlotsUseCase(sl()));

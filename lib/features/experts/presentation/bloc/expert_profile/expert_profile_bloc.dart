@@ -2,6 +2,7 @@ import 'package:consultant_app/features/experts/domain/entities/project.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:consultant_app/injection_container.dart' as di;
 import '../../../domain/entities/expert_profile.dart';
+import '../../../domain/repositories/experts_repository.dart';
 import 'expert_profile_event.dart';
 import 'expert_profile_state.dart';
 
@@ -26,8 +27,20 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
   ) async {
     emit(ExpertProfileLoading());
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 500));
+      if (event.expertId != null) {
+        final repository = di.sl<ExpertsRepository>();
+        final result = await repository.getExpertProfile(event.expertId!);
+
+        await result.fold<Future<void>>(
+          (failure) async {
+            emit(ExpertProfileError(failure.message));
+          },
+          (profile) async {
+            emit(ExpertProfileLoaded(profile));
+          },
+        );
+        return;
+      }
 
       final isExpertUser = di.currentUser.value?.userType == 'Expert';
       final expert = isExpertUser

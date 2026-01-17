@@ -2,9 +2,11 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../entities/expert_entity.dart';
 import '../entities/available_work_dates_entity.dart';
+import '../entities/expert_profile.dart';
 
 abstract class ExpertsRepository {
   Future<Either<Failure, List<ExpertEntity>>> getExperts();
+  Future<Either<Failure, ExpertProfile>> getExpertProfile(String expertId);
   Future<Either<Failure, AvailableWorkDatesEntity>> getAvailableWorkDates(
     String expertId,
   );

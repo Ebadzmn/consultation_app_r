@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../entities/user_entity.dart';
+import '../entities/category_entity.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> signUp({
@@ -28,4 +29,9 @@ abstract class AuthRepository {
   Future<Either<Failure, UserEntity?>> tryAutoLogin();
 
   Future<void> persistUser(UserEntity user);
+
+  Future<Either<Failure, List<CategoryEntity>>> getCategories({
+    int page,
+    int pageSize,
+  });
 }

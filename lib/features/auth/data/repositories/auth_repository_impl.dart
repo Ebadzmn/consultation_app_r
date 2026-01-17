@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/category_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_ds.dart';
 import '../../../../core/network/token_storage.dart';
@@ -124,6 +125,22 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> persistUser(UserEntity user) async {
     if (user is UserModel) {
       await tokenStorage.saveUser(user);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CategoryEntity>>> getCategories({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    try {
+      final result = await remoteDataSource.getCategories(
+        page: page,
+        pageSize: pageSize,
+      );
+      return Right(result);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to load categories'));
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../domain/entities/category_entity.dart';
 
 enum SignUpStatus { initial, loading, success, failure }
 
@@ -15,6 +16,7 @@ class SignUpState extends Equatable {
   final String experience;
   final String cost;
   final List<String> categoriesOfExpertise;
+  final List<CategoryEntity> availableCategories;
   final bool agreedToTerms;
   final String? errorMessage;
   final bool submitAttempted;
@@ -43,6 +45,7 @@ class SignUpState extends Equatable {
     this.experience = '',
     this.cost = '',
     this.categoriesOfExpertise = const [],
+    this.availableCategories = const [],
     this.agreedToTerms = false,
     this.errorMessage,
     this.submitAttempted = false,
@@ -72,6 +75,7 @@ class SignUpState extends Equatable {
     String? experience,
     String? cost,
     List<String>? categoriesOfExpertise,
+    List<CategoryEntity>? availableCategories,
     bool? agreedToTerms,
     String? errorMessage,
     bool? submitAttempted,
@@ -101,6 +105,7 @@ class SignUpState extends Equatable {
       cost: cost ?? this.cost,
       categoriesOfExpertise:
           categoriesOfExpertise ?? this.categoriesOfExpertise,
+      availableCategories: availableCategories ?? this.availableCategories,
       agreedToTerms: agreedToTerms ?? this.agreedToTerms,
       errorMessage: errorMessage,
       submitAttempted: submitAttempted ?? this.submitAttempted,
@@ -189,6 +194,7 @@ class SignUpState extends Equatable {
         experience,
         cost,
         categoriesOfExpertise,
+        availableCategories,
         agreedToTerms,
         errorMessage,
         submitAttempted,
