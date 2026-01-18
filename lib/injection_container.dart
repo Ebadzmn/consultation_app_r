@@ -69,7 +69,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => Dio());
   sl.registerLazySingleton(() => TokenStorage(sl()));
-  sl.registerLazySingleton(() => AuthInterceptor(sl()));
+  sl.registerLazySingleton(() => AuthInterceptor(sl(), sl()));
   sl.registerLazySingleton(() => LoggerInterceptor());
 
   sl.registerLazySingleton(() {

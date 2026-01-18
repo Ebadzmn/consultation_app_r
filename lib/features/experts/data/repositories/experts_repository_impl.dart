@@ -34,6 +34,16 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
   }
 
   @override
+  Future<Either<Failure, ExpertProfile>> getCurrentUserProfile() async {
+    try {
+      final profile = await remoteDataSource.getCurrentUserProfile();
+      return Right(profile);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to load current profile'));
+    }
+  }
+
+  @override
   Future<Either<Failure, AvailableWorkDatesEntity>> getAvailableWorkDates(
     String expertId,
   ) async {

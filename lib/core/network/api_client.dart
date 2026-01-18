@@ -8,6 +8,8 @@ class ApiClient {
   static const String logout = '/logout';
   static const String resetPassword = '/reset-password';
   static const String verifyOtp = '/verify-otp';
+  static const String refreshToken = '/token/refresh/';
+  static const String profile = '/profile/';
 
   // Training & Nutrition
   static const String trainingHistory = '/training/history';
