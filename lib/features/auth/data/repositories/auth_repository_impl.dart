@@ -59,8 +59,6 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      // Extract token from response. Assuming common format like data.token or data.access
-      // Based on typical JWT setups. If format is different, user will provide feedback.
       final String? token =
           responseBody['access'] ??
           responseBody['data']?['token'] ??
@@ -69,6 +67,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (token != null) {
         await tokenStorage.saveToken(token);
+      }
+
+      final String? refreshToken =
+          responseBody['refresh'] ?? responseBody['data']?['refresh'];
+
+      if (refreshToken != null) {
+        await tokenStorage.saveRefreshToken(refreshToken);
       }
 
       // Construct a minimal user model from the response if available,

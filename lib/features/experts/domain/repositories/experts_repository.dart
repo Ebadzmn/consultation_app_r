@@ -7,6 +7,7 @@ import '../entities/expert_profile.dart';
 abstract class ExpertsRepository {
   Future<Either<Failure, List<ExpertEntity>>> getExperts();
   Future<Either<Failure, ExpertProfile>> getExpertProfile(String expertId);
+  Future<Either<Failure, ExpertProfile>> getCurrentUserProfile();
   Future<Either<Failure, AvailableWorkDatesEntity>> getAvailableWorkDates(
     String expertId,
   );

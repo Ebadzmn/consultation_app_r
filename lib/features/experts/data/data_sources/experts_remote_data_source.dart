@@ -11,6 +11,7 @@ abstract class ExpertsRemoteDataSource {
     int pageSize,
   });
   Future<ExpertProfile> getExpertProfile(String expertId);
+  Future<ExpertProfile> getCurrentUserProfile();
   Future<AvailableWorkDatesEntity> getAvailableWorkDates(String expertId);
   Future<List<String>> getAvailableTimeSlots(
     String expertId,
@@ -47,6 +48,28 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final data =
         response.data is Map<String, dynamic> ? response.data : <String, dynamic>{};
 
+    return _mapExpertProfileFromData(data);
+  }
+
+  @override
+  Future<ExpertProfile> getCurrentUserProfile() async {
+    final response = await _dioClient.get(ApiClient.profile);
+
+    final data =
+        response.data is Map<String, dynamic> ? response.data : <String, dynamic>{};
+
+    final typeValue = data['type'];
+    final isExpert = data['is_expert'] == true ||
+        (typeValue is num && typeValue.toInt() == 1);
+
+    if (isExpert) {
+      return _mapExpertProfileFromData(data);
+    }
+
+    return _mapClientProfileFromData(data);
+  }
+
+  ExpertProfile _mapExpertProfileFromData(Map<String, dynamic> data) {
     final id = data['id']?.toString() ?? '';
 
     final firstName = (data['first_name'] ?? '').toString().trim();
@@ -121,6 +144,43 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       articleListCount: articlesCount,
       questionsCount: questionsCount,
       projectsCount: projectsCount,
+      projects: const [],
+    );
+  }
+
+  ExpertProfile _mapClientProfileFromData(Map<String, dynamic> data) {
+    final id = data['id']?.toString() ?? '';
+
+    final firstName = (data['first_name'] ?? '').toString().trim();
+    final lastName = (data['last_name'] ?? '').toString().trim();
+    final fullName = '$firstName $lastName'.trim();
+
+    final email = (data['email'] ?? '').toString().trim();
+
+    final avatarUrlRaw = (data['avatar_url'] as String?)?.trim();
+    final imageUrl =
+        avatarUrlRaw != null && avatarUrlRaw.isNotEmpty
+            ? avatarUrlRaw
+            : 'https://i.pravatar.cc/300?u=$id';
+
+    return ExpertProfile(
+      id: id,
+      name: fullName.isNotEmpty ? fullName : email,
+      rating: 0.0,
+      imageUrl: imageUrl,
+      areas: const [],
+      articlesCount: 0,
+      pollsCount: 0,
+      reviewsCount: 0,
+      answersCount: 0,
+      education: '',
+      experience: '',
+      description: '',
+      cost: '—',
+      researchCount: 0,
+      articleListCount: 0,
+      questionsCount: 0,
+      projectsCount: 0,
       projects: const [],
     );
   }

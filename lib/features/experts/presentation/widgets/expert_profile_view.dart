@@ -53,7 +53,7 @@ class ExpertProfileView extends StatelessWidget {
                   SliverPersistentHeader(
                     delegate: _ExpertHeaderDelegate(
                       expert: expert,
-                      canCollapse: currentTabHasData,
+                      canCollapse: true,
                     ),
                     pinned: true,
                   ),
@@ -115,11 +115,11 @@ class ExpertProfileView extends StatelessWidget {
                           fontWeight: FontWeight.normal,
                           fontSize: 14,
                         ),
-                        tabs: const [
-                          Tab(text: 'Исследования 30'),
-                          Tab(text: 'Статьи 10'),
-                          Tab(text: 'Project'),
-                          Tab(text: 'Отзывы'),
+                        tabs: [
+                          Tab(text: 'Исследования ${expert.researchCount}'),
+                          Tab(text: 'Статьи ${expert.articleListCount}'),
+                          const Tab(text: 'Project'),
+                          const Tab(text: 'Отзывы'),
                         ],
                       ),
                     ),
@@ -234,7 +234,7 @@ class ExpertProfileView extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Publication description: ${expert.description.substring(0, 50)}...',
+                                    'Publication description: ${expert.description.length > 50 ? expert.description.substring(0, 50) : expert.description}...',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey[600],
@@ -419,23 +419,32 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Rating: ${expert.rating}',
-                        style: const TextStyle(
+                      const Text(
+                        'Rating: ',
+                        style: TextStyle(
                           color: Color(0xFF33354E),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+                      Text(
+                        expert.rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: Color(0xFF33354E),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const Icon(
-                        Icons.star_half,
-                        color: Colors.amber,
-                        size: 18,
+                      Row(
+                        children: List.generate(
+                          5,
+                          (index) => const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                            size: 18,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -459,7 +468,11 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       alignment: WrapAlignment.center,
                       children: [
                         ...expert.areas.take(3).map((area) => _buildTag(area)),
-                        _buildTag('+6', isMore: true),
+                        if (expert.areas.length > 3)
+                          _buildTag(
+                            '+${expert.areas.length - 3}',
+                            isMore: true,
+                          ),
                       ],
                     ),
                   ),
@@ -551,9 +564,7 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
-                                ...expert.areas
-                                    .take(3)
-                                    .map(
+                                ...expert.areas.take(3).map(
                                       (area) => Padding(
                                         padding: const EdgeInsets.only(
                                           right: 6.0,
@@ -561,7 +572,14 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                                         child: _buildTag(area),
                                       ),
                                     ),
-                                _buildTag('+6', isMore: true),
+                                if (expert.areas.length > 3)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 6.0),
+                                    child: _buildTag(
+                                      '+${expert.areas.length - 3}',
+                                      isMore: true,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -614,7 +632,7 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 320;
+  double get maxExtent => 360;
 
   @override
   double get minExtent => canCollapse ? 110 : 320;

@@ -92,7 +92,7 @@ class _AppointmentContent extends StatelessWidget {
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _PinnedHeaderDelegate(
-                  height: 140,
+                  height: 160,
                   child: _buildPinnedExpertHeader(context),
                 ),
               ),
