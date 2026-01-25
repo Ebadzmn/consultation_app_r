@@ -55,3 +55,16 @@ class WorkingHoursUpdated extends ConsultationsEvent {
   @override
   List<Object?> get props => [offHours, workingHours];
 }
+
+class ConsultationsAppointmentsRequested extends ConsultationsEvent {
+  final DateTime start;
+  final DateTime end;
+
+  const ConsultationsAppointmentsRequested({
+    required this.start,
+    required this.end,
+  });
+
+  @override
+  List<Object?> get props => [start, end];
+}

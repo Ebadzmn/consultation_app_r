@@ -26,9 +26,11 @@ class AppointmentPage extends StatelessWidget {
         getAvailableWorkDatesUseCase: sl(),
         getAvailableTimeSlotsUseCase: sl(),
         createAppointmentUseCase: sl(),
+        getCategoriesUseCase: sl(),
       )
         ..add(LoadAvailableWorkDates(expert.id))
-        ..add(AppointmentDateChanged(DateTime.now())),
+        ..add(AppointmentDateChanged(DateTime.now()))
+        ..add(AppointmentCategoriesRequested()),
       child: _AppointmentContent(expert: expert),
     );
   }
@@ -38,8 +40,6 @@ class _AppointmentContent extends StatelessWidget {
   final ExpertEntity expert;
 
   const _AppointmentContent({required this.expert});
-
-  static const List<String> _categories = ['Finance', 'Banking', 'IT'];
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +87,7 @@ class _AppointmentContent extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final categories = state.categories;
           return CustomScrollView(
             slivers: [
               SliverPersistentHeader(
@@ -284,10 +285,10 @@ class _AppointmentContent extends StatelessWidget {
                               style: TextStyle(color: Colors.grey[400]),
                             ),
                             icon: const Icon(Icons.keyboard_arrow_down),
-                            items: _categories.map((String value) {
+                            items: categories.map((category) {
                               return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                                value: category.name,
+                                child: Text(category.name),
                               );
                             }).toList(),
                             onChanged: (newValue) {

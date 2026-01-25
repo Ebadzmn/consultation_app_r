@@ -55,3 +55,5 @@ class LoadAvailableWorkDates extends AppointmentEvent {
   @override
   List<Object?> get props => [expertId];
 }
+
+class AppointmentCategoriesRequested extends AppointmentEvent {}

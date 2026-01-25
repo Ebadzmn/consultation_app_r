@@ -25,6 +25,8 @@ import 'features/experts/domain/usecases/get_available_work_dates_use_case.dart'
 import 'features/experts/domain/usecases/get_available_time_slots_use_case.dart';
 import 'features/experts/domain/usecases/create_appointment_use_case.dart';
 import 'features/experts/presentation/bloc/experts_bloc.dart';
+import 'features/experts/domain/usecases/get_client_appointments_use_case.dart';
+import 'features/experts/domain/usecases/get_expert_appointments_use_case.dart';
 
 final sl = GetIt.instance;
 
@@ -47,6 +49,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAvailableWorkDatesUseCase(sl()));
   sl.registerLazySingleton(() => GetAvailableTimeSlotsUseCase(sl()));
   sl.registerLazySingleton(() => CreateAppointmentUseCase(sl()));
+  sl.registerLazySingleton(() => GetClientAppointmentsUseCase(sl()));
+  sl.registerLazySingleton(() => GetExpertAppointmentsUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

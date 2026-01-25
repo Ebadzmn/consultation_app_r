@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../auth/domain/entities/category_entity.dart';
 
 enum AppointmentStatus {
   initial,
@@ -21,6 +22,7 @@ class AppointmentState extends Equatable {
   final List<DateTime> notWorkingDates;
   final DateTime? availabilityStart;
   final DateTime? availabilityEnd;
+  final List<CategoryEntity> categories;
 
   const AppointmentState({
     required this.selectedDate,
@@ -35,6 +37,7 @@ class AppointmentState extends Equatable {
     this.notWorkingDates = const [],
     this.availabilityStart,
     this.availabilityEnd,
+    this.categories = const [],
   });
 
   AppointmentState copyWith({
@@ -50,6 +53,7 @@ class AppointmentState extends Equatable {
     List<DateTime>? notWorkingDates,
     DateTime? availabilityStart,
     DateTime? availabilityEnd,
+    List<CategoryEntity>? categories,
   }) {
     return AppointmentState(
       selectedDate: selectedDate ?? this.selectedDate,
@@ -64,6 +68,7 @@ class AppointmentState extends Equatable {
       notWorkingDates: notWorkingDates ?? this.notWorkingDates,
       availabilityStart: availabilityStart ?? this.availabilityStart,
       availabilityEnd: availabilityEnd ?? this.availabilityEnd,
+      categories: categories ?? this.categories,
     );
   }
 
@@ -82,5 +87,6 @@ class AppointmentState extends Equatable {
     notWorkingDates,
     availabilityStart,
     availabilityEnd,
+    categories,
   ];
 }

@@ -5,12 +5,14 @@ import 'appointment_state.dart';
 import '../../../domain/usecases/get_available_work_dates_use_case.dart';
 import '../../../domain/usecases/get_available_time_slots_use_case.dart';
 import '../../../domain/usecases/create_appointment_use_case.dart';
+import '../../../../auth/domain/usecases/get_categories_usecase.dart';
 
 class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
   final String expertId;
   final GetAvailableWorkDatesUseCase? getAvailableWorkDatesUseCase;
   final GetAvailableTimeSlotsUseCase? getAvailableTimeSlotsUseCase;
   final CreateAppointmentUseCase? createAppointmentUseCase;
+  final GetCategoriesUseCase? getCategoriesUseCase;
 
   AppointmentBloc({
     required this.expertId,
@@ -18,6 +20,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     this.getAvailableWorkDatesUseCase,
     this.getAvailableTimeSlotsUseCase,
     this.createAppointmentUseCase,
+    this.getCategoriesUseCase,
   }) : super(_initialState(initialDate ?? DateTime.now())) {
     on<AppointmentDateChanged>(_onDateChanged);
     on<AppointmentTimeChanged>(_onTimeChanged);
@@ -26,6 +29,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     on<AppointmentSubmitted>(_onSubmitted);
     on<AppointmentSlotWarningDismissed>(_onSlotWarningDismissed);
     on<LoadAvailableWorkDates>(_onLoadAvailableWorkDates);
+    on<AppointmentCategoriesRequested>(_onCategoriesRequested);
   }
 
   static AppointmentState _initialState(DateTime date) {
@@ -241,19 +245,48 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     );
   }
 
+  Future<void> _onCategoriesRequested(
+    AppointmentCategoriesRequested event,
+    Emitter<AppointmentState> emit,
+  ) async {
+    if (getCategoriesUseCase == null) return;
+
+    final result = await getCategoriesUseCase!(
+      const GetCategoriesParams(page: 1, pageSize: 50),
+    );
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (categories) {
+        emit(
+          state.copyWith(
+            categories: categories,
+          ),
+        );
+      },
+    );
+  }
+
   int _mapCategoryToId(String? category) {
-    switch (category) {
-      case 'Finance':
-      case 'Финансы':
-        return 1;
-      case 'Banking':
-      case 'Банки':
-        return 2;
-      case 'IT':
-      case 'ИТ':
-        return 3;
-      default:
-        return 1;
+    if (category == null) {
+      if (state.categories.isNotEmpty) {
+        return state.categories.first.id;
+      }
+      return 1;
     }
+
+    for (final c in state.categories) {
+      if (c.name == category) {
+        return c.id;
+      }
+    }
+
+    return 1;
   }
 }
