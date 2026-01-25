@@ -23,10 +23,33 @@ class ConsultationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isExpert = di.currentUser.value?.userType == 'Expert';
     return BlocProvider(
       create: (_) => ConsultationsBloc(
+        getClientAppointments: di.sl(),
+        getExpertAppointments: di.sl(),
+        isExpert: isExpert,
         initialTab: initialTab ?? ConsultationsTab.calendar,
-      ),
+      )..add(
+          ConsultationsAppointmentsRequested(
+            start: DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              1,
+              0,
+              0,
+              0,
+            ),
+            end: DateTime(
+              DateTime.now().year,
+              DateTime.now().month + 1,
+              0,
+              23,
+              59,
+              59,
+            ),
+          ),
+        ),
       child: const _ConsultationsContent(),
     );
   }
@@ -214,8 +237,9 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
       selectedDate.month,
       selectedDate.day,
     );
+    List<ConsultationAppointment> filtered;
     if (range == ConsultationsRange.month) {
-      return appointments
+      filtered = appointments
           .where(
             (a) =>
                 a.dateTime.year == selected.year &&
@@ -223,9 +247,8 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                 a.dateTime.day == selected.day,
           )
           .toList();
-    }
-    if (range == ConsultationsRange.day) {
-      return appointments
+    } else if (range == ConsultationsRange.day) {
+      filtered = appointments
           .where(
             (a) =>
                 a.dateTime.year == selected.year &&
@@ -233,13 +256,18 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                 a.dateTime.day == selected.day,
           )
           .toList();
+    } else {
+      final start = selected.subtract(Duration(days: selected.weekday - 1));
+      final end = start.add(const Duration(days: 7));
+      filtered = appointments
+          .where(
+            (a) =>
+                !a.dateTime.isBefore(start) && a.dateTime.isBefore(end),
+          )
+          .toList();
     }
-
-    final start = selected.subtract(Duration(days: selected.weekday - 1));
-    final end = start.add(const Duration(days: 7));
-    return appointments
-        .where((a) => !a.dateTime.isBefore(start) && a.dateTime.isBefore(end))
-        .toList();
+    filtered.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return filtered;
   }
 }
 

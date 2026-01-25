@@ -19,6 +19,10 @@ class ApiClient {
   // Experts
   static const String getExperts = '/experts';
 
+  // Consultations
+  static const String clientAppointments = '/appointment/client/';
+  static const String expertAppointments = '/appointment/expert/';
+
   // Categories
   static const String categories = '/categories/';
 

@@ -2,8 +2,11 @@ import 'package:consultant_app/core/network/dio_client.dart';
 import 'package:consultant_app/core/network/api_client.dart';
 import '../models/available_work_dates_model.dart';
 import '../models/expert_model.dart';
+import '../models/client_appointment_model.dart';
+import '../models/expert_appointment_model.dart';
 import '../../domain/entities/available_work_dates_entity.dart';
 import '../../domain/entities/expert_profile.dart';
+import '../../domain/entities/expert_consultations_overview.dart';
 
 abstract class ExpertsRemoteDataSource {
   Future<List<ExpertModel>> getExperts({
@@ -17,6 +20,14 @@ abstract class ExpertsRemoteDataSource {
     String expertId,
     DateTime selectedDate,
   );
+  Future<List<ClientAppointmentModel>> getClientAppointments({
+    required DateTime start,
+    required DateTime end,
+  });
+  Future<ExpertConsultationsOverview> getExpertAppointments({
+    required DateTime start,
+    required DateTime end,
+  });
   Future<void> createAppointment({
     required String expertId,
     required DateTime appointmentDate,
@@ -259,6 +270,133 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     }
 
     return [];
+  }
+
+  @override
+  Future<List<ClientAppointmentModel>> getClientAppointments({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    String format(DateTime dt) {
+      return '${dt.year.toString().padLeft(4, '0')}-'
+          '${dt.month.toString().padLeft(2, '0')}-'
+          '${dt.day.toString().padLeft(2, '0')}T'
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}:'
+          '${dt.second.toString().padLeft(2, '0')}';
+    }
+
+    final response = await _dioClient.get(
+      ApiClient.clientAppointments,
+      queryParameters: {
+        'start': format(start),
+        'end': format(end),
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final appointmentsRoot = data['appointments'];
+      if (appointmentsRoot is Map<String, dynamic>) {
+        final asClient = appointmentsRoot['as_client'];
+        if (asClient is List) {
+          return asClient
+              .whereType<Map<String, dynamic>>()
+              .map(ClientAppointmentModel.fromJson)
+              .toList();
+        }
+      }
+    }
+
+    return [];
+  }
+
+  @override
+  Future<ExpertConsultationsOverview> getExpertAppointments({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    String format(DateTime dt) {
+      return '${dt.year.toString().padLeft(4, '0')}-'
+          '${dt.month.toString().padLeft(2, '0')}-'
+          '${dt.day.toString().padLeft(2, '0')}T'
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}:'
+          '${dt.second.toString().padLeft(2, '0')}';
+    }
+
+    final response = await _dioClient.get(
+      ApiClient.expertAppointments,
+      queryParameters: {
+        'start': format(start),
+        'end': format(end),
+      },
+    );
+
+    final data = response.data;
+    final appointments = <ExpertAppointmentModel>[];
+    final workingSlots = <ExpertWorkingSlot>[];
+
+    if (data is Map<String, dynamic>) {
+      final appointmentsRoot = data['appointments'];
+      if (appointmentsRoot is Map<String, dynamic>) {
+        final asExpert = appointmentsRoot['as_expert'];
+        if (asExpert is List) {
+          appointments.addAll(
+            asExpert
+                .whereType<Map<String, dynamic>>()
+                .map(ExpertAppointmentModel.fromJson),
+          );
+        }
+
+        final asClient = appointmentsRoot['as_client'];
+        if (asClient is List) {
+          appointments.addAll(
+            asClient
+                .whereType<Map<String, dynamic>>()
+                .map(ExpertAppointmentModel.fromJson),
+          );
+        }
+      }
+
+      final slots = data['working_slots'];
+      if (slots is List) {
+        for (final item in slots.whereType<Map<String, dynamic>>()) {
+          final type = item['type']?.toString();
+          if (type != 'working_hour') continue;
+
+          final startRaw = (item['start'] as String?) ?? '';
+          final endRaw = (item['end'] as String?) ?? '';
+          final title = (item['title'] as String?) ?? '';
+
+          DateTime? slotStart;
+          DateTime? slotEnd;
+
+          try {
+            slotStart = DateTime.parse(startRaw.replaceFirst(' ', 'T'));
+          } catch (_) {}
+
+          try {
+            slotEnd = DateTime.parse(endRaw.replaceFirst(' ', 'T'));
+          } catch (_) {}
+
+          if (slotStart != null && slotEnd != null) {
+            workingSlots.add(
+              ExpertWorkingSlot(
+                start: slotStart,
+                end: slotEnd,
+                title: title,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    return ExpertConsultationsOverview(
+      appointments: appointments,
+      workingSlots: workingSlots,
+    );
   }
 
   @override
