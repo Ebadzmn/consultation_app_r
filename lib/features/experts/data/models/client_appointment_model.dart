@@ -1,6 +1,10 @@
+import '../../domain/entities/expert_entity.dart';
+import 'expert_model.dart';
 import '../../presentation/models/consultation_appointment.dart';
 
 class ClientAppointmentModel extends ConsultationAppointment {
+  final ExpertEntity expert;
+
   const ClientAppointmentModel({
     required super.id,
     required super.expertName,
@@ -8,6 +12,7 @@ class ClientAppointmentModel extends ConsultationAppointment {
     required super.dateTime,
     required super.status,
     super.hasUnreadMessages,
+    required this.expert,
   });
 
   factory ClientAppointmentModel.fromJson(Map<String, dynamic> json) {
@@ -23,21 +28,20 @@ class ClientAppointmentModel extends ConsultationAppointment {
       dateTime = DateTime.now();
     }
 
-    final expert = json['expert'] as Map<String, dynamic>?;
-    final expertFirst = (expert?['first_name'] ?? '').toString().trim();
-    final expertLast = (expert?['last_name'] ?? '').toString().trim();
-    final expertName = '$expertFirst $expertLast'.trim();
+    final expertJson = json['expert'] as Map<String, dynamic>? ?? {};
+    final expertEntity = ExpertModel.fromJson(expertJson);
 
     final statusRaw = json['status'] as int? ?? 0;
     final status = _mapStatus(statusRaw);
 
     return ClientAppointmentModel(
       id: id,
-      expertName: expertName.isNotEmpty ? expertName : 'Expert',
-      expertAvatarUrl: 'https://i.pravatar.cc/150?u=$id',
+      expertName: expertEntity.name,
+      expertAvatarUrl: expertEntity.avatarUrl,
       dateTime: dateTime,
       status: status,
       hasUnreadMessages: false,
+      expert: expertEntity,
     );
   }
 
@@ -53,4 +57,3 @@ class ClientAppointmentModel extends ConsultationAppointment {
     }
   }
 }
-

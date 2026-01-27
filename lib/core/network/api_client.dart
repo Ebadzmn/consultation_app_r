@@ -23,6 +23,10 @@ class ApiClient {
   static const String clientAppointments = '/appointment/client/';
   static const String expertAppointments = '/appointment/expert/';
 
+  // Schedule
+  static const String schedule = '/schedule/';
+  static const String scheduleTimezone = '/schedule/timezone/';
+
   // Categories
   static const String categories = '/categories/';
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../injection_container.dart' as di;
+import '../../domain/repositories/experts_repository.dart';
 
 class ScheduleSettingsSheet extends StatefulWidget {
   const ScheduleSettingsSheet({super.key});
@@ -8,7 +10,8 @@ class ScheduleSettingsSheet extends StatefulWidget {
 }
 
 class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
-  String _selectedTimezone = 'Europe/Moscow +03:00';
+  String _selectedTimezone = '';
+  bool _isSaving = false;
   
   // Initialize with default values
   final List<DaySchedule> _schedule = [
@@ -20,6 +23,53 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
     DaySchedule(day: 'Saturday', startTime: '09:00', endTime: '18:00', isEnabled: true),
     DaySchedule(day: 'Sunday', startTime: '09:00', endTime: '18:00', isEnabled: true),
   ];
+
+  final List<String> _timezoneOptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTimezone();
+  }
+
+  Future<void> _loadTimezone() async {
+    final repository = di.sl<ExpertsRepository>();
+    final result = await repository.getScheduleTimezone();
+
+    if (!mounted) {
+      return;
+    }
+
+    result.fold(
+      (_) {
+        setState(() {
+          _timezoneOptions
+            ..clear()
+            ..add('Europe/Moscow');
+          _selectedTimezone = 'Europe/Moscow';
+        });
+      },
+      (tz) {
+        final value = (tz ?? '').trim();
+        if (value.isEmpty) {
+          setState(() {
+            _timezoneOptions
+              ..clear()
+              ..add('Europe/Moscow');
+            _selectedTimezone = 'Europe/Moscow';
+          });
+          return;
+        }
+
+        setState(() {
+          _timezoneOptions
+            ..clear()
+            ..add(value);
+          _selectedTimezone = value;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,27 +121,28 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedTimezone,
-                isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down),
-                items: ['Europe/Moscow +03:00', 'UTC +00:00', 'Asia/Dhaka +06:00']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _selectedTimezone = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
+            child: _timezoneOptions.isEmpty
+                ? const Text('Loading...')
+                : DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedTimezone,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: _timezoneOptions.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _selectedTimezone = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
           ),
           const SizedBox(height: 24),
 
@@ -157,10 +208,50 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                // TODO: Implement save logic
-                Navigator.pop(context);
-              },
+              onPressed: _isSaving
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isSaving = true;
+                      });
+
+                      final payload = <Map<String, dynamic>>[];
+                      for (var i = 0; i < _schedule.length; i++) {
+                        final item = _schedule[i];
+                        final dayOfWeek = i + 1;
+                        payload.add({
+                          'day_of_week': dayOfWeek,
+                          'is_work_day': item.isEnabled,
+                          'start_time': item.startTime,
+                          'end_time': item.endTime,
+                        });
+                      }
+
+                      final repository = di.sl<ExpertsRepository>();
+                      final result = await repository.updateSchedule(
+                        schedule: payload,
+                      );
+
+                      if (!mounted) {
+                        return;
+                      }
+
+                      result.fold(
+                        (_) {
+                          setState(() {
+                            _isSaving = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to save schedule'),
+                            ),
+                          );
+                        },
+                        (_) {
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF66BB6A),
                 elevation: 0,

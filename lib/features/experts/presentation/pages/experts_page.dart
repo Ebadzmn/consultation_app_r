@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
 import '../../../../injection_container.dart';
+import '../../domain/repositories/experts_repository.dart';
 import '../bloc/experts_bloc.dart';
 import '../bloc/experts_event.dart';
 import '../bloc/experts_state.dart';
@@ -11,42 +12,73 @@ import '../widgets/expert_card.dart';
 import '../widgets/experts_filter_sheet.dart';
 import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
+class ExpertsPageState {
+  final bool isSearching;
+  final String? avatarUrl;
+
+  const ExpertsPageState({
+    this.isSearching = false,
+    this.avatarUrl,
+  });
+
+  ExpertsPageState copyWith({
+    bool? isSearching,
+    String? avatarUrl,
+  }) {
+    return ExpertsPageState(
+      isSearching: isSearching ?? this.isSearching,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+    );
+  }
+}
+
+class ExpertsPageCubit extends Cubit<ExpertsPageState> {
+  final ExpertsRepository repository;
+
+  ExpertsPageCubit({required this.repository})
+      : super(const ExpertsPageState()) {
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    final result = await repository.getCurrentUserProfile();
+    result.fold(
+      (_) {},
+      (profile) {
+        emit(state.copyWith(avatarUrl: profile.imageUrl));
+      },
+    );
+  }
+
+  void toggleSearch() {
+    emit(state.copyWith(isSearching: !state.isSearching));
+  }
+}
+
 class ExpertsPage extends StatelessWidget {
   const ExpertsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<ExpertsBloc>()..add(LoadExperts()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ExpertsBloc>(
+          create: (_) => sl<ExpertsBloc>()..add(LoadExperts()),
+        ),
+        BlocProvider<ExpertsPageCubit>(
+          create: (_) => ExpertsPageCubit(repository: sl<ExpertsRepository>()),
+        ),
+      ],
       child: const ExpertsView(),
     );
   }
 }
 
-class ExpertsView extends StatefulWidget {
+class ExpertsView extends StatelessWidget {
   const ExpertsView({super.key});
 
-  @override
-  State<ExpertsView> createState() => _ExpertsViewState();
-}
-
-class _ExpertsViewState extends State<ExpertsView> {
-  bool _isSearching = false;
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchController.clear();
-      }
-    });
+  void _toggleSearch(BuildContext context) {
+    context.read<ExpertsPageCubit>().toggleSearch();
   }
 
   void _showFilterSheet(BuildContext context) {
@@ -80,17 +112,19 @@ class _ExpertsViewState extends State<ExpertsView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final pageState = context.watch<ExpertsPageCubit>().state;
+    final isSearching = pageState.isSearching;
+    final avatarUrl = pageState.avatarUrl;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: _isSearching ? Colors.white : const Color(0xFF2E2E3E),
+        backgroundColor: isSearching ? Colors.white : const Color(0xFF2E2E3E),
         elevation: 0,
         titleSpacing: 0,
-        title: _isSearching
+        title: isSearching
             ? SizedBox(
                 height: 40,
                 child: TextField(
-                  controller: _searchController,
                   autofocus: true,
                   style: const TextStyle(
                     color: Color(0xFF33354E),
@@ -120,8 +154,7 @@ class _ExpertsViewState extends State<ExpertsView> {
                         const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () {
-                            _searchController.clear();
-                            _toggleSearch();
+                            _toggleSearch(context);
                           },
                           child: const Icon(
                             Icons.close,
@@ -146,22 +179,30 @@ class _ExpertsViewState extends State<ExpertsView> {
                   ),
                 ),
               ),
-        actions: _isSearching
+        actions: isSearching
             ? []
             : [
                 IconButton(
                   icon: const Icon(Icons.search, color: Colors.white),
-                  onPressed: _toggleSearch,
+                  onPressed: () => _toggleSearch(context),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 20.0),
                   child: GestureDetector(
                     onTap: () => context.push(AppRoutes.myProfile),
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 16,
-                      backgroundImage: NetworkImage(
-                        'https://i.pravatar.cc/150?img=1',
-                      ), // User profile
+                      backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                          ? NetworkImage(avatarUrl)
+                          : null,
+                      backgroundColor: Colors.white,
+                      child: avatarUrl == null || avatarUrl.isEmpty
+                          ? const Icon(
+                              Icons.person,
+                              size: 18,
+                              color: Color(0xFF2E2E3E),
+                            )
+                          : null,
                     ),
                   ),
                 ),
