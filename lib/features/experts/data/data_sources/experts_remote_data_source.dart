@@ -28,6 +28,10 @@ abstract class ExpertsRemoteDataSource {
     required DateTime start,
     required DateTime end,
   });
+  Future<String?> getScheduleTimezone();
+  Future<void> updateSchedule({
+    required List<Map<String, dynamic>> schedule,
+  });
   Future<void> createAppointment({
     required String expertId,
     required DateTime appointmentDate,
@@ -396,6 +400,36 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     return ExpertConsultationsOverview(
       appointments: appointments,
       workingSlots: workingSlots,
+    );
+  }
+
+  @override
+  Future<String?> getScheduleTimezone() async {
+    final response = await _dioClient.get(
+      ApiClient.scheduleTimezone,
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final value = data['timezone'];
+      if (value != null) {
+        final s = value.toString().trim();
+        if (s.isNotEmpty) {
+          return s;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> updateSchedule({
+    required List<Map<String, dynamic>> schedule,
+  }) async {
+    await _dioClient.post(
+      ApiClient.schedule,
+      data: schedule,
     );
   }
 

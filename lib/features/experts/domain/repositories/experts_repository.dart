@@ -32,4 +32,8 @@ abstract class ExpertsRepository {
     required DateTime start,
     required DateTime end,
   });
+  Future<Either<Failure, void>> updateSchedule({
+    required List<Map<String, dynamic>> schedule,
+  });
+  Future<Either<Failure, String?>> getScheduleTimezone();
 }

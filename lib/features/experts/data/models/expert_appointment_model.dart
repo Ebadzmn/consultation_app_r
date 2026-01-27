@@ -28,13 +28,20 @@ class ExpertAppointmentModel extends ConsultationAppointment {
     final clientLast = (client?['last_name'] ?? '').toString().trim();
     final clientName = '$clientFirst $clientLast'.trim();
 
+    final expert = json['expert'] as Map<String, dynamic>?;
+    final expertAvatarRaw = (expert?['avatar_url'] as String?)?.trim();
+    final avatarUrl =
+        expertAvatarRaw != null && expertAvatarRaw.isNotEmpty
+            ? expertAvatarRaw
+            : 'https://i.pravatar.cc/150?u=expert_$id';
+
     final statusRaw = json['status'] as int? ?? 0;
     final status = _mapStatus(statusRaw);
 
     return ExpertAppointmentModel(
       id: id,
       expertName: clientName.isNotEmpty ? clientName : 'Client',
-      expertAvatarUrl: 'https://i.pravatar.cc/150?u=client_$id',
+      expertAvatarUrl: avatarUrl,
       dateTime: dateTime,
       status: status,
       hasUnreadMessages: false,
@@ -53,4 +60,3 @@ class ExpertAppointmentModel extends ConsultationAppointment {
     }
   }
 }
-

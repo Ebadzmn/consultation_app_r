@@ -130,4 +130,30 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, void>> updateSchedule({
+    required List<Map<String, dynamic>> schedule,
+  }) async {
+    try {
+      await remoteDataSource.updateSchedule(schedule: schedule);
+      return const Right(null);
+    } catch (e) {
+      return const Left(
+        ServerFailure('Failed to update schedule'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> getScheduleTimezone() async {
+    try {
+      final result = await remoteDataSource.getScheduleTimezone();
+      return Right(result);
+    } catch (e) {
+      return const Left(
+        ServerFailure('Failed to load schedule timezone'),
+      );
+    }
+  }
 }

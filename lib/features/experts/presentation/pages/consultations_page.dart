@@ -3,6 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:consultant_app/injection_container.dart' as di;
 import 'package:consultant_app/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
+import '../../domain/entities/expert_entity.dart';
+import '../../domain/entities/expert_profile.dart';
+import '../../domain/repositories/experts_repository.dart';
+import '../models/pay_now_args.dart';
+import '../../data/models/client_appointment_model.dart';
 import '../bloc/consultations/consultations_bloc.dart';
 import '../bloc/consultations/consultations_event.dart';
 import '../bloc/consultations/consultations_state.dart';
@@ -574,7 +581,7 @@ class _AppointmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = _statusMeta(appointment.status);
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (di.currentUser.value?.userType == 'Expert') {
           showModalBottomSheet(
             context: context,
@@ -584,13 +591,81 @@ class _AppointmentTile extends StatelessWidget {
                 ExpertAppointmentDetailsSheet(appointment: appointment),
           );
         } else {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) =>
-                AppointmentCancellationSheet(appointment: appointment),
-          );
+          if (appointment.status == ConsultationStatus.needToPay) {
+            final locale = Localizations.localeOf(context).toString();
+            ExpertEntity expert;
+            int price;
+            String? category;
+            if (appointment is ClientAppointmentModel) {
+              final clientAppointment = appointment as ClientAppointmentModel;
+              expert = clientAppointment.expert;
+              price = expert.price;
+              category =
+                  expert.tags.isNotEmpty ? expert.tags.first : null;
+
+              final repository = di.sl<ExpertsRepository>();
+              final profileResult =
+                  await repository.getExpertProfile(expert.id);
+              profileResult.fold(
+                (_) {},
+                (ExpertProfile profile) {
+                  final rawCost = profile.cost;
+                  final digitsOnly =
+                      rawCost.replaceAll(RegExp(r'[^0-9]'), '');
+                  final parsedPrice =
+                      int.tryParse(digitsOnly) ?? price;
+                  price = parsedPrice;
+                  expert = ExpertEntity(
+                    id: profile.id,
+                    name: profile.name,
+                    avatarUrl: profile.imageUrl,
+                    rating: profile.rating,
+                    reviewsCount: profile.reviewsCount,
+                    articlesCount: profile.articlesCount,
+                    pollsCount: profile.pollsCount,
+                    tags: profile.areas,
+                    description: profile.description,
+                    price: price,
+                  );
+                  category =
+                      profile.areas.isNotEmpty ? profile.areas.first : category;
+                },
+              );
+            } else {
+              expert = ExpertEntity(
+                id: appointment.id,
+                name: appointment.expertName,
+                avatarUrl: appointment.expertAvatarUrl,
+                rating: 0,
+                reviewsCount: 0,
+                articlesCount: 0,
+                pollsCount: 0,
+                tags: const [],
+                description: '',
+                price: 0,
+              );
+              price = expert.price;
+              category = null;
+            }
+            final args = PayNowArgs(
+              expert: expert,
+              price: price,
+              date: appointment.dateTime,
+              time: DateFormat('HH:mm', locale).format(appointment.dateTime),
+              category: category,
+              comment: '',
+              payWithin: const Duration(days: 2, hours: 14, minutes: 45),
+            );
+            context.push(AppRoutes.payNow, extra: args);
+          } else {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) =>
+                  AppointmentCancellationSheet(appointment: appointment),
+            );
+          }
         }
       },
       child: Container(

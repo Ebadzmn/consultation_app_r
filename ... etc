@@ -1,0 +1,1 @@
+. So apparently for FREEFORM they treat the "arguments" as string directly, with patch starting right away, no JSON. The IDE automatically passes raw text. For me I must specify in this channel the patch text only, no JSON braces. In earlier successful apply_patch for api_client and experts_remote_data_source, I wrote: 
