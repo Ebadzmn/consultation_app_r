@@ -1,3 +1,4 @@
+import 'package:consultant_app/core/network/api_client.dart';
 import '../../presentation/models/consultation_appointment.dart';
 
 class ExpertAppointmentModel extends ConsultationAppointment {
@@ -30,10 +31,17 @@ class ExpertAppointmentModel extends ConsultationAppointment {
 
     final expert = json['expert'] as Map<String, dynamic>?;
     final expertAvatarRaw = (expert?['avatar_url'] as String?)?.trim();
-    final avatarUrl =
-        expertAvatarRaw != null && expertAvatarRaw.isNotEmpty
-            ? expertAvatarRaw
-            : 'https://i.pravatar.cc/150?u=expert_$id';
+    final s = expertAvatarRaw ?? '';
+    String avatarUrl;
+    if (s.isEmpty) {
+      avatarUrl = 'https://i.pravatar.cc/150?u=expert_$id';
+    } else if (s.startsWith('http://') || s.startsWith('https://')) {
+      avatarUrl = s;
+    } else {
+      final uri = Uri.parse(ApiClient.baseUrl);
+      final origin = '${uri.scheme}://${uri.host}';
+      avatarUrl = '$origin$s';
+    }
 
     final statusRaw = json['status'] as int? ?? 0;
     final status = _mapStatus(statusRaw);

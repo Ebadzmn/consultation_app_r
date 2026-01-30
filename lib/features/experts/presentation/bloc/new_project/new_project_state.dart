@@ -1,18 +1,21 @@
 import 'package:equatable/equatable.dart';
+import '../../../../auth/domain/entities/category_entity.dart';
 
 class ProjectParticipant extends Equatable {
+  final String id;
   final String name;
   final String avatarUrl;
   final bool isMe;
 
   const ProjectParticipant({
+    required this.id,
     required this.name,
     required this.avatarUrl,
     this.isMe = false,
   });
 
   @override
-  List<Object?> get props => [name, avatarUrl, isMe];
+  List<Object?> get props => [id, name, avatarUrl, isMe];
 }
 
 class NewProjectState extends Equatable {
@@ -28,6 +31,7 @@ class NewProjectState extends Equatable {
   final List<ProjectParticipant> participants;
   final bool isPublishing;
   final bool publishSuccess;
+  final List<CategoryEntity> categories;
 
   const NewProjectState({
     this.title = '',
@@ -42,6 +46,7 @@ class NewProjectState extends Equatable {
     this.participants = const [],
     this.isPublishing = false,
     this.publishSuccess = false,
+    this.categories = const [],
   });
 
   NewProjectState copyWith({
@@ -57,6 +62,7 @@ class NewProjectState extends Equatable {
     List<ProjectParticipant>? participants,
     bool? isPublishing,
     bool? publishSuccess,
+    List<CategoryEntity>? categories,
   }) {
     return NewProjectState(
       title: title ?? this.title,
@@ -71,22 +77,24 @@ class NewProjectState extends Equatable {
       participants: participants ?? this.participants,
       isPublishing: isPublishing ?? this.isPublishing,
       publishSuccess: publishSuccess ?? this.publishSuccess,
+      categories: categories ?? this.categories,
     );
   }
 
   @override
   List<Object?> get props => [
-    title,
-    description,
-    coverImagePath,
-    textContent,
-    category,
-    company,
-    year,
-    results,
-    files,
-    participants,
-    isPublishing,
-    publishSuccess,
-  ];
+        title,
+        description,
+        coverImagePath,
+        textContent,
+        category,
+        company,
+        year,
+        results,
+        files,
+        participants,
+        isPublishing,
+        publishSuccess,
+        categories,
+      ];
 }

@@ -7,6 +7,7 @@ import '../models/expert_appointment_model.dart';
 import '../../domain/entities/available_work_dates_entity.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../../domain/entities/expert_consultations_overview.dart';
+import '../../domain/entities/project.dart';
 
 abstract class ExpertsRemoteDataSource {
   Future<List<ExpertModel>> getExperts({
@@ -20,6 +21,8 @@ abstract class ExpertsRemoteDataSource {
     String expertId,
     DateTime selectedDate,
   );
+  Future<List<Project>> getExpertProjects(String expertId);
+  Future<Map<String, dynamic>> getProjectDetails(String projectId);
   Future<List<ClientAppointmentModel>> getClientAppointments({
     required DateTime start,
     required DateTime end,
@@ -39,6 +42,16 @@ abstract class ExpertsRemoteDataSource {
     required int categoryId,
     required String notes,
   });
+  Future<void> createProject({
+    required String name,
+    required int year,
+    required List<int> categoryIds,
+    required List<int> memberIds,
+    required List<String> keyResults,
+    required String goals,
+    required int? customerId,
+    required String company,
+  });
 }
 
 class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
@@ -53,6 +66,19 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     5: 'Юридические консультации',
     6: 'PR и маркетинг',
   };
+
+  String _resolveMediaUrl(String? raw, String fallback) {
+    final s = raw?.trim() ?? '';
+    if (s.isEmpty) {
+      return fallback;
+    }
+    if (s.startsWith('http://') || s.startsWith('https://')) {
+      return s;
+    }
+    final uri = Uri.parse(ApiClient.baseUrl);
+    final origin = '${uri.scheme}://${uri.host}';
+    return '$origin$s';
+  }
 
   @override
   Future<ExpertProfile> getExpertProfile(String expertId) async {
@@ -136,10 +162,10 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     }
 
     final avatarUrlRaw = (data['avatar_url'] as String?)?.trim();
-    final imageUrl =
-        avatarUrlRaw != null && avatarUrlRaw.isNotEmpty
-            ? avatarUrlRaw
-            : 'https://i.pravatar.cc/300?u=$id';
+    final imageUrl = _resolveMediaUrl(
+      avatarUrlRaw,
+      'https://i.pravatar.cc/300?u=$id',
+    );
 
     return ExpertProfile(
       id: id,
@@ -173,10 +199,10 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final email = (data['email'] ?? '').toString().trim();
 
     final avatarUrlRaw = (data['avatar_url'] as String?)?.trim();
-    final imageUrl =
-        avatarUrlRaw != null && avatarUrlRaw.isNotEmpty
-            ? avatarUrlRaw
-            : 'https://i.pravatar.cc/300?u=$id';
+    final imageUrl = _resolveMediaUrl(
+      avatarUrlRaw,
+      'https://i.pravatar.cc/300?u=$id',
+    );
 
     return ExpertProfile(
       id: id,
@@ -197,6 +223,169 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       questionsCount: 0,
       projectsCount: 0,
       projects: const [],
+    );
+  }
+
+  @override
+  Future<List<Project>> getExpertProjects(String expertId) async {
+    final response = await _dioClient.get(
+      '${ApiClient.expertProjects}/$expertId/',
+    );
+
+    final data = response.data;
+
+    final rawList = data is List
+        ? data
+        : data is Map<String, dynamic>
+            ? (data['results'] ?? data['data'] ?? data['projects'])
+            : null;
+
+    if (rawList is List) {
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(_mapProjectFromJson)
+          .toList();
+    }
+
+    return [];
+  }
+
+  @override
+  Future<Map<String, dynamic>> getProjectDetails(String projectId) async {
+    final response = await _dioClient.get(
+      '${ApiClient.projectDetails}/$projectId/',
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+
+    return {};
+  }
+
+  Project _mapProjectFromJson(Map<String, dynamic> json) {
+    final id = json['id']?.toString() ?? '';
+
+    final title = (json['name'] ?? json['title'] ?? '').toString().trim();
+    final description =
+        (json['goals'] ?? json['description'] ?? '').toString().trim();
+
+    final viewsCount = (json['views_cnt'] as num?)?.toInt() ??
+        (json['views_count'] as num?)?.toInt() ??
+        0;
+    final likesCount = (json['likes_cnt'] as num?)?.toInt() ??
+        (json['likes_count'] as num?)?.toInt() ??
+        0;
+    final commentsCount = (json['comments_cnt'] as num?)?.toInt() ??
+        (json['comments_count'] as num?)?.toInt() ??
+        0;
+
+    final categoriesRaw = json['category'] ?? json['categories'];
+    List<String> categories = [];
+    if (categoriesRaw is List) {
+      categories = categoriesRaw
+          .map((e) => e is int ? e : int.tryParse(e.toString()))
+          .whereType<int>()
+          .map(
+            (categoryId) =>
+                _categoryNamesById[categoryId] ?? 'Категория $categoryId',
+          )
+          .toList();
+    }
+
+    List<String> participantAvatars = [];
+    int additionalParticipantsCount = 0;
+
+    final teamPreview = json['team_preview'];
+    if (teamPreview is Map<String, dynamic>) {
+      final topAvatars = teamPreview['top_avatars'];
+      if (topAvatars is List) {
+        final avatarMaps = topAvatars.whereType<Map<String, dynamic>>().toList();
+        participantAvatars = avatarMaps
+            .map((m) => (m['avatar'] as String?)?.trim())
+            .whereType<String>()
+            .where((url) => url.isNotEmpty)
+            .map(
+              (url) => _resolveMediaUrl(
+                url,
+                'https://i.pravatar.cc/150?u=${id}_member',
+              ),
+            )
+            .take(3)
+            .toList();
+
+        final totalCountRaw =
+            teamPreview['count'] ?? teamPreview['team_size'] ?? teamPreview['members_count'];
+        int? totalCount;
+        if (totalCountRaw is num) {
+          totalCount = totalCountRaw.toInt();
+        } else if (totalCountRaw is String) {
+          totalCount = int.tryParse(totalCountRaw);
+        }
+        totalCount ??= avatarMaps.length;
+
+        if (totalCount > participantAvatars.length) {
+          additionalParticipantsCount = totalCount - participantAvatars.length;
+        }
+      }
+    } else {
+      final members = json['members'];
+      if (members is List) {
+        final memberMaps = members.whereType<Map<String, dynamic>>().toList();
+        if (memberMaps.isNotEmpty) {
+          participantAvatars = memberMaps
+              .map((m) => (m['avatar_url'] as String?)?.trim())
+              .whereType<String>()
+              .where((url) => url.isNotEmpty)
+              .map(
+                (url) => _resolveMediaUrl(
+                  url,
+                  'https://i.pravatar.cc/150?u=${id}_member',
+                ),
+              )
+              .take(3)
+              .toList();
+          if (memberMaps.length > participantAvatars.length) {
+            additionalParticipantsCount =
+                memberMaps.length - participantAvatars.length;
+          }
+        } else {
+          final totalMembers = members.length;
+          additionalParticipantsCount = totalMembers > 3 ? totalMembers - 3 : 0;
+          final placeholdersCount = totalMembers >= 3 ? 3 : totalMembers;
+          participantAvatars = List.generate(
+            placeholdersCount,
+            (index) => 'https://i.pravatar.cc/150?u=${id}_member_$index',
+          );
+        }
+      }
+    }
+
+    DateTime date = DateTime.now();
+    final createdAt = json['time_create'] ??
+        json['created_at'] ??
+        json['updated_at'] ??
+        json['year'];
+    if (createdAt != null) {
+      final s = createdAt.toString();
+      final parsed = DateTime.tryParse(s);
+      if (parsed != null) {
+        date = parsed;
+      }
+    }
+
+    return Project(
+      id: id,
+      title: title.isNotEmpty ? title : 'Project $id',
+      description: description,
+      participantAvatars: participantAvatars,
+      additionalParticipantsCount: additionalParticipantsCount,
+      commentsCount: commentsCount,
+      viewsCount: viewsCount,
+      likesCount: likesCount,
+      categories: categories,
+      date: date,
     );
   }
 
@@ -457,6 +646,32 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
         'appointment_time': timeWithSeconds,
         'category_id': categoryId,
         'notes': notes,
+      },
+    );
+  }
+
+  @override
+  Future<void> createProject({
+    required String name,
+    required int year,
+    required List<int> categoryIds,
+    required List<int> memberIds,
+    required List<String> keyResults,
+    required String goals,
+    required int? customerId,
+    required String company,
+  }) async {
+    await _dioClient.post(
+      ApiClient.createProject,
+      data: {
+        'name': name,
+        'year': year,
+        'category': categoryIds,
+        'members': memberIds,
+        'key_results': keyResults,
+        'goals': goals,
+        'customer': customerId,
+        'company': company,
       },
     );
   }

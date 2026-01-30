@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:consultant_app/injection_container.dart' as di;
+import 'package:consultant_app/features/auth/domain/entities/category_entity.dart';
 import '../bloc/new_project/new_project_bloc.dart';
 import '../bloc/new_project/new_project_event.dart';
 import '../bloc/new_project/new_project_state.dart';
@@ -12,7 +14,10 @@ class NewProjectPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NewProjectBloc(),
+      create: (context) => NewProjectBloc(
+        getCategoriesUseCase: di.sl(),
+        createProjectUseCase: di.sl(),
+      ),
       child: const _NewProjectContent(),
     );
   }
@@ -71,7 +76,8 @@ class _NewProjectContent extends StatelessWidget {
                 _buildFieldLabel('Project Category', isRequired: true),
                 _buildDropdownField(
                   value: state.category.isEmpty ? null : state.category,
-                  hintText: 'AI / ML, Business, +3',
+                  hintText: 'Select category',
+                  categories: state.categories,
                   onChanged: (value) => context.read<NewProjectBloc>().add(
                     CategoryChanged(value ?? ''),
                   ),
@@ -94,7 +100,7 @@ class _NewProjectContent extends StatelessWidget {
                       context.read<NewProjectBloc>().add(YearChanged(value)),
                 ),
                 const SizedBox(height: 16),
-                _buildFieldLabel('Project Description'),
+                _buildFieldLabel('Project Description ( Goals)'),
                 _buildTextField(
                   initialValue: state.description,
                   hintText: 'Enter description',
@@ -219,8 +225,11 @@ class _NewProjectContent extends StatelessWidget {
   Widget _buildDropdownField({
     String? value,
     required String hintText,
+    required List<CategoryEntity> categories,
     required ValueChanged<String?> onChanged,
   }) {
+    final items = categories.map((c) => c.name).toList();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -237,13 +246,15 @@ class _NewProjectContent extends StatelessWidget {
           ),
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF33354E)),
-          items: ['AI / ML', 'Business', 'Marketing'].map((String category) {
-            return DropdownMenuItem<String>(
-              value: category,
-              child: Text(category),
-            );
-          }).toList(),
-          onChanged: onChanged,
+          items: items
+              .map(
+                (category) => DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                ),
+              )
+              .toList(),
+          onChanged: categories.isEmpty ? null : onChanged,
         ),
       ),
     );

@@ -25,8 +25,8 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
   ) async {
     emit(ExpertProfileLoading());
     try {
+      final repository = di.sl<ExpertsRepository>();
       if (event.expertId != null) {
-        final repository = di.sl<ExpertsRepository>();
         final result = await repository.getExpertProfile(event.expertId!);
 
         await result.fold<Future<void>>(
@@ -34,13 +34,25 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
             emit(ExpertProfileError(failure.message));
           },
           (profile) async {
-            emit(ExpertProfileLoaded(profile));
+            if (profile.projectsCount > 0) {
+              final projectsResult =
+                  await repository.getExpertProjects(profile.id);
+              final expertWithProjects = projectsResult.fold(
+                (_) => profile,
+                (projects) => profile.copyWith(
+                  projects: projects,
+                  projectsCount: projects.length,
+                ),
+              );
+              emit(ExpertProfileLoaded(expertWithProjects));
+            } else {
+              emit(ExpertProfileLoaded(profile));
+            }
           },
         );
         return;
       }
 
-      final repository = di.sl<ExpertsRepository>();
       final result = await repository.getCurrentUserProfile();
 
       await result.fold<Future<void>>(
@@ -48,7 +60,20 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
           emit(ExpertProfileError(failure.message));
         },
         (profile) async {
-          emit(ExpertProfileLoaded(profile));
+          if (profile.projectsCount > 0) {
+            final projectsResult =
+                await repository.getExpertProjects(profile.id);
+            final expertWithProjects = projectsResult.fold(
+              (_) => profile,
+              (projects) => profile.copyWith(
+                projects: projects,
+                projectsCount: projects.length,
+              ),
+            );
+            emit(ExpertProfileLoaded(expertWithProjects));
+          } else {
+            emit(ExpertProfileLoaded(profile));
+          }
         },
       );
     } catch (e) {

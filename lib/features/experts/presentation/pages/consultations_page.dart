@@ -648,6 +648,7 @@ class _AppointmentTile extends StatelessWidget {
               category = null;
             }
             final args = PayNowArgs(
+              appointmentId: appointment.id,
               expert: expert,
               price: price,
               date: appointment.dateTime,

@@ -8,7 +8,6 @@ import '../bloc/expert_profile/expert_profile_state.dart';
 import 'project_card.dart';
 import 'project_categories_sheet.dart';
 import 'project_details_sheet.dart';
-import '../../domain/entities/project.dart';
 
 class ExpertProfileView extends StatelessWidget {
   final ExpertProfile expert;
@@ -296,41 +295,24 @@ class ExpertProfileView extends StatelessWidget {
                               crossAxisSpacing: 10,
                               childAspectRatio: 1.1,
                             ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          // Mock project data matching the design image exactly
-                          final mockProject = Project(
-                            id: 'project_$index',
-                            title: index == 0
-                                ? "Project's title"
-                                : "Взрывное название проекта",
-                            description: "Description",
-                            viewsCount: 249,
-                            likesCount: 45,
-                            categories: index == 0
-                                ? ["Category"]
-                                : (index == 2 ? ["Статегии"] : ["ИИ / ML"]),
-                            participantAvatars: const [
-                              'https://i.pravatar.cc/150?u=1',
-                              'https://i.pravatar.cc/150?u=2',
-                              'https://i.pravatar.cc/150?u=3',
-                            ],
-                            additionalParticipantsCount: 3,
-                            commentsCount: 10,
-                            date: DateTime.now(),
-                          );
-                          return ProjectCard(
-                            project: mockProject,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    ProjectDetailsSheet(project: mockProject),
-                              );
-                            },
-                          );
-                        }, childCount: 6),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final project = expert.projects[index];
+                            return ProjectCard(
+                              project: project,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      ProjectDetailsSheet(project: project),
+                                );
+                              },
+                            );
+                          },
+                          childCount: expert.projects.length,
+                        ),
                       ),
                     ),
                   // Add extra padding at bottom to avoid content being hidden behind the button

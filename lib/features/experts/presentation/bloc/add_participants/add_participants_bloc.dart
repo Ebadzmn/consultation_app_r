@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:consultant_app/injection_container.dart' as di;
+import '../../../domain/repositories/experts_repository.dart';
 import '../new_project/new_project_state.dart';
 import 'add_participants_event.dart';
 import 'add_participants_state.dart';
@@ -17,49 +19,48 @@ class AddParticipantsBloc
   ) async {
     emit(state.copyWith(status: AddParticipantsStatus.loading));
 
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final repository = di.sl<ExpertsRepository>();
+      final result = await repository.getExperts();
 
-    // Mock data based on the image provided
-    final mockParticipants = [
-      const ProjectParticipant(
-        name: 'Maria Kozhevnikova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=1',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Petrova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=2',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Zaytseva',
-        avatarUrl: 'https://i.pravatar.cc/150?u=3',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Ivanova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=4',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Smirnova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=5',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Sokolova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=6',
-      ),
-      const ProjectParticipant(
-        name: 'Maria Popova',
-        avatarUrl: 'https://i.pravatar.cc/150?u=7',
-      ),
-    ];
+      result.fold(
+        (_) {
+          emit(
+            state.copyWith(
+              status: AddParticipantsStatus.failure,
+            ),
+          );
+        },
+        (experts) {
+          final participants = experts
+              .map(
+                (e) => ProjectParticipant(
+                  id: e.id,
+                  name: e.name,
+                  avatarUrl: e.avatarUrl,
+                ),
+              )
+              .toList();
 
-    emit(
-      state.copyWith(
-        status: AddParticipantsStatus.success,
-        participants: mockParticipants
-            .map((p) => SelectableParticipant(participant: p))
-            .toList(),
-      ),
-    );
+          emit(
+            state.copyWith(
+              status: AddParticipantsStatus.success,
+              participants: participants
+                  .map(
+                    (p) => SelectableParticipant(participant: p),
+                  )
+                  .toList(),
+            ),
+          );
+        },
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: AddParticipantsStatus.failure,
+        ),
+      );
+    }
   }
 
   void _onSearchQueryChanged(

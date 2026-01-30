@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:consultant_app/core/network/dio_client.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 import '../models/pay_now_args.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
 
@@ -142,8 +145,58 @@ class PaymentMethodPage extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.go(AppRoutes.paySuccess, extra: args);
+                  onPressed: () async {
+                    final appointmentId = args.appointmentId;
+                    if (appointmentId == null) {
+                      return;
+                    }
+                    try {
+                      final dioClient = di.sl<DioClient>();
+                      final numericId = int.tryParse(appointmentId);
+                      final response = await dioClient.post(
+                        '/payments/checkout/yookassa/',
+                        data: {
+                          'appointment_id': numericId ?? appointmentId,
+                        },
+                      );
+                      final data = response.data as Map<String, dynamic>;
+                      final confirmationUrl =
+                          data['confirmation_url'] as String;
+                      final paymentId = data['payment_id'] as int;
+
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PaymentWebViewPage(url: confirmationUrl),
+                        ),
+                      );
+
+                      final statusResponse = await dioClient.get(
+                        '/payments/$paymentId/status',
+                      );
+                      final statusData =
+                          statusResponse.data as Map<String, dynamic>;
+                      final rawStatus = statusData['status'];
+                      final status = rawStatus is int
+                          ? rawStatus
+                          : int.tryParse(rawStatus.toString()) ?? -1;
+
+                      if (status == 2) {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PaymentFailedPage(),
+                          ),
+                        );
+                      } else {
+                        context.go(AppRoutes.paySuccess, extra: args);
+                      }
+                    } catch (_) {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PaymentFailedPage(),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(
@@ -217,6 +270,56 @@ class _PaymentMethodCard extends StatelessWidget {
           ],
         ),
         child: child,
+      ),
+    );
+  }
+}
+
+class PaymentWebViewPage extends StatelessWidget {
+  final String url;
+
+  const PaymentWebViewPage({super.key, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(url));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Оплата'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: WebViewWidget(controller: controller),
+    );
+  }
+}
+
+class PaymentFailedPage extends StatelessWidget {
+  const PaymentFailedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Оплата'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: const Center(
+        child: Text(
+          'Payment was not completed',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.red,
+          ),
+        ),
       ),
     );
   }

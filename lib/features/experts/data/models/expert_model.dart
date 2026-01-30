@@ -1,3 +1,4 @@
+import 'package:consultant_app/core/network/api_client.dart';
 import '../../domain/entities/expert_entity.dart';
 
 class ExpertModel extends ExpertEntity {
@@ -46,10 +47,17 @@ class ExpertModel extends ExpertEntity {
     }
 
     final avatarUrlRaw = (json['avatar_url'] as String?)?.trim();
-    final avatarUrl =
-        avatarUrlRaw != null && avatarUrlRaw.isNotEmpty
-            ? avatarUrlRaw
-            : 'https://i.pravatar.cc/150?u=$id';
+    final s = avatarUrlRaw ?? '';
+    String avatarUrl;
+    if (s.isEmpty) {
+      avatarUrl = 'https://i.pravatar.cc/150?u=$id';
+    } else if (s.startsWith('http://') || s.startsWith('https://')) {
+      avatarUrl = s;
+    } else {
+      final uri = Uri.parse(ApiClient.baseUrl);
+      final origin = '${uri.scheme}://${uri.host}';
+      avatarUrl = '$origin$s';
+    }
 
     return ExpertModel(
       id: id,
