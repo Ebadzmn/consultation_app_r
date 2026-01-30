@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/expert_entity.dart';
 import '../../domain/entities/expert_profile.dart';
+import '../../domain/entities/project.dart';
 import '../../domain/repositories/experts_repository.dart';
 import '../data_sources/experts_remote_data_source.dart';
 import '../../domain/entities/available_work_dates_entity.dart';
@@ -42,6 +43,30 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
       return Right(profile);
     } catch (e) {
       return const Left(ServerFailure('Failed to load current profile'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Project>>> getExpertProjects(
+    String expertId,
+  ) async {
+    try {
+      final projects = await remoteDataSource.getExpertProjects(expertId);
+      return Right(projects);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to load expert projects'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getProjectDetails(
+    String projectId,
+  ) async {
+    try {
+      final data = await remoteDataSource.getProjectDetails(projectId);
+      return Right(data);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to load project details'));
     }
   }
 
@@ -154,6 +179,34 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
       return const Left(
         ServerFailure('Failed to load schedule timezone'),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> createProject({
+    required String name,
+    required int year,
+    required List<int> categoryIds,
+    required List<int> memberIds,
+    required List<String> keyResults,
+    required String goals,
+    required int? customerId,
+    required String company,
+  }) async {
+    try {
+      await remoteDataSource.createProject(
+        name: name,
+        year: year,
+        categoryIds: categoryIds,
+        memberIds: memberIds,
+        keyResults: keyResults,
+        goals: goals,
+        customerId: customerId,
+        company: company,
+      );
+      return const Right(null);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to create project'));
     }
   }
 }

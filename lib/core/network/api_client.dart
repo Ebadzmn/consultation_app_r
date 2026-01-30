@@ -30,5 +30,10 @@ class ApiClient {
   // Categories
   static const String categories = '/categories/';
 
+  // Projects
+  static const String createProject = '/projects/create/';
+  static const String projectDetails = '/projects';
+  static const String expertProjects = '/projects/expert';
+
   // Add other endpoints here as needed
 }

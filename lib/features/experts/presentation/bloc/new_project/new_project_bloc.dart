@@ -1,25 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../auth/domain/usecases/get_categories_usecase.dart';
+import '../../../domain/usecases/create_project_use_case.dart';
 import 'new_project_event.dart';
 import 'new_project_state.dart';
 
 class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
-  NewProjectBloc()
-    : super(
-        const NewProjectState(
-          participants: [
-            ProjectParticipant(
-              name: 'Alexander Alexandrov',
-              avatarUrl: 'https://i.pravatar.cc/150?img=12',
-              isMe: true,
-            ),
-            ProjectParticipant(
-              name: 'Maria Kozhevnikova',
-              avatarUrl: 'https://i.pravatar.cc/150?img=32',
-            ),
-          ],
-          files: ['Presentation.pdf', 'Project_report.pdf'],
-        ),
-      ) {
+  final GetCategoriesUseCase? getCategoriesUseCase;
+  final CreateProjectUseCase? createProjectUseCase;
+
+  NewProjectBloc({
+    this.getCategoriesUseCase,
+    this.createProjectUseCase,
+  }) : super(const NewProjectState()) {
     on<TitleChanged>(_onTitleChanged);
     on<DescriptionChanged>(_onDescriptionChanged);
     on<CoverImageChanged>(_onCoverImageChanged);
@@ -33,7 +25,10 @@ class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
     on<AddParticipant>(_onAddParticipant);
     on<AddParticipants>(_onAddParticipants);
     on<RemoveParticipant>(_onRemoveParticipant);
+    on<NewProjectCategoriesRequested>(_onCategoriesRequested);
     on<PublishProject>(_onPublishProject);
+
+    add(const NewProjectCategoriesRequested());
   }
 
   void _onCompanyChanged(CompanyChanged event, Emitter<NewProjectState> emit) {
@@ -89,10 +84,38 @@ class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
     emit(state.copyWith(category: event.category));
   }
 
+  Future<void> _onCategoriesRequested(
+    NewProjectCategoriesRequested event,
+    Emitter<NewProjectState> emit,
+  ) async {
+    if (getCategoriesUseCase == null) {
+      return;
+    }
+
+    final result = await getCategoriesUseCase!(
+      const GetCategoriesParams(page: 1, pageSize: 50),
+    );
+
+    result.fold(
+      (_) {},
+      (categories) {
+        emit(
+          state.copyWith(categories: categories),
+        );
+      },
+    );
+  }
+
   void _onAddParticipant(AddParticipant event, Emitter<NewProjectState> emit) {
     final updatedParticipants = List<ProjectParticipant>.from(
       state.participants,
-    )..add(ProjectParticipant(name: event.name, avatarUrl: event.avatarUrl));
+    )..add(
+        ProjectParticipant(
+          id: event.name,
+          name: event.name,
+          avatarUrl: event.avatarUrl,
+        ),
+      );
     emit(state.copyWith(participants: updatedParticipants));
   }
 
@@ -124,9 +147,61 @@ class NewProjectBloc extends Bloc<NewProjectEvent, NewProjectState> {
     PublishProject event,
     Emitter<NewProjectState> emit,
   ) async {
+    if (createProjectUseCase == null) {
+      return;
+    }
+
     emit(state.copyWith(isPublishing: true));
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-    emit(state.copyWith(isPublishing: false, publishSuccess: true));
+
+    final name = state.title.trim();
+    final year = int.tryParse(state.year) ?? DateTime.now().year;
+    final goals = state.description.trim();
+    final company = state.company.trim();
+
+    int? categoryId;
+    for (final c in state.categories) {
+      if (c.name == state.category) {
+        categoryId = c.id;
+        break;
+      }
+    }
+
+    final categoryIds = <int>[];
+    if (categoryId != null) {
+      categoryIds.add(categoryId);
+    }
+
+    final memberIds = state.participants
+        .map((p) => int.tryParse(p.id))
+        .whereType<int>()
+        .toList();
+
+    final keyResults = state.results.trim().isEmpty
+        ? <String>[]
+        : <String>[state.results.trim()];
+
+    final customerId = 1;
+
+    final result = await createProjectUseCase!(
+      CreateProjectParams(
+        name: name,
+        year: year,
+        categoryIds: categoryIds,
+        memberIds: memberIds,
+        keyResults: keyResults,
+        goals: goals,
+        customerId: customerId,
+        company: company,
+      ),
+    );
+
+    result.fold(
+      (_) {
+        emit(state.copyWith(isPublishing: false));
+      },
+      (_) {
+        emit(state.copyWith(isPublishing: false, publishSuccess: true));
+      },
+    );
   }
 }

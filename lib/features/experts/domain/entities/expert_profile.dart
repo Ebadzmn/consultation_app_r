@@ -41,4 +41,46 @@ class ExpertProfile {
     required this.projectsCount,
     this.projects = const [],
   });
+
+  ExpertProfile copyWith({
+    String? id,
+    String? name,
+    double? rating,
+    String? imageUrl,
+    List<String>? areas,
+    int? articlesCount,
+    int? pollsCount,
+    int? reviewsCount,
+    int? answersCount,
+    String? education,
+    String? experience,
+    String? description,
+    String? cost,
+    int? researchCount,
+    int? articleListCount,
+    int? questionsCount,
+    int? projectsCount,
+    List<Project>? projects,
+  }) {
+    return ExpertProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rating: rating ?? this.rating,
+      imageUrl: imageUrl ?? this.imageUrl,
+      areas: areas ?? this.areas,
+      articlesCount: articlesCount ?? this.articlesCount,
+      pollsCount: pollsCount ?? this.pollsCount,
+      reviewsCount: reviewsCount ?? this.reviewsCount,
+      answersCount: answersCount ?? this.answersCount,
+      education: education ?? this.education,
+      experience: experience ?? this.experience,
+      description: description ?? this.description,
+      cost: cost ?? this.cost,
+      researchCount: researchCount ?? this.researchCount,
+      articleListCount: articleListCount ?? this.articleListCount,
+      questionsCount: questionsCount ?? this.questionsCount,
+      projectsCount: projectsCount ?? this.projectsCount,
+      projects: projects ?? this.projects,
+    );
+  }
 }

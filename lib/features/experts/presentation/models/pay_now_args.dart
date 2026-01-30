@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/expert_entity.dart';
 
 class PayNowArgs extends Equatable {
+  final String? appointmentId;
   final ExpertEntity expert;
   final int price;
   final DateTime date;
@@ -11,6 +12,7 @@ class PayNowArgs extends Equatable {
   final Duration payWithin;
 
   const PayNowArgs({
+    this.appointmentId,
     required this.expert,
     required this.price,
     required this.date,
@@ -21,5 +23,14 @@ class PayNowArgs extends Equatable {
   });
 
   @override
-  List<Object?> get props => [expert, price, date, time, category, comment, payWithin];
+  List<Object?> get props => [
+        appointmentId,
+        expert,
+        price,
+        date,
+        time,
+        category,
+        comment,
+        payWithin,
+      ];
 }

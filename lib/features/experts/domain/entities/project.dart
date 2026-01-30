@@ -38,4 +38,31 @@ class Project extends Equatable {
     categories,
     date,
   ];
+
+  Project copyWith({
+    String? id,
+    String? title,
+    String? description,
+    List<String>? participantAvatars,
+    int? additionalParticipantsCount,
+    int? commentsCount,
+    int? viewsCount,
+    int? likesCount,
+    List<String>? categories,
+    DateTime? date,
+  }) {
+    return Project(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      participantAvatars: participantAvatars ?? this.participantAvatars,
+      additionalParticipantsCount:
+          additionalParticipantsCount ?? this.additionalParticipantsCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      viewsCount: viewsCount ?? this.viewsCount,
+      likesCount: likesCount ?? this.likesCount,
+      categories: categories ?? this.categories,
+      date: date ?? this.date,
+    );
+  }
 }

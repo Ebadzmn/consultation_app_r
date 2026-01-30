@@ -113,4 +113,8 @@ class RemoveParticipant extends NewProjectEvent {
   List<Object?> get props => [name];
 }
 
+class NewProjectCategoriesRequested extends NewProjectEvent {
+  const NewProjectCategoriesRequested();
+}
+
 class PublishProject extends NewProjectEvent {}

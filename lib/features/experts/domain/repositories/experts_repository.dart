@@ -4,6 +4,7 @@ import '../entities/expert_entity.dart';
 import '../entities/available_work_dates_entity.dart';
 import '../entities/expert_profile.dart';
 import '../entities/expert_consultations_overview.dart';
+import '../entities/project.dart';
 import '../../presentation/models/consultation_appointment.dart';
 
 abstract class ExpertsRepository {
@@ -17,6 +18,10 @@ abstract class ExpertsRepository {
     required String expertId,
     required DateTime selectedDate,
   });
+  Future<Either<Failure, List<Project>>> getExpertProjects(String expertId);
+  Future<Either<Failure, Map<String, dynamic>>> getProjectDetails(
+    String projectId,
+  );
   Future<Either<Failure, void>> createAppointment({
     required String expertId,
     required DateTime appointmentDate,
@@ -36,4 +41,14 @@ abstract class ExpertsRepository {
     required List<Map<String, dynamic>> schedule,
   });
   Future<Either<Failure, String?>> getScheduleTimezone();
+  Future<Either<Failure, void>> createProject({
+    required String name,
+    required int year,
+    required List<int> categoryIds,
+    required List<int> memberIds,
+    required List<String> keyResults,
+    required String goals,
+    required int? customerId,
+    required String company,
+  });
 }
