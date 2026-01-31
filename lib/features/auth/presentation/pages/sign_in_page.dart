@@ -43,7 +43,7 @@ class SignInView extends StatelessWidget {
               'SignInView: Login Success. isExpert: ${state.isExpert}',
             );
             if (state.isExpert) {
-              context.go(AppRoutes.experts);
+              context.go(AppRoutes.consultations);
             } else {
               context.go(AppRoutes.experts);
             }
@@ -65,7 +65,7 @@ class SignInView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
-                _UserTypeToggle(),
+                const SizedBox(height: 30),
                 const SizedBox(height: 30),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -135,79 +135,6 @@ class SignInView extends StatelessWidget {
                 const SizedBox(height: 20),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _UserTypeToggle extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return BlocBuilder<LoginBloc, LoginState>(
-      buildWhen: (previous, current) => previous.isExpert != current.isExpert,
-      builder: (context, state) {
-        return Row(
-          children: [
-            Expanded(
-              child: _ToggleButton(
-                label: l10n.expert,
-                isSelected: state.isExpert,
-                onTap: () => context.read<LoginBloc>().add(
-                  const LoginUserTypeChanged(true),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _ToggleButton(
-                label: l10n.client,
-                isSelected: !state.isExpert,
-                onTap: () => context.read<LoginBloc>().add(
-                  const LoginUserTypeChanged(false),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _ToggleButton extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ToggleButton({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF555B7D) : Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF555B7D) : Colors.grey.shade300,
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF2E3E5C),
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
           ),
         ),
       ),
