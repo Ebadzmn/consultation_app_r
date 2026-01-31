@@ -32,31 +32,32 @@ class ConsultationsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpert = di.currentUser.value?.userType == 'Expert';
     return BlocProvider(
-      create: (_) => ConsultationsBloc(
-        getClientAppointments: di.sl(),
-        getExpertAppointments: di.sl(),
-        isExpert: isExpert,
-        initialTab: initialTab ?? ConsultationsTab.calendar,
-      )..add(
-          ConsultationsAppointmentsRequested(
-            start: DateTime(
-              DateTime.now().year,
-              DateTime.now().month,
-              1,
-              0,
-              0,
-              0,
-            ),
-            end: DateTime(
-              DateTime.now().year,
-              DateTime.now().month + 1,
-              0,
-              23,
-              59,
-              59,
+      create: (_) =>
+          ConsultationsBloc(
+            getClientAppointments: di.sl(),
+            getExpertAppointments: di.sl(),
+            isExpert: isExpert,
+            initialTab: initialTab ?? ConsultationsTab.calendar,
+          )..add(
+            ConsultationsAppointmentsRequested(
+              start: DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                1,
+                0,
+                0,
+                0,
+              ),
+              end: DateTime(
+                DateTime.now().year,
+                DateTime.now().month + 1,
+                0,
+                23,
+                59,
+                59,
+              ),
             ),
           ),
-        ),
       child: const _ConsultationsContent(),
     );
   }
@@ -270,10 +271,7 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
       final start = selected.subtract(Duration(days: selected.weekday - 1));
       final end = start.add(const Duration(days: 7));
       filtered = appointments
-          .where(
-            (a) =>
-                !a.dateTime.isBefore(start) && a.dateTime.isBefore(end),
-          )
+          .where((a) => !a.dateTime.isBefore(start) && a.dateTime.isBefore(end))
           .toList();
     }
     filtered.sort((a, b) => a.dateTime.compareTo(b.dateTime));
@@ -594,6 +592,19 @@ class _AppointmentTile extends StatelessWidget {
                 ExpertAppointmentDetailsSheet(appointment: appointment),
           );
         } else {
+          final isPast = appointment.dateTime.isBefore(DateTime.now());
+
+          if (isPast) {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) =>
+                  ExpertAppointmentDetailsSheet(appointment: appointment),
+            );
+            return;
+          }
+
           if (appointment.status == ConsultationStatus.needToPay) {
             final locale = Localizations.localeOf(context).toString();
             ExpertEntity expert;
@@ -603,37 +614,33 @@ class _AppointmentTile extends StatelessWidget {
               final clientAppointment = appointment as ClientAppointmentModel;
               expert = clientAppointment.expert;
               price = expert.price;
-              category =
-                  expert.tags.isNotEmpty ? expert.tags.first : null;
+              category = expert.tags.isNotEmpty ? expert.tags.first : null;
 
               final repository = di.sl<ExpertsRepository>();
-              final profileResult =
-                  await repository.getExpertProfile(expert.id);
-              profileResult.fold(
-                (_) {},
-                (ExpertProfile profile) {
-                  final rawCost = profile.cost;
-                  final digitsOnly =
-                      rawCost.replaceAll(RegExp(r'[^0-9]'), '');
-                  final parsedPrice =
-                      int.tryParse(digitsOnly) ?? price;
-                  price = parsedPrice;
-                  expert = ExpertEntity(
-                    id: profile.id,
-                    name: profile.name,
-                    avatarUrl: profile.imageUrl,
-                    rating: profile.rating,
-                    reviewsCount: profile.reviewsCount,
-                    articlesCount: profile.articlesCount,
-                    pollsCount: profile.pollsCount,
-                    tags: profile.areas,
-                    description: profile.description,
-                    price: price,
-                  );
-                  category =
-                      profile.areas.isNotEmpty ? profile.areas.first : category;
-                },
+              final profileResult = await repository.getExpertProfile(
+                expert.id,
               );
+              profileResult.fold((_) {}, (ExpertProfile profile) {
+                final rawCost = profile.cost;
+                final digitsOnly = rawCost.replaceAll(RegExp(r'[^0-9]'), '');
+                final parsedPrice = int.tryParse(digitsOnly) ?? price;
+                price = parsedPrice;
+                expert = ExpertEntity(
+                  id: profile.id,
+                  name: profile.name,
+                  avatarUrl: profile.imageUrl,
+                  rating: profile.rating,
+                  reviewsCount: profile.reviewsCount,
+                  articlesCount: profile.articlesCount,
+                  pollsCount: profile.pollsCount,
+                  tags: profile.areas,
+                  description: profile.description,
+                  price: price,
+                );
+                category = profile.areas.isNotEmpty
+                    ? profile.areas.first
+                    : category;
+              });
             } else {
               expert = ExpertEntity(
                 id: appointment.id,

@@ -4,6 +4,7 @@ import '../../../../auth/domain/entities/category_entity.dart';
 enum AppointmentStatus {
   initial,
   loadingAvailability,
+  loadingTimeSlots,
   submitting,
   success,
   failure,

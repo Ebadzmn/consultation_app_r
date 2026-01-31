@@ -58,25 +58,18 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
         unavailableTimes: const {},
         timeSlots: const [],
         showSlotWarning: false,
-        status: AppointmentStatus.loadingAvailability,
+        status: AppointmentStatus.loadingTimeSlots,
         errorMessage: null,
       ),
     );
 
     if (getAvailableTimeSlotsUseCase == null) {
-      emit(
-        state.copyWith(
-          status: AppointmentStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: AppointmentStatus.initial));
       return;
     }
 
     final result = await getAvailableTimeSlotsUseCase!(
-      GetAvailableTimeSlotsParams(
-        expertId: expertId,
-        selectedDate: normalized,
-      ),
+      GetAvailableTimeSlotsParams(expertId: expertId, selectedDate: normalized),
     );
 
     result.fold(
@@ -257,18 +250,10 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
 
     result.fold(
       (failure) {
-        emit(
-          state.copyWith(
-            errorMessage: failure.message,
-          ),
-        );
+        emit(state.copyWith(errorMessage: failure.message));
       },
       (categories) {
-        emit(
-          state.copyWith(
-            categories: categories,
-          ),
-        );
+        emit(state.copyWith(categories: categories));
       },
     );
   }
