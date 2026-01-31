@@ -19,9 +19,7 @@ import '../widgets/weekly_scheduler_components.dart';
 import '../widgets/appointment_cancellation_sheet.dart';
 import '../widgets/expert_appointment_details_sheet.dart';
 import 'package:consultant_app/features/experts/presentation/widgets/edit_daily_schedule_sheet.dart';
-
 import 'package:consultant_app/features/experts/presentation/widgets/schedule_settings_sheet.dart';
-
 import 'package:consultant_app/features/experts/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class ConsultationsPage extends StatelessWidget {
@@ -60,6 +58,105 @@ class ConsultationsPage extends StatelessWidget {
           ),
       child: const _ConsultationsContent(),
     );
+  }
+
+  static Future<void> handleAppointmentTap(
+    BuildContext context,
+    ConsultationAppointment appointment,
+  ) async {
+    if (di.currentUser.value?.userType == 'Expert') {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) =>
+            ExpertAppointmentDetailsSheet(appointment: appointment),
+      );
+    } else {
+      final isPast = appointment.dateTime.isBefore(DateTime.now());
+
+      if (isPast) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) =>
+              ExpertAppointmentDetailsSheet(appointment: appointment),
+        );
+        return;
+      }
+
+      if (appointment.status == ConsultationStatus.needToPay) {
+        final locale = Localizations.localeOf(context).toString();
+        ExpertEntity expert;
+        int price;
+        String? category;
+        if (appointment is ClientAppointmentModel) {
+          final clientAppointment = appointment;
+          expert = clientAppointment.expert;
+          price = expert.price;
+          category = expert.tags.isNotEmpty ? expert.tags.first : null;
+
+          final repository = di.sl<ExpertsRepository>();
+          final profileResult = await repository.getExpertProfile(expert.id);
+          profileResult.fold((_) {}, (ExpertProfile profile) {
+            final rawCost = profile.cost;
+            final digitsOnly = rawCost.replaceAll(RegExp(r'[^0-9]'), '');
+            final parsedPrice = int.tryParse(digitsOnly) ?? price;
+            price = parsedPrice;
+            expert = ExpertEntity(
+              id: profile.id,
+              name: profile.name,
+              avatarUrl: profile.imageUrl,
+              rating: profile.rating,
+              reviewsCount: profile.reviewsCount,
+              articlesCount: profile.articlesCount,
+              pollsCount: profile.pollsCount,
+              tags: profile.areas,
+              description: profile.description,
+              price: price,
+            );
+            category = profile.areas.isNotEmpty
+                ? profile.areas.first
+                : category;
+          });
+        } else {
+          expert = ExpertEntity(
+            id: appointment.id,
+            name: appointment.expertName,
+            avatarUrl: appointment.expertAvatarUrl,
+            rating: 0,
+            reviewsCount: 0,
+            articlesCount: 0,
+            pollsCount: 0,
+            tags: const [],
+            description: '',
+            price: 0,
+          );
+          price = expert.price;
+          category = null;
+        }
+        final args = PayNowArgs(
+          appointmentId: appointment.id,
+          expert: expert,
+          price: price,
+          date: appointment.dateTime,
+          time: DateFormat('HH:mm', locale).format(appointment.dateTime),
+          category: category,
+          comment: '',
+          payWithin: const Duration(days: 2, hours: 14, minutes: 45),
+        );
+        context.push(AppRoutes.payNow, extra: args);
+      } else {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) =>
+              AppointmentCancellationSheet(appointment: appointment),
+        );
+      }
+    }
   }
 }
 
@@ -143,13 +240,17 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                       onNextWeek: () => context.read<ConsultationsBloc>().add(
                         ConsultationsNextWeekPressed(),
                       ),
-                      onAppointmentTap: (appointment) {
+                      onAppointmentTap: (appointment) async {
                         context.read<ConsultationsBloc>().add(
                           ConsultationsDateSelected(appointment.dateTime),
                         );
                         setState(() {
                           _selectedWeeklyAppointment = appointment;
                         });
+                        await ConsultationsPage.handleAppointmentTap(
+                          context,
+                          appointment,
+                        );
                       },
                     ),
                   ),
@@ -583,101 +684,7 @@ class _AppointmentTile extends StatelessWidget {
     final status = _statusMeta(appointment.status);
     return GestureDetector(
       onTap: () async {
-        if (di.currentUser.value?.userType == 'Expert') {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) =>
-                ExpertAppointmentDetailsSheet(appointment: appointment),
-          );
-        } else {
-          final isPast = appointment.dateTime.isBefore(DateTime.now());
-
-          if (isPast) {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) =>
-                  ExpertAppointmentDetailsSheet(appointment: appointment),
-            );
-            return;
-          }
-
-          if (appointment.status == ConsultationStatus.needToPay) {
-            final locale = Localizations.localeOf(context).toString();
-            ExpertEntity expert;
-            int price;
-            String? category;
-            if (appointment is ClientAppointmentModel) {
-              final clientAppointment = appointment as ClientAppointmentModel;
-              expert = clientAppointment.expert;
-              price = expert.price;
-              category = expert.tags.isNotEmpty ? expert.tags.first : null;
-
-              final repository = di.sl<ExpertsRepository>();
-              final profileResult = await repository.getExpertProfile(
-                expert.id,
-              );
-              profileResult.fold((_) {}, (ExpertProfile profile) {
-                final rawCost = profile.cost;
-                final digitsOnly = rawCost.replaceAll(RegExp(r'[^0-9]'), '');
-                final parsedPrice = int.tryParse(digitsOnly) ?? price;
-                price = parsedPrice;
-                expert = ExpertEntity(
-                  id: profile.id,
-                  name: profile.name,
-                  avatarUrl: profile.imageUrl,
-                  rating: profile.rating,
-                  reviewsCount: profile.reviewsCount,
-                  articlesCount: profile.articlesCount,
-                  pollsCount: profile.pollsCount,
-                  tags: profile.areas,
-                  description: profile.description,
-                  price: price,
-                );
-                category = profile.areas.isNotEmpty
-                    ? profile.areas.first
-                    : category;
-              });
-            } else {
-              expert = ExpertEntity(
-                id: appointment.id,
-                name: appointment.expertName,
-                avatarUrl: appointment.expertAvatarUrl,
-                rating: 0,
-                reviewsCount: 0,
-                articlesCount: 0,
-                pollsCount: 0,
-                tags: const [],
-                description: '',
-                price: 0,
-              );
-              price = expert.price;
-              category = null;
-            }
-            final args = PayNowArgs(
-              appointmentId: appointment.id,
-              expert: expert,
-              price: price,
-              date: appointment.dateTime,
-              time: DateFormat('HH:mm', locale).format(appointment.dateTime),
-              category: category,
-              comment: '',
-              payWithin: const Duration(days: 2, hours: 14, minutes: 45),
-            );
-            context.push(AppRoutes.payNow, extra: args);
-          } else {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) =>
-                  AppointmentCancellationSheet(appointment: appointment),
-            );
-          }
-        }
+        await ConsultationsPage.handleAppointmentTap(context, appointment);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
