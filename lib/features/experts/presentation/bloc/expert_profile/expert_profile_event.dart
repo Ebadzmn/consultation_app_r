@@ -24,3 +24,12 @@ class ExpertProfileTabChanged extends ExpertProfileEvent {
   @override
   List<Object> get props => [index];
 }
+
+class FilterExpertProjects extends ExpertProfileEvent {
+  final int categoryId;
+
+  const FilterExpertProjects(this.categoryId);
+
+  @override
+  List<Object> get props => [categoryId];
+}

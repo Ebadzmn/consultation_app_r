@@ -10,16 +10,26 @@ abstract class ExpertsEvent extends Equatable {
 class LoadExperts extends ExpertsEvent {}
 
 class FilterExperts extends ExpertsEvent {
-  final String category;
-  final String rating;
+  final List<int> categoryIds;
+  final double minRating;
   final String sortBy;
+  final int page;
+  final int pageSize;
 
   const FilterExperts({
-    required this.category,
-    required this.rating,
+    required this.categoryIds,
+    required this.minRating,
     required this.sortBy,
+    this.page = 1,
+    this.pageSize = 10,
   });
 
   @override
-  List<Object> get props => [category, rating, sortBy];
+  List<Object> get props => [
+        categoryIds,
+        minRating,
+        sortBy,
+        page,
+        pageSize,
+      ];
 }

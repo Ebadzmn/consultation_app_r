@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/expert_profile.dart';
+import 'package:consultant_app/injection_container.dart' as di;
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
 import '../bloc/expert_profile/expert_profile_state.dart';
@@ -137,14 +139,51 @@ class ExpertProfileView extends StatelessWidget {
                           ),
                           GestureDetector(
                             onTap: () {
+                              final bloc = context.read<ExpertProfileBloc>();
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
                                 builder: (context) => ProjectCategoriesSheet(
                                   selectedCategories: const [],
-                                  onApply: (categories) {
-                                    // Handle logic if needed
+                                  onApply: (categories) async {
+                                    if (categories.isEmpty) {
+                                      bloc.add(
+                                        LoadExpertProfile(
+                                          expertId: expert.id,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    final selectedName = categories.first;
+                                    final allCategoriesResult =
+                                        await di.sl<AuthRepository>()
+                                            .getCategories(
+                                      page: 1,
+                                      pageSize: 50,
+                                    );
+
+                                    int? selectedId;
+                                    allCategoriesResult.fold(
+                                      (_) {},
+                                      (allCategories) {
+                                        for (final c in allCategories) {
+                                          if (c.name == selectedName) {
+                                            selectedId = c.id;
+                                            break;
+                                          }
+                                        }
+                                      },
+                                    );
+
+                                    if (selectedId == null) {
+                                      return;
+                                    }
+
+                                    bloc.add(
+                                      FilterExpertProjects(selectedId!),
+                                    );
                                   },
                                 ),
                               );

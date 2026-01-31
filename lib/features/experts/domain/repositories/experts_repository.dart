@@ -8,7 +8,13 @@ import '../entities/project.dart';
 import '../../presentation/models/consultation_appointment.dart';
 
 abstract class ExpertsRepository {
-  Future<Either<Failure, List<ExpertEntity>>> getExperts();
+  Future<Either<Failure, List<ExpertEntity>>> getExperts({
+    int page,
+    int pageSize,
+    double? minRating,
+    List<int>? categoryIds,
+    String? sortBy,
+  });
   Future<Either<Failure, ExpertProfile>> getExpertProfile(String expertId);
   Future<Either<Failure, ExpertProfile>> getCurrentUserProfile();
   Future<Either<Failure, AvailableWorkDatesEntity>> getAvailableWorkDates(
@@ -18,7 +24,10 @@ abstract class ExpertsRepository {
     required String expertId,
     required DateTime selectedDate,
   });
-  Future<Either<Failure, List<Project>>> getExpertProjects(String expertId);
+  Future<Either<Failure, List<Project>>> getExpertProjects(
+    String expertId, {
+    int? categoryId,
+  });
   Future<Either<Failure, Map<String, dynamic>>> getProjectDetails(
     String projectId,
   );

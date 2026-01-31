@@ -82,6 +82,7 @@ class ExpertsView extends StatelessWidget {
   }
 
   void _showFilterSheet(BuildContext context) {
+    final expertsBloc = context.read<ExpertsBloc>();
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -93,7 +94,10 @@ class ExpertsView extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           child: Material(
             color: Colors.transparent,
-            child: const ExpertsFilterSheet(),
+            child: BlocProvider.value(
+              value: expertsBloc,
+              child: const ExpertsFilterSheet(),
+            ),
           ),
         );
       },

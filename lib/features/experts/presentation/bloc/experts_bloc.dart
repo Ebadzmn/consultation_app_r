@@ -15,7 +15,7 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
       LoadExperts event, Emitter<ExpertsState> emit) async {
     emit(state.copyWith(status: ExpertsStatus.loading));
 
-    final result = await getExperts();
+    final result = await getExperts(const GetExpertsParams());
 
     result.fold(
       (failure) => emit(state.copyWith(
@@ -27,9 +27,31 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
 
   Future<void> _onFilterExperts(
       FilterExperts event, Emitter<ExpertsState> emit) async {
-    // In a real app, this would trigger a new UseCase call with parameters
-    // For now, we'll simulate filtering on the already loaded list or reload
-    // Since we only have mock data, we will just reload to simulate activity
-    add(LoadExperts());
+    emit(state.copyWith(status: ExpertsStatus.loading));
+
+    final result = await getExperts(
+      GetExpertsParams(
+        page: event.page,
+        pageSize: event.pageSize,
+        minRating: event.minRating,
+        categoryIds: event.categoryIds,
+        sortBy: event.sortBy,
+      ),
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          status: ExpertsStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (experts) => emit(
+        state.copyWith(
+          status: ExpertsStatus.success,
+          experts: experts,
+        ),
+      ),
+    );
   }
 }

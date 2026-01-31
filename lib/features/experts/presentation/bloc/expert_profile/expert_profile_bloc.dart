@@ -8,6 +8,7 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
   ExpertProfileBloc() : super(ExpertProfileInitial()) {
     on<LoadExpertProfile>(_onLoadExpertProfile);
     on<ExpertProfileTabChanged>(_onTabChanged);
+    on<FilterExpertProjects>(_onFilterExpertProjects);
   }
 
   void _onTabChanged(
@@ -17,6 +18,40 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
     if (state is ExpertProfileLoaded) {
       emit((state as ExpertProfileLoaded).copyWith(selectedIndex: event.index));
     }
+  }
+
+  Future<void> _onFilterExpertProjects(
+    FilterExpertProjects event,
+    Emitter<ExpertProfileState> emit,
+  ) async {
+    final current = state;
+    if (current is! ExpertProfileLoaded) {
+      return;
+    }
+
+    try {
+      final repository = di.sl<ExpertsRepository>();
+      final projectsResult = await repository.getExpertProjects(
+        current.expert.id,
+        categoryId: event.categoryId,
+      );
+
+      projectsResult.fold(
+        (_) {},
+        (projects) {
+          final updatedExpert = current.expert.copyWith(
+            projects: projects,
+            projectsCount: projects.length,
+          );
+          emit(
+            ExpertProfileLoaded(
+              updatedExpert,
+              selectedIndex: current.selectedIndex,
+            ),
+          );
+        },
+      );
+    } catch (_) {}
   }
 
   Future<void> _onLoadExpertProfile(
@@ -35,8 +70,9 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
           },
           (profile) async {
             if (profile.projectsCount > 0) {
-              final projectsResult =
-                  await repository.getExpertProjects(profile.id);
+              final projectsResult = await repository.getExpertProjects(
+                profile.id,
+              );
               final expertWithProjects = projectsResult.fold(
                 (_) => profile,
                 (projects) => profile.copyWith(
@@ -61,8 +97,9 @@ class ExpertProfileBloc extends Bloc<ExpertProfileEvent, ExpertProfileState> {
         },
         (profile) async {
           if (profile.projectsCount > 0) {
-            final projectsResult =
-                await repository.getExpertProjects(profile.id);
+            final projectsResult = await repository.getExpertProjects(
+              profile.id,
+            );
             final expertWithProjects = projectsResult.fold(
               (_) => profile,
               (projects) => profile.copyWith(
