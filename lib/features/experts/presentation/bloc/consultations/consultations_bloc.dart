@@ -176,6 +176,13 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
       state.focusedMonth.year,
       state.focusedMonth.month + 1,
     );
+    final now = DateTime.now();
+    final maxMonth = DateTime(now.year, now.month + 4);
+    if (DateTime(next.year, next.month).isAfter(
+      DateTime(maxMonth.year, maxMonth.month),
+    )) {
+      return;
+    }
     emit(state.copyWith(focusedMonth: next));
     add(
       ConsultationsAppointmentsRequested(

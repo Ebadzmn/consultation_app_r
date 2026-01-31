@@ -75,6 +75,8 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final maxMonth = DateTime(now.year, now.month + 4);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -187,6 +189,7 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                               focusedMonth: state.focusedMonth,
                               selectedDate: state.selectedDate,
                               appointments: state.appointments,
+                              maxMonth: maxMonth,
                               onPreviousMonth: () => context
                                   .read<ConsultationsBloc>()
                                   .add(ConsultationsPreviousMonthPressed()),
