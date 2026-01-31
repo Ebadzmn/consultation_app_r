@@ -2,38 +2,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:consultant_app/injection_container.dart' as di;
-import 'package:consultant_app/features/auth/data/models/user_model.dart';
+
 import 'package:consultant_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:consultant_app/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:consultant_app/features/auth/domain/usecases/get_profile_usecase.dart';
+import 'package:consultant_app/core/usecases/usecase.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final SignInUseCase signInUseCase;
+  final GetProfileUseCase getProfileUseCase;
 
-  LoginBloc({required this.signInUseCase}) : super(const LoginState()) {
-    on<LoginUserTypeChanged>(_onUserTypeChanged);
+  LoginBloc({required this.signInUseCase, required this.getProfileUseCase})
+    : super(const LoginState()) {
     on<LoginEmailChanged>(_onEmailChanged);
     on<LoginPasswordChanged>(_onPasswordChanged);
     on<LoginErrorDismissed>(_onErrorDismissed);
     on<LoginSubmitted>(_onSubmitted);
-  }
-
-  void _onUserTypeChanged(
-    LoginUserTypeChanged event,
-    Emitter<LoginState> emit,
-  ) {
-    debugPrint(
-      'LoginBloc: UserType changed to ${event.isExpert ? "Expert" : "Client"}',
-    );
-    emit(
-      state.copyWith(
-        isExpert: event.isExpert,
-        status: LoginStatus.initial,
-        errorMessage: null,
-      ),
-    );
   }
 
   void _onEmailChanged(LoginEmailChanged event, Emitter<LoginState> emit) {
@@ -104,12 +91,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     emit(state.copyWith(status: LoginStatus.loading));
 
-    final result = await signInUseCase(
+    // 1. Sign In
+    final signInResult = await signInUseCase(
       SignInParams(username: email.trim(), password: password.trim()),
     );
 
-    result.fold(
-      (failure) {
+    await signInResult.fold(
+      (failure) async {
         emit(
           state.copyWith(
             status: LoginStatus.failure,
@@ -117,29 +105,43 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           ),
         );
       },
-      (user) {
-        // Prioritize the UI selection for navigation and dashboard mode
-        final isExpertResult = state.isExpert;
+      (user) async {
+        // 2. Fetch Profile to Determine Role
+        final profileResult = await getProfileUseCase(NoParams());
 
-        debugPrint(
-          'LoginBloc: Success. UI selected isExpert: ${state.isExpert}, Server said: ${user.userType}. Using Final: $isExpertResult',
-        );
+        profileResult.fold(
+          (failure) {
+            emit(
+              state.copyWith(
+                status: LoginStatus.failure,
+                errorMessage:
+                    'Login successful but failed to fetch profile: ${failure.message}',
+              ),
+            );
+          },
+          (userProfile) {
+            String userType = userProfile.userType;
+            // Normalize userType if needed
+            // If the API returns 0/1 as int, userType in UserModel might be "0" or "1" string
+            // Logic: 1 = Expert, 0 = Client
 
-        // Update global user with the UI-selected role for consistency in navigation/dashboard
-        if (user is UserModel) {
-          final updatedUser = user.copyWith(
-            userType: isExpertResult ? 'Expert' : 'Client',
-          );
-          di.currentUser.value = updatedUser;
-          // Persist the spoofed user so it survives app restart
-          di.sl<AuthRepository>().persistUser(updatedUser);
-        } else {
-          di.currentUser.value = user;
-          di.sl<AuthRepository>().persistUser(user);
-        }
+            bool isExpert = false;
+            if (userType == "1" || userType.toLowerCase() == "expert") {
+              isExpert = true;
+            }
 
-        emit(
-          state.copyWith(status: LoginStatus.success, isExpert: isExpertResult),
+            debugPrint(
+              'LoginBloc: Profile Fetched. UserType: $userType, isExpert: $isExpert',
+            );
+
+            // Update global user
+            di.currentUser.value = userProfile;
+            di.sl<AuthRepository>().persistUser(userProfile);
+
+            emit(
+              state.copyWith(status: LoginStatus.success, isExpert: isExpert),
+            );
+          },
         );
       },
     );

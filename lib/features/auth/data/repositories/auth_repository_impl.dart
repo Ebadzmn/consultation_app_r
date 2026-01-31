@@ -148,4 +148,14 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(ServerFailure('Failed to load categories'));
     }
   }
+
+  @override
+  Future<Either<Failure, UserEntity>> getProfile() async {
+    try {
+      final userModel = await remoteDataSource.getProfile();
+      return Right(userModel);
+    } catch (e) {
+      return const Left(ServerFailure('Failed to load profile'));
+    }
+  }
 }

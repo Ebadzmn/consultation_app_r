@@ -25,10 +25,9 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<List<CategoryModel>> getCategories({
-    int page,
-    int pageSize,
-  });
+  Future<List<CategoryModel>> getCategories({int page, int pageSize});
+
+  Future<UserModel> getProfile();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -121,10 +120,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     final response = await _dioClient.get(
       ApiClient.categories,
-      queryParameters: {
-        'page': page,
-        'page_size': pageSize,
-      },
+      queryParameters: {'page': page, 'page_size': pageSize},
     );
 
     final data = response.data;
@@ -139,5 +135,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     return [];
+  }
+
+  @override
+  Future<UserModel> getProfile() async {
+    final response = await _dioClient.get(ApiClient.profile);
+    // Assuming response.data contains the user object directly or within 'data' wrapper
+    // Adjust based on actual API response structure.
+    // Previous analysis suggests: { "status": "success", "data": { ... } }
+
+    final data = response.data['data'] ?? response.data;
+    return UserModel.fromJson(data);
   }
 }

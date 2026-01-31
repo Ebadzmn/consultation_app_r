@@ -34,4 +34,6 @@ abstract class AuthRepository {
     int page,
     int pageSize,
   });
+
+  Future<Either<Failure, UserEntity>> getProfile();
 }
