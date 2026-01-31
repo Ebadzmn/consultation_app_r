@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
+ import '../../../../injection_container.dart' as di;
+ import '../../../auth/domain/repositories/auth_repository.dart';
 
 class ProjectCategoriesSheet extends StatefulWidget {
   final List<String> selectedCategories;
@@ -16,25 +18,39 @@ class ProjectCategoriesSheet extends StatefulWidget {
 
 class _ProjectCategoriesSheetState extends State<ProjectCategoriesSheet> {
   late List<String> _tempSelected;
-  final List<String> _allCategories = [
-    'Caregory 1',
-    'Category 2',
-    'Название категории',
-    'Название категории 1',
-    'Название категории 2',
-    'Название категории 3',
-    'Название категории 4',
-    'Название категории 5',
-    'Название категории 6',
-    'Название категории 7',
-    'Название категории 8',
-    'Название категории 9',
-  ];
+  List<String> _allCategories = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     _tempSelected = List.from(widget.selectedCategories);
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final repository = di.sl<AuthRepository>();
+    final result = await repository.getCategories(page: 1, pageSize: 50);
+
+    if (!mounted) {
+      return;
+    }
+
+    result.fold(
+      (failure) {
+        setState(() {
+          _error = failure.message;
+          _isLoading = false;
+        });
+      },
+      (categories) {
+        setState(() {
+          _allCategories = categories.map((c) => c.name).toList();
+          _isLoading = false;
+        });
+      },
+    );
   }
 
   void _toggleCategory(String category) {
@@ -119,51 +135,74 @@ class _ProjectCategoriesSheetState extends State<ProjectCategoriesSheet> {
             const SizedBox(height: 8),
             // Selection List
             Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _allCategories.length,
-                itemBuilder: (context, index) {
-                  final category = _allCategories[index];
-                  final isSelected = _tempSelected.contains(category);
-                  return InkWell(
-                    onTap: () => _toggleCategory(category),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 4),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFF5F5F5)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (val) => _toggleCategory(category),
-                              activeColor: const Color(0xFF33354E),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
+              child: Builder(
+                builder: (context) {
+                  if (_isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (_error != null) {
+                    return const Center(
+                      child: Text('Failed to load categories'),
+                    );
+                  }
+
+                  if (_allCategories.isEmpty) {
+                    return const Center(
+                      child: Text('No categories available'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _allCategories.length,
+                    itemBuilder: (context, index) {
+                      final category = _allCategories[index];
+                      final isSelected = _tempSelected.contains(category);
+                      return InkWell(
+                        onTap: () => _toggleCategory(category),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          margin: const EdgeInsets.only(bottom: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFFF5F5F5)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (val) =>
+                                      _toggleCategory(category),
+                                  activeColor: const Color(0xFF33354E),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              Text(
+                                category,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF33354E),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            category,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF33354E),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

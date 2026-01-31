@@ -14,10 +14,21 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
 
   ExpertsRepositoryImpl({required this.remoteDataSource});
   @override
-  Future<Either<Failure, List<ExpertEntity>>> getExperts() async {
+  Future<Either<Failure, List<ExpertEntity>>> getExperts({
+    int page = 1,
+    int pageSize = 10,
+    double? minRating,
+    List<int>? categoryIds,
+    String? sortBy,
+  }) async {
     try {
-      final experts =
-          await remoteDataSource.getExperts(page: 1, pageSize: 10);
+      final experts = await remoteDataSource.getExperts(
+        page: page,
+        pageSize: pageSize,
+        minRating: minRating,
+        categoryIds: categoryIds,
+        sortBy: sortBy,
+      );
       return Right(experts);
     } catch (e) {
       return const Left(ServerFailure('Failed to load experts'));
@@ -48,10 +59,14 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
 
   @override
   Future<Either<Failure, List<Project>>> getExpertProjects(
-    String expertId,
-  ) async {
+    String expertId, {
+    int? categoryId,
+  }) async {
     try {
-      final projects = await remoteDataSource.getExpertProjects(expertId);
+      final projects = await remoteDataSource.getExpertProjects(
+        expertId,
+        categoryId: categoryId,
+      );
       return Right(projects);
     } catch (e) {
       return const Left(ServerFailure('Failed to load expert projects'));

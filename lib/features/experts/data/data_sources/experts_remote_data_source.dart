@@ -9,10 +9,13 @@ import '../../domain/entities/expert_profile.dart';
 import '../../domain/entities/expert_consultations_overview.dart';
 import '../../domain/entities/project.dart';
 
-abstract class ExpertsRemoteDataSource {
+ abstract class ExpertsRemoteDataSource {
   Future<List<ExpertModel>> getExperts({
     int page,
     int pageSize,
+    double? minRating,
+    List<int>? categoryIds,
+    String? sortBy,
   });
   Future<ExpertProfile> getExpertProfile(String expertId);
   Future<ExpertProfile> getCurrentUserProfile();
@@ -21,7 +24,10 @@ abstract class ExpertsRemoteDataSource {
     String expertId,
     DateTime selectedDate,
   );
-  Future<List<Project>> getExpertProjects(String expertId);
+   Future<List<Project>> getExpertProjects(
+     String expertId, {
+     int? categoryId,
+   });
   Future<Map<String, dynamic>> getProjectDetails(String projectId);
   Future<List<ClientAppointmentModel>> getClientAppointments({
     required DateTime start,
@@ -227,9 +233,18 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
   }
 
   @override
-  Future<List<Project>> getExpertProjects(String expertId) async {
+  Future<List<Project>> getExpertProjects(
+    String expertId, {
+    int? categoryId,
+  }) async {
+    final query = <String, dynamic>{};
+    if (categoryId != null) {
+      query['category_id'] = categoryId.toString();
+    }
+
     final response = await _dioClient.get(
       '${ApiClient.expertProjects}/$expertId/',
+      queryParameters: query.isEmpty ? null : query,
     );
 
     final data = response.data;
@@ -393,13 +408,26 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
   Future<List<ExpertModel>> getExperts({
     int page = 1,
     int pageSize = 10,
+    double? minRating,
+    List<int>? categoryIds,
+    String? sortBy,
   }) async {
+    final query = <String, dynamic>{
+      'page': page,
+      'page_size': pageSize,
+    };
+    if (minRating != null) {
+      query['min_rating'] = minRating;
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      query['categories'] = categoryIds.join(',');
+    }
+    if (sortBy != null && sortBy.trim().isNotEmpty) {
+      query['sort_by'] = sortBy.trim();
+    }
     final response = await _dioClient.get(
       ApiClient.getExperts,
-      queryParameters: {
-        'page': page,
-        'page_size': pageSize,
-      },
+      queryParameters: query,
     );
 
     final data = response.data;
