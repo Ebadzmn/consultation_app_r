@@ -11,6 +11,7 @@ import '../bloc/expert_profile/expert_profile_state.dart';
 import 'project_card.dart';
 import 'project_categories_sheet.dart';
 import 'project_details_sheet.dart';
+import '../utils/category_color_helper.dart';
 
 import '../pages/profile_settings_page.dart';
 
@@ -474,16 +475,10 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                           spacing: 8,
                           runSpacing: 8,
                           alignment: WrapAlignment.center,
-                          children: expert.areas.map((area) {
-                            // Cycle through some colors for chips to match design vibe
-                            final colors = [
-                              const Color(0xFFFFF4E5), // Light orange
-                              const Color(0xFFE8F5E9), // Light green
-                              const Color(0xFFE3F2FD), // Light blue
-                            ];
-                            final color =
-                                colors[expert.areas.indexOf(area) %
-                                    colors.length];
+                          children: expert.areas.asMap().entries.map((entry) {
+                            final colors = CategoryColorHelper.getColors(
+                              entry.key,
+                            );
 
                             return Container(
                               padding: const EdgeInsets.symmetric(
@@ -491,13 +486,13 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: color,
+                                color: colors.$1,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                area,
+                                entry.value,
                                 style: TextStyle(
-                                  color: Colors.grey[800],
+                                  color: colors.$2,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),

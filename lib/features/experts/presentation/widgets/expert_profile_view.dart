@@ -10,6 +10,7 @@ import '../bloc/expert_profile/expert_profile_state.dart';
 import 'project_card.dart';
 import 'project_categories_sheet.dart';
 import 'project_details_sheet.dart';
+import '../utils/category_color_helper.dart';
 
 class ExpertProfileView extends StatelessWidget {
   final ExpertProfile expert;
@@ -149,41 +150,33 @@ class ExpertProfileView extends StatelessWidget {
                                   onApply: (categories) async {
                                     if (categories.isEmpty) {
                                       bloc.add(
-                                        LoadExpertProfile(
-                                          expertId: expert.id,
-                                        ),
+                                        LoadExpertProfile(expertId: expert.id),
                                       );
                                       return;
                                     }
 
                                     final selectedName = categories.first;
-                                    final allCategoriesResult =
-                                        await di.sl<AuthRepository>()
-                                            .getCategories(
-                                      page: 1,
-                                      pageSize: 50,
-                                    );
+                                    final allCategoriesResult = await di
+                                        .sl<AuthRepository>()
+                                        .getCategories(page: 1, pageSize: 50);
 
                                     int? selectedId;
-                                    allCategoriesResult.fold(
-                                      (_) {},
-                                      (allCategories) {
-                                        for (final c in allCategories) {
-                                          if (c.name == selectedName) {
-                                            selectedId = c.id;
-                                            break;
-                                          }
+                                    allCategoriesResult.fold((_) {}, (
+                                      allCategories,
+                                    ) {
+                                      for (final c in allCategories) {
+                                        if (c.name == selectedName) {
+                                          selectedId = c.id;
+                                          break;
                                         }
-                                      },
-                                    );
+                                      }
+                                    });
 
                                     if (selectedId == null) {
                                       return;
                                     }
 
-                                    bloc.add(
-                                      FilterExpertProjects(selectedId!),
-                                    );
+                                    bloc.add(FilterExpertProjects(selectedId!));
                                   },
                                 ),
                               );
@@ -334,24 +327,21 @@ class ExpertProfileView extends StatelessWidget {
                               crossAxisSpacing: 10,
                               childAspectRatio: 1.1,
                             ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final project = expert.projects[index];
-                            return ProjectCard(
-                              project: project,
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) =>
-                                      ProjectDetailsSheet(project: project),
-                                );
-                              },
-                            );
-                          },
-                          childCount: expert.projects.length,
-                        ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final project = expert.projects[index];
+                          return ProjectCard(
+                            project: project,
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) =>
+                                    ProjectDetailsSheet(project: project),
+                              );
+                            },
+                          );
+                        }, childCount: expert.projects.length),
                       ),
                     ),
                   // Add extra padding at bottom to avoid content being hidden behind the button
@@ -488,7 +478,15 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       runSpacing: 8,
                       alignment: WrapAlignment.center,
                       children: [
-                        ...expert.areas.take(3).map((area) => _buildTag(area)),
+                        ...expert.areas
+                            .take(3)
+                            .toList()
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) =>
+                                  _buildTag(entry.value, index: entry.key),
+                            ),
                         if (expert.areas.length > 3)
                           _buildTag(
                             '+${expert.areas.length - 3}',
@@ -585,12 +583,20 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
-                                ...expert.areas.take(3).map(
-                                      (area) => Padding(
+                                ...expert.areas
+                                    .take(3)
+                                    .toList()
+                                    .asMap()
+                                    .entries
+                                    .map(
+                                      (entry) => Padding(
                                         padding: const EdgeInsets.only(
                                           right: 6.0,
                                         ),
-                                        child: _buildTag(area),
+                                        child: _buildTag(
+                                          entry.value,
+                                          index: entry.key,
+                                        ),
                                       ),
                                     ),
                                 if (expert.areas.length > 3)
@@ -617,22 +623,17 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  Widget _buildTag(String text, {bool isMore = false}) {
-    Color bgColor = const Color(0xFFF0F4C3); // Light yellow/green
-    Color textColor = const Color(0xFF827717); // Darker text
+  Widget _buildTag(String text, {bool isMore = false, int index = 0}) {
+    Color bgColor;
+    Color textColor;
 
-    if (text == 'Finance' || text == 'Banking') {
-      bgColor = const Color(0xFFFFF9C4); // Yellowish
-      textColor = const Color(0xFFFBC02D);
-    } else if (text == 'IT') {
-      bgColor = const Color(0xFFE3F2FD); // Light Blue
-      textColor = const Color(0xFF1E88E5);
-    } else if (text == 'Banks' || text == 'Banking') {
-      bgColor = const Color(0xFFDCEDC8); // Light Green
-      textColor = const Color(0xFF689F38);
-    } else if (isMore) {
+    if (isMore) {
       bgColor = Colors.grey[200]!;
       textColor = Colors.grey[700]!;
+    } else {
+      final colors = CategoryColorHelper.getColors(index);
+      bgColor = colors.$1;
+      textColor = colors.$2;
     }
 
     return Container(

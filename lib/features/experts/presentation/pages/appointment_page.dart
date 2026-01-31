@@ -20,17 +20,18 @@ class AppointmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AppointmentBloc(
-        expertId: expert.id,
-        initialDate: DateTime.now(),
-        getAvailableWorkDatesUseCase: sl(),
-        getAvailableTimeSlotsUseCase: sl(),
-        createAppointmentUseCase: sl(),
-        getCategoriesUseCase: sl(),
-      )
-        ..add(LoadAvailableWorkDates(expert.id))
-        ..add(AppointmentDateChanged(DateTime.now()))
-        ..add(AppointmentCategoriesRequested()),
+      create: (_) =>
+          AppointmentBloc(
+              expertId: expert.id,
+              initialDate: DateTime.now(),
+              getAvailableWorkDatesUseCase: sl(),
+              getAvailableTimeSlotsUseCase: sl(),
+              createAppointmentUseCase: sl(),
+              getCategoriesUseCase: sl(),
+            )
+            ..add(LoadAvailableWorkDates(expert.id))
+            ..add(AppointmentDateChanged(DateTime.now()))
+            ..add(AppointmentCategoriesRequested()),
       child: _AppointmentContent(expert: expert),
     );
   }
@@ -144,8 +145,10 @@ class _AppointmentContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (state.status ==
-                            AppointmentStatus.loadingAvailability &&
+                    if ((state.status ==
+                                AppointmentStatus.loadingAvailability ||
+                            state.status ==
+                                AppointmentStatus.loadingTimeSlots) &&
                         state.timeSlots.isEmpty) ...[
                       SizedBox(
                         height: 40,
