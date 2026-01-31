@@ -9,6 +9,7 @@ class ConsultationsCalendar extends StatelessWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final ValueChanged<DateTime> onDateSelected;
+  final DateTime? maxMonth;
 
   const ConsultationsCalendar({
     super.key,
@@ -18,11 +19,16 @@ class ConsultationsCalendar extends StatelessWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onDateSelected,
+    this.maxMonth,
   });
 
   @override
   Widget build(BuildContext context) {
     final monthLabel = DateFormat('MMMM yyyy').format(focusedMonth);
+    final canGoNext = maxMonth == null ||
+        DateTime(focusedMonth.year, focusedMonth.month, 1).isBefore(
+          DateTime(maxMonth!.year, maxMonth!.month, 1),
+        );
 
     return Column(
       children: [
@@ -51,12 +57,13 @@ class ConsultationsCalendar extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.chevron_right,
-                  color: Color(0xFF66BB6A),
+                  color:
+                      canGoNext ? const Color(0xFF66BB6A) : const Color(0xFFEEEEEE),
                   size: 30,
                 ),
-                onPressed: onNextMonth,
+                onPressed: canGoNext ? onNextMonth : null,
               ),
             ],
           ),

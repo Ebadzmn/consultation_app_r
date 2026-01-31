@@ -30,6 +30,8 @@ class _AppointmentRescheduleSheetState
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final maxMonth = DateTime(now.year, now.month + 4);
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -177,6 +179,7 @@ class _AppointmentRescheduleSheetState
                       selectedDate: _selectedDate,
                       appointments:
                           [], // Pass empty so we don't confuse with other appointments
+                      maxMonth: maxMonth,
                       onPreviousMonth: () {
                         setState(() {
                           _focusedMonth = DateTime(
