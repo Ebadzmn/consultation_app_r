@@ -214,13 +214,15 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                               ? () => _showEditHoursSheet(context, state)
                               : null,
                         ),
-                        const SizedBox(height: 12),
-                        _RangeSwitcher(
-                          selected: state.range,
-                          onChanged: (range) => context
-                              .read<ConsultationsBloc>()
-                              .add(ConsultationsRangeChanged(range)),
-                        ),
+                        if (state.tab == ConsultationsTab.calendar) ...[
+                          const SizedBox(height: 12),
+                          _RangeSwitcher(
+                            selected: state.range,
+                            onChanged: (range) => context
+                                .read<ConsultationsBloc>()
+                                .add(ConsultationsRangeChanged(range)),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         const _StatusLegend(),
                         const SizedBox(height: 16),
