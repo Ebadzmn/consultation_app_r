@@ -14,6 +14,11 @@ class ProfileSettingsBloc
     on<UpdateCategory>(_onUpdateCategory);
     on<UpdateCost>(_onUpdateCost);
     on<ToggleAgreement>(_onToggleAgreement);
+    on<UpdateExperience>(_onUpdateExperience);
+    on<UpdateLinkedin>(_onUpdateLinkedin);
+    on<UpdateHh>(_onUpdateHh);
+    on<UpdateAge>(_onUpdateAge);
+    on<UpdateEducation>(_onUpdateEducation);
     on<UpdateOldPassword>(_onUpdateOldPassword);
     on<UpdateNewPassword>(_onUpdateNewPassword);
     on<UpdateRepeatPassword>(_onUpdateRepeatPassword);
@@ -42,6 +47,11 @@ class ProfileSettingsBloc
         // Logic to determine if cost is by agreement could be parsed from string
         // For now, let's assume if it contains digits it's not by agreement
         isByAgreement: !RegExp(r'\d').hasMatch(event.expert.cost),
+        experience: event.expert.experience,
+        linkedin: event.expert.linkedinUrl ?? '',
+        hh: event.expert.hhUrl ?? '',
+        age: event.expert.age?.toString() ?? '',
+        education: event.expert.education,
       ),
     );
   }
@@ -89,6 +99,35 @@ class ProfileSettingsBloc
     Emitter<ProfileSettingsState> emit,
   ) {
     emit(state.copyWith(isByAgreement: event.value));
+  }
+
+  void _onUpdateExperience(
+    UpdateExperience event,
+    Emitter<ProfileSettingsState> emit,
+  ) {
+    emit(state.copyWith(experience: event.experience));
+  }
+
+  void _onUpdateLinkedin(
+    UpdateLinkedin event,
+    Emitter<ProfileSettingsState> emit,
+  ) {
+    emit(state.copyWith(linkedin: event.linkedin));
+  }
+
+  void _onUpdateHh(UpdateHh event, Emitter<ProfileSettingsState> emit) {
+    emit(state.copyWith(hh: event.hh));
+  }
+
+  void _onUpdateAge(UpdateAge event, Emitter<ProfileSettingsState> emit) {
+    emit(state.copyWith(age: event.age));
+  }
+
+  void _onUpdateEducation(
+    UpdateEducation event,
+    Emitter<ProfileSettingsState> emit,
+  ) {
+    emit(state.copyWith(education: event.education));
   }
 
   void _onUpdateOldPassword(

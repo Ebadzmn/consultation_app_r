@@ -21,10 +21,20 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   late TextEditingController _lastNameController;
   late TextEditingController _aboutController;
   late TextEditingController _costController;
+  late TextEditingController _experienceController;
+  late TextEditingController _linkedinController;
+  late TextEditingController _hhController;
+  late TextEditingController _ageController;
+  late TextEditingController _educationController;
   late TextEditingController _oldPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _repeatPasswordController;
-  final List<String> _allCategories = const ['Finance', 'IT', 'Legal', 'Health'];
+  final List<String> _allCategories = const [
+    'Finance',
+    'IT',
+    'Legal',
+    'Health',
+  ];
 
   @override
   void initState() {
@@ -37,6 +47,15 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     _lastNameController = TextEditingController(text: lastName);
     _aboutController = TextEditingController(text: widget.expert.description);
     _costController = TextEditingController(text: widget.expert.cost);
+    _experienceController = TextEditingController(
+      text: widget.expert.experience,
+    );
+    _linkedinController = TextEditingController(
+      text: widget.expert.linkedinUrl,
+    );
+    _hhController = TextEditingController(text: widget.expert.hhUrl);
+    _ageController = TextEditingController(text: widget.expert.age?.toString());
+    _educationController = TextEditingController(text: widget.expert.education);
     _oldPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _repeatPasswordController = TextEditingController();
@@ -48,6 +67,11 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     _lastNameController.dispose();
     _aboutController.dispose();
     _costController.dispose();
+    _experienceController.dispose();
+    _linkedinController.dispose();
+    _hhController.dispose();
+    _ageController.dispose();
+    _educationController.dispose();
     _oldPasswordController.dispose();
     _newPasswordController.dispose();
     _repeatPasswordController.dispose();
@@ -67,6 +91,16 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.errorMessage ?? l10n.errorOccurred)),
           );
+        } else if (state.status == ProfileSettingsStatus.initial) {
+          _firstNameController.text = state.firstName;
+          _lastNameController.text = state.lastName;
+          _aboutController.text = state.about;
+          _costController.text = state.cost;
+          _experienceController.text = state.experience;
+          _linkedinController.text = state.linkedin;
+          _hhController.text = state.hh;
+          _ageController.text = state.age;
+          _educationController.text = state.education;
         }
       },
       child: SingleChildScrollView(
@@ -280,6 +314,58 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 24),
 
+            const SizedBox(height: 24),
+
+            // Experience
+            _buildLabel('Experience'), // Replace with l10n later
+            _buildTextField(
+              controller: _experienceController,
+              maxLines: 4,
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateExperience(value),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Education
+            _buildLabel('Education'), // Replace with l10n later
+            _buildTextField(
+              controller: _educationController,
+              maxLines: 4,
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateEducation(value),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // LinkedIn
+            _buildLabel('LinkedIn Link'), // Replace with l10n later
+            _buildTextField(
+              controller: _linkedinController,
+              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
+                UpdateLinkedin(value),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // HH Link
+            _buildLabel('HH Link'), // Replace with l10n later
+            _buildTextField(
+              controller: _hhController,
+              onChanged: (value) =>
+                  context.read<ProfileSettingsBloc>().add(UpdateHh(value)),
+            ),
+            const SizedBox(height: 24),
+
+            // Age
+            _buildLabel('Age'), // Replace with l10n later
+            _buildTextField(
+              controller: _ageController,
+              onChanged: (value) =>
+                  context.read<ProfileSettingsBloc>().add(UpdateAge(value)),
+            ),
+            const SizedBox(height: 24),
+
             // Cost
             _buildLabel(l10n.consultationCost),
             const SizedBox(height: 8),
@@ -406,7 +492,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 },
                 child: Text(
                   l10n.deleteProfile,
-                  style: const TextStyle(color: Color(0xFFEF5350), fontSize: 16),
+                  style: const TextStyle(
+                    color: Color(0xFFEF5350),
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),
@@ -486,17 +575,15 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         },
                         child: Text(
                           l10n.cancel,
-                          style: const TextStyle(
-                            color: Color(0xFF33354E),
-                          ),
+                          style: const TextStyle(color: Color(0xFF33354E)),
                         ),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(ctx).pop<List<String>>(
-                            selected.toList(),
-                          );
+                          Navigator.of(
+                            ctx,
+                          ).pop<List<String>>(selected.toList());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF33354E),

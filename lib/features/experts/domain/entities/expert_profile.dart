@@ -12,6 +12,9 @@ class ExpertProfile {
   final int answersCount;
   final String education;
   final String experience;
+  final String? linkedinUrl;
+  final String? hhUrl;
+  final int? age;
   final String description;
   final String cost;
   final int researchCount;
@@ -33,6 +36,9 @@ class ExpertProfile {
     required this.answersCount,
     required this.education,
     required this.experience,
+    this.linkedinUrl,
+    this.hhUrl,
+    this.age,
     required this.description,
     required this.cost,
     required this.researchCount,
@@ -54,6 +60,9 @@ class ExpertProfile {
     int? answersCount,
     String? education,
     String? experience,
+    String? linkedinUrl,
+    String? hhUrl,
+    int? age,
     String? description,
     String? cost,
     int? researchCount,
@@ -74,6 +83,9 @@ class ExpertProfile {
       answersCount: answersCount ?? this.answersCount,
       education: education ?? this.education,
       experience: experience ?? this.experience,
+      linkedinUrl: linkedinUrl ?? this.linkedinUrl,
+      hhUrl: hhUrl ?? this.hhUrl,
+      age: age ?? this.age,
       description: description ?? this.description,
       cost: cost ?? this.cost,
       researchCount: researchCount ?? this.researchCount,

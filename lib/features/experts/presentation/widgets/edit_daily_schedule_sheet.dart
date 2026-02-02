@@ -26,31 +26,41 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
   void initState() {
     super.initState();
     _intervals = [];
-    
+
     for (var range in widget.initialOffHours) {
       final parts = range.split(' - ');
       if (parts.length == 2) {
-        _intervals.add(_ScheduleInterval(
-          type: 'Not working',
-          startTime: parts[0],
-          endTime: parts[1],
-        ));
+        _intervals.add(
+          _ScheduleInterval(
+            type: 'Not working',
+            startTime: parts[0],
+            endTime: parts[1],
+          ),
+        );
       }
     }
 
     for (var range in widget.initialWorkingHours) {
       final parts = range.split(' - ');
       if (parts.length == 2) {
-        _intervals.add(_ScheduleInterval(
-          type: 'Working',
-          startTime: parts[0],
-          endTime: parts[1],
-        ));
+        _intervals.add(
+          _ScheduleInterval(
+            type: 'Working',
+            startTime: parts[0],
+            endTime: parts[1],
+          ),
+        );
       }
     }
-    
+
     if (_intervals.isEmpty) {
-       _intervals.add(_ScheduleInterval(type: 'Working', startTime: '09:00', endTime: '18:00'));
+      _intervals.add(
+        _ScheduleInterval(
+          type: 'Working',
+          startTime: '09:00',
+          endTime: '18:00',
+        ),
+      );
     }
   }
 
@@ -76,6 +86,9 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
     final dateStr = DateFormat('dd.MM.yyyy').format(widget.date);
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -113,21 +126,29 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          ...List.generate(_intervals.length, (index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildIntervalRow(index),
-            );
-          }),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: List.generate(_intervals.length, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildIntervalRow(index),
+                  );
+                }),
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
               setState(() {
-                _intervals.add(_ScheduleInterval(
-                  type: 'Working',
-                  startTime: '09:00',
-                  endTime: '18:00',
-                ));
+                _intervals.add(
+                  _ScheduleInterval(
+                    type: 'Working',
+                    startTime: '09:00',
+                    endTime: '18:00',
+                  ),
+                );
               });
             },
             child: Row(
@@ -217,10 +238,7 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
                 items: ['Working', 'Not working'].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(
-                      value,
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    child: Text(value, style: const TextStyle(fontSize: 14)),
                   );
                 }).toList(),
                 onChanged: (newValue) {

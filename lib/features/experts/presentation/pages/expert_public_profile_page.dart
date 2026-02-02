@@ -7,6 +7,7 @@ import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
 import '../bloc/expert_profile/expert_profile_state.dart';
 import '../widgets/expert_profile_view.dart';
+import '../../domain/entities/expert_entity.dart';
 
 class ExpertPublicProfilePage extends StatelessWidget {
   final String? expertId;
@@ -16,8 +17,8 @@ class ExpertPublicProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ExpertProfileBloc()
-        ..add(LoadExpertProfile(expertId: expertId)),
+      create: (context) =>
+          ExpertProfileBloc()..add(LoadExpertProfile(expertId: expertId)),
       child: const _ExpertPublicProfileScaffold(
         key: ValueKey('expert_public_profile_scaffold'),
       ),
@@ -69,25 +70,55 @@ class _ExpertPublicProfileScaffold extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 48,
-          child: ElevatedButton(
-            onPressed: () {
-              context.push(AppRoutes.consultations);
+          child: BlocBuilder<ExpertProfileBloc, ExpertProfileState>(
+            builder: (context, state) {
+              return ElevatedButton(
+                onPressed: state is ExpertProfileLoaded
+                    ? () {
+                        final profile = state.expert;
+                        // Parse cost string to int, removing non-digits
+                        final priceStr = profile.cost.replaceAll(
+                          RegExp(r'[^0-9]'),
+                          '',
+                        );
+                        final price = int.tryParse(priceStr) ?? 0;
+
+                        final expertEntity = ExpertEntity(
+                          id: profile.id,
+                          name: profile.name,
+                          avatarUrl: profile.imageUrl,
+                          rating: profile.rating,
+                          reviewsCount: profile.reviewsCount,
+                          articlesCount: profile.articlesCount,
+                          pollsCount: profile.pollsCount,
+                          tags: profile.areas,
+                          description: profile.description,
+                          price: price,
+                        );
+
+                        context.push(
+                          AppRoutes.appointment,
+                          extra: expertEntity,
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF66BB6A), // Green button
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  l10n.consultation,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF66BB6A), // Green button
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              l10n.consultation,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ),
         ),
       ),

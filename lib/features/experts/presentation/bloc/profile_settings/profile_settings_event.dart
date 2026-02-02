@@ -44,6 +44,51 @@ class UpdateAbout extends ProfileSettingsEvent {
   List<Object?> get props => [about];
 }
 
+class UpdateExperience extends ProfileSettingsEvent {
+  final String experience;
+
+  const UpdateExperience(this.experience);
+
+  @override
+  List<Object?> get props => [experience];
+}
+
+class UpdateLinkedin extends ProfileSettingsEvent {
+  final String linkedin;
+
+  const UpdateLinkedin(this.linkedin);
+
+  @override
+  List<Object?> get props => [linkedin];
+}
+
+class UpdateHh extends ProfileSettingsEvent {
+  final String hh;
+
+  const UpdateHh(this.hh);
+
+  @override
+  List<Object?> get props => [hh];
+}
+
+class UpdateAge extends ProfileSettingsEvent {
+  final String age;
+
+  const UpdateAge(this.age);
+
+  @override
+  List<Object?> get props => [age];
+}
+
+class UpdateEducation extends ProfileSettingsEvent {
+  final String education;
+
+  const UpdateEducation(this.education);
+
+  @override
+  List<Object?> get props => [education];
+}
+
 class UpdatePhoto extends ProfileSettingsEvent {
   // In a real app, this might be a File or image path.
   // For now, we'll just simulate the action.
