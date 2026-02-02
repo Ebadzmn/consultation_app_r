@@ -42,11 +42,8 @@ class SignInView extends StatelessWidget {
             debugPrint(
               'SignInView: Login Success. isExpert: ${state.isExpert}',
             );
-            if (state.isExpert) {
-              context.go(AppRoutes.consultations);
-            } else {
-              context.go(AppRoutes.experts);
-            }
+            // As per latest requirement, route to Experts page instead of Consultations
+            context.go(AppRoutes.experts);
           }
         },
         child: SafeArea(

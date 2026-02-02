@@ -121,22 +121,39 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           },
           (userProfile) {
             String userType = userProfile.userType;
-            // Normalize userType if needed
-            // If the API returns 0/1 as int, userType in UserModel might be "0" or "1" string
-            // Logic: 1 = Expert, 0 = Client
-
-            bool isExpert = false;
+            // Normalize userType
             if (userType == "1" || userType.toLowerCase() == "expert") {
-              isExpert = true;
+              userType = "Expert";
+            } else {
+              userType = "Client";
             }
 
+            bool isExpert = userType == "Expert";
+
             debugPrint(
-              'LoginBloc: Profile Fetched. UserType: $userType, isExpert: $isExpert',
+              'LoginBloc: Profile Fetched. Normalized UserType: $userType, isExpert: $isExpert',
+            );
+
+            // Create a copy of the user with normalized type
+            // Assuming UserEntity has a copyWith or we need to cast to UserModel if defined there.
+            // Since getProfileUseCase returns UserEntity, and UserModel extends it.
+            // Let's check if we can use copyWith on UserEntity or need to construct a new one.
+            // Looking at UserEntity definition, it doesn't have copyWith.
+            // Looking at UserModel, it has copyWith.
+            // We'll cast to UserModel if possible or create a new UserModel.
+            // Ideally we should use the entity but since we need to modify it...
+
+            // For now, let's assume we can cast to UserModel because that's likely what the repo returns.
+            // If not, we might need to modify UserEntity to have copyWith or construct a UserModel manually.
+            // Based on previous file view, UserModel has copyWith.
+
+            final normalizedUser = (userProfile as dynamic).copyWith(
+              userType: userType,
             );
 
             // Update global user
-            di.currentUser.value = userProfile;
-            di.sl<AuthRepository>().persistUser(userProfile);
+            di.currentUser.value = normalizedUser;
+            di.sl<AuthRepository>().persistUser(normalizedUser);
 
             emit(
               state.copyWith(status: LoginStatus.success, isExpert: isExpert),

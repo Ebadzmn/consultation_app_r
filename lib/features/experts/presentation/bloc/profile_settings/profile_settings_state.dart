@@ -11,6 +11,11 @@ class ProfileSettingsState extends Equatable {
   final List<String> categories;
   final String cost;
   final bool isByAgreement;
+  final String experience;
+  final String linkedin;
+  final String hh;
+  final String age;
+  final String education;
   final String oldPassword;
   final String newPassword;
   final String repeatPassword;
@@ -25,6 +30,11 @@ class ProfileSettingsState extends Equatable {
     this.categories = const [],
     this.cost = '',
     this.isByAgreement = false,
+    this.experience = '',
+    this.linkedin = '',
+    this.hh = '',
+    this.age = '',
+    this.education = '',
     this.oldPassword = '',
     this.newPassword = '',
     this.repeatPassword = '',
@@ -40,6 +50,11 @@ class ProfileSettingsState extends Equatable {
     List<String>? categories,
     String? cost,
     bool? isByAgreement,
+    String? experience,
+    String? linkedin,
+    String? hh,
+    String? age,
+    String? education,
     String? oldPassword,
     String? newPassword,
     String? repeatPassword,
@@ -54,6 +69,11 @@ class ProfileSettingsState extends Equatable {
       categories: categories ?? this.categories,
       cost: cost ?? this.cost,
       isByAgreement: isByAgreement ?? this.isByAgreement,
+      experience: experience ?? this.experience,
+      linkedin: linkedin ?? this.linkedin,
+      hh: hh ?? this.hh,
+      age: age ?? this.age,
+      education: education ?? this.education,
       oldPassword: oldPassword ?? this.oldPassword,
       newPassword: newPassword ?? this.newPassword,
       repeatPassword: repeatPassword ?? this.repeatPassword,
@@ -63,17 +83,22 @@ class ProfileSettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        firstName,
-        lastName,
-        about,
-        imageUrl,
-        categories,
-        cost,
-        isByAgreement,
-        oldPassword,
-        newPassword,
-        repeatPassword,
-        errorMessage,
-      ];
+    status,
+    firstName,
+    lastName,
+    about,
+    imageUrl,
+    categories,
+    cost,
+    isByAgreement,
+    experience,
+    linkedin,
+    hh,
+    age,
+    education,
+    oldPassword,
+    newPassword,
+    repeatPassword,
+    errorMessage,
+  ];
 }

@@ -9,7 +9,7 @@ import '../../domain/entities/expert_profile.dart';
 import '../../domain/entities/expert_consultations_overview.dart';
 import '../../domain/entities/project.dart';
 
- abstract class ExpertsRemoteDataSource {
+abstract class ExpertsRemoteDataSource {
   Future<List<ExpertModel>> getExperts({
     int page,
     int pageSize,
@@ -24,10 +24,7 @@ import '../../domain/entities/project.dart';
     String expertId,
     DateTime selectedDate,
   );
-   Future<List<Project>> getExpertProjects(
-     String expertId, {
-     int? categoryId,
-   });
+  Future<List<Project>> getExpertProjects(String expertId, {int? categoryId});
   Future<Map<String, dynamic>> getProjectDetails(String projectId);
   Future<List<ClientAppointmentModel>> getClientAppointments({
     required DateTime start,
@@ -38,9 +35,7 @@ import '../../domain/entities/project.dart';
     required DateTime end,
   });
   Future<String?> getScheduleTimezone();
-  Future<void> updateSchedule({
-    required List<Map<String, dynamic>> schedule,
-  });
+  Future<void> updateSchedule({required List<Map<String, dynamic>> schedule});
   Future<void> createAppointment({
     required String expertId,
     required DateTime appointmentDate,
@@ -88,12 +83,11 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
   @override
   Future<ExpertProfile> getExpertProfile(String expertId) async {
-    final response = await _dioClient.get(
-      '${ApiClient.getExperts}/$expertId/',
-    );
+    final response = await _dioClient.get('${ApiClient.getExperts}/$expertId/');
 
-    final data =
-        response.data is Map<String, dynamic> ? response.data : <String, dynamic>{};
+    final data = response.data is Map<String, dynamic>
+        ? response.data
+        : <String, dynamic>{};
 
     return _mapExpertProfileFromData(data);
   }
@@ -102,11 +96,13 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
   Future<ExpertProfile> getCurrentUserProfile() async {
     final response = await _dioClient.get(ApiClient.profile);
 
-    final data =
-        response.data is Map<String, dynamic> ? response.data : <String, dynamic>{};
+    final data = response.data is Map<String, dynamic>
+        ? response.data
+        : <String, dynamic>{};
 
     final typeValue = data['type'];
-    final isExpert = data['is_expert'] == true ||
+    final isExpert =
+        data['is_expert'] == true ||
         (typeValue is num && typeValue.toInt() == 1);
 
     if (isExpert) {
@@ -140,18 +136,19 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final questionsCount = (data['questions_cnt'] as num?)?.toInt() ?? 0;
     final projectsCount = (data['projects_cnt'] as num?)?.toInt() ?? 0;
 
-    final experienceYears = (data['experience'] as num?)?.toInt();
-    final experience = experienceYears != null && experienceYears > 0
-        ? '$experienceYears years'
-        : '';
+    final experience = (data['experience'] ?? '').toString();
+    final age = (data['age'] as num?)?.toInt();
+    final linkedinUrl = (data['linkedin_url'] ?? '').toString();
+    final hhUrl = (data['hh_url'] ?? '').toString();
 
     String education = '';
     final educationList = data['education'];
     if (educationList is List && educationList.isNotEmpty) {
       final item = educationList.first;
       if (item is Map<String, dynamic>) {
-        final institution =
-            (item['educational_institution'] ?? '').toString().trim();
+        final institution = (item['educational_institution'] ?? '')
+            .toString()
+            .trim();
         final type = (item['education_type'] ?? '').toString().trim();
         education = institution.isNotEmpty ? institution : type;
       }
@@ -163,7 +160,10 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       areas = categories
           .map((e) => e is int ? e : int.tryParse(e.toString()))
           .whereType<int>()
-          .map((categoryId) => _categoryNamesById[categoryId] ?? 'Категория $categoryId')
+          .map(
+            (categoryId) =>
+                _categoryNamesById[categoryId] ?? 'Категория $categoryId',
+          )
           .toList();
     }
 
@@ -180,11 +180,14 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       imageUrl: imageUrl,
       areas: areas,
       articlesCount: articlesCount,
-      pollsCount: 0,
+      pollsCount: (data['polls_cnt'] as num?)?.toInt() ?? 0,
       reviewsCount: reviewsCount,
-      answersCount: 0,
+      answersCount: (data['answers_cnt'] as num?)?.toInt() ?? 0,
       education: education,
       experience: experience,
+      linkedinUrl: linkedinUrl,
+      hhUrl: hhUrl,
+      age: age,
       description: description,
       cost: cost,
       researchCount: 0,
@@ -252,8 +255,8 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final rawList = data is List
         ? data
         : data is Map<String, dynamic>
-            ? (data['results'] ?? data['data'] ?? data['projects'])
-            : null;
+        ? (data['results'] ?? data['data'] ?? data['projects'])
+        : null;
 
     if (rawList is List) {
       return rawList
@@ -283,16 +286,20 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final id = json['id']?.toString() ?? '';
 
     final title = (json['name'] ?? json['title'] ?? '').toString().trim();
-    final description =
-        (json['goals'] ?? json['description'] ?? '').toString().trim();
+    final description = (json['goals'] ?? json['description'] ?? '')
+        .toString()
+        .trim();
 
-    final viewsCount = (json['views_cnt'] as num?)?.toInt() ??
+    final viewsCount =
+        (json['views_cnt'] as num?)?.toInt() ??
         (json['views_count'] as num?)?.toInt() ??
         0;
-    final likesCount = (json['likes_cnt'] as num?)?.toInt() ??
+    final likesCount =
+        (json['likes_cnt'] as num?)?.toInt() ??
         (json['likes_count'] as num?)?.toInt() ??
         0;
-    final commentsCount = (json['comments_cnt'] as num?)?.toInt() ??
+    final commentsCount =
+        (json['comments_cnt'] as num?)?.toInt() ??
         (json['comments_count'] as num?)?.toInt() ??
         0;
 
@@ -316,7 +323,9 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     if (teamPreview is Map<String, dynamic>) {
       final topAvatars = teamPreview['top_avatars'];
       if (topAvatars is List) {
-        final avatarMaps = topAvatars.whereType<Map<String, dynamic>>().toList();
+        final avatarMaps = topAvatars
+            .whereType<Map<String, dynamic>>()
+            .toList();
         participantAvatars = avatarMaps
             .map((m) => (m['avatar'] as String?)?.trim())
             .whereType<String>()
@@ -331,7 +340,9 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
             .toList();
 
         final totalCountRaw =
-            teamPreview['count'] ?? teamPreview['team_size'] ?? teamPreview['members_count'];
+            teamPreview['count'] ??
+            teamPreview['team_size'] ??
+            teamPreview['members_count'];
         int? totalCount;
         if (totalCountRaw is num) {
           totalCount = totalCountRaw.toInt();
@@ -378,7 +389,8 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     }
 
     DateTime date = DateTime.now();
-    final createdAt = json['time_create'] ??
+    final createdAt =
+        json['time_create'] ??
         json['created_at'] ??
         json['updated_at'] ??
         json['year'];
@@ -412,10 +424,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     List<int>? categoryIds,
     String? sortBy,
   }) async {
-    final query = <String, dynamic>{
-      'page': page,
-      'page_size': pageSize,
-    };
+    final query = <String, dynamic>{'page': page, 'page_size': pageSize};
     if (minRating != null) {
       query['min_rating'] = minRating;
     }
@@ -431,8 +440,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     );
 
     final data = response.data;
-    final results =
-        data is Map<String, dynamic> ? data['results'] : null;
+    final results = data is Map<String, dynamic> ? data['results'] : null;
 
     if (results is List) {
       return results
@@ -472,10 +480,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
     final response = await _dioClient.get(
       '/appointment/available/timeslots/',
-      queryParameters: {
-        'expert_id': expertId,
-        'selected_date': formattedDate,
-      },
+      queryParameters: {'expert_id': expertId, 'selected_date': formattedDate},
     );
 
     final data = response.data;
@@ -509,10 +514,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
     final response = await _dioClient.get(
       ApiClient.clientAppointments,
-      queryParameters: {
-        'start': format(start),
-        'end': format(end),
-      },
+      queryParameters: {'start': format(start), 'end': format(end)},
     );
 
     final data = response.data;
@@ -548,10 +550,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
     final response = await _dioClient.get(
       ApiClient.expertAppointments,
-      queryParameters: {
-        'start': format(start),
-        'end': format(end),
-      },
+      queryParameters: {'start': format(start), 'end': format(end)},
     );
 
     final data = response.data;
@@ -564,18 +563,18 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
         final asExpert = appointmentsRoot['as_expert'];
         if (asExpert is List) {
           appointments.addAll(
-            asExpert
-                .whereType<Map<String, dynamic>>()
-                .map(ExpertAppointmentModel.fromJson),
+            asExpert.whereType<Map<String, dynamic>>().map(
+              ExpertAppointmentModel.fromJson,
+            ),
           );
         }
 
         final asClient = appointmentsRoot['as_client'];
         if (asClient is List) {
           appointments.addAll(
-            asClient
-                .whereType<Map<String, dynamic>>()
-                .map(ExpertAppointmentModel.fromJson),
+            asClient.whereType<Map<String, dynamic>>().map(
+              ExpertAppointmentModel.fromJson,
+            ),
           );
         }
       }
@@ -603,11 +602,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
           if (slotStart != null && slotEnd != null) {
             workingSlots.add(
-              ExpertWorkingSlot(
-                start: slotStart,
-                end: slotEnd,
-                title: title,
-              ),
+              ExpertWorkingSlot(start: slotStart, end: slotEnd, title: title),
             );
           }
         }
@@ -622,9 +617,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
   @override
   Future<String?> getScheduleTimezone() async {
-    final response = await _dioClient.get(
-      ApiClient.scheduleTimezone,
-    );
+    final response = await _dioClient.get(ApiClient.scheduleTimezone);
 
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -644,10 +637,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
   Future<void> updateSchedule({
     required List<Map<String, dynamic>> schedule,
   }) async {
-    await _dioClient.post(
-      ApiClient.schedule,
-      data: schedule,
-    );
+    await _dioClient.post(ApiClient.schedule, data: schedule);
   }
 
   @override
@@ -663,8 +653,9 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
         '${appointmentDate.month.toString().padLeft(2, '0')}-'
         '${appointmentDate.day.toString().padLeft(2, '0')}';
 
-    final timeWithSeconds =
-        appointmentTime.length == 5 ? '$appointmentTime:00' : appointmentTime;
+    final timeWithSeconds = appointmentTime.length == 5
+        ? '$appointmentTime:00'
+        : appointmentTime;
 
     await _dioClient.post(
       '/appointment/create/',

@@ -31,7 +31,11 @@ class ExpertCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Color(0xFFFBC02D), size: 16),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFBC02D),
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${expert.rating}',
@@ -62,7 +66,9 @@ class ExpertCard extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
-                      children: expert.tags.map((tag) => _buildTag(tag)).toList(),
+                      children: expert.tags
+                          .map((tag) => _buildTag(tag))
+                          .toList(),
                     ),
                   ],
                 ),
@@ -89,10 +95,7 @@ class ExpertCard extends StatelessWidget {
                 children: [
                   const Text(
                     'Consultation price',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF9E9E9E),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -114,7 +117,10 @@ class ExpertCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text(
                   'Consultation',
@@ -137,45 +143,48 @@ class ExpertCard extends StatelessWidget {
   Widget _buildStatText(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 12,
-        color: Color(0xFF9E9E9E),
-      ),
+      style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
     );
   }
 
   Widget _buildTag(String text) {
-    Color backgroundColor;
-    Color textColor;
-    switch (text.toLowerCase()) {
-      case 'finance':
-        backgroundColor = const Color(0xFFFFF59D);
-        textColor = const Color(0xFFF59D00);
-        break;
-      case 'banking':
-        backgroundColor = const Color(0xFFC8E6C9); // Light Green
-        textColor = const Color(0xFF2E7D32);  
-        break;
-      case 'it':
-        backgroundColor = const Color(0xFFBBDEFB); // Light Blue
-        textColor = const Color(0xFF1976D2);        
-        break;
-      default:
-        backgroundColor = const Color(0xFFF5F5F5); // Light Grey
-        textColor = const Color(0xFF2E2E3E);
-    }
+    final List<Map<String, Color>> tagColors = [
+      {
+        'bg': const Color(0xFFFFF59D),
+        'text': const Color(0xFFF59D00),
+      }, // Yellow
+      {'bg': const Color(0xFFC8E6C9), 'text': const Color(0xFF2E7D32)}, // Green
+      {'bg': const Color(0xFFBBDEFB), 'text': const Color(0xFF1976D2)}, // Blue
+      {
+        'bg': const Color(0xFFE1BEE7),
+        'text': const Color(0xFF7B1FA2),
+      }, // Purple
+      {
+        'bg': const Color(0xFFFFCCBC),
+        'text': const Color(0xFFD84315),
+      }, // Deep Orange
+      {'bg': const Color(0xFFB2DFDB), 'text': const Color(0xFF00695C)}, // Teal
+      {'bg': const Color(0xFFFFCDD2), 'text': const Color(0xFFC62828)}, // Red
+      {
+        'bg': const Color(0xFFCFD8DC),
+        'text': const Color(0xFF37474F),
+      }, // Blue Grey
+    ];
+
+    final index = text.hashCode.abs() % tagColors.length;
+    final color = tagColors[index];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: color['bg'],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
-          color: textColor,
+          color: color['text'],
           fontWeight: FontWeight.w500,
         ),
       ),

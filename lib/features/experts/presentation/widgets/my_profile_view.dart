@@ -66,11 +66,11 @@ class MyProfileView extends StatelessWidget {
 
     final tabs = isExpert
         ? [
-            const Tab(text: 'Исследования 30'),
-            const Tab(text: 'Статьи 10'),
-            const Tab(text: 'Project'),
+            Tab(text: 'Исследования ${expert.researchCount}'),
+            Tab(text: 'Статьи ${expert.articlesCount}'),
+            Tab(text: 'Project ${expert.projectsCount}'),
             Tab(text: 'Questions ${expert.questionsCount}'),
-            const Tab(text: 'Отзывы'),
+            Tab(text: 'Отзывы ${expert.reviewsCount}'),
             const Tab(text: 'Appointments'),
             const Tab(text: 'Notifications 0'),
             Tab(text: 'Your rating ${expert.rating}'),
@@ -78,7 +78,7 @@ class MyProfileView extends StatelessWidget {
         : [
             const Tab(text: 'Notifications'),
             const Tab(text: 'Appointments'),
-            const Tab(text: 'Reviews'),
+            Tab(text: 'Reviews ${expert.reviewsCount}'),
             Tab(text: 'Questions ${expert.questionsCount}'),
           ];
 
@@ -173,13 +173,6 @@ class MyProfileView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Divider(
-                            height: 2,
-                            thickness: 2,
-                            color: Color(0xFF33354E),
-                            indent: 0,
-                            endIndent: 300,
-                          ),
                           GestureDetector(
                             onTap: () {
                               showModalBottomSheet(
