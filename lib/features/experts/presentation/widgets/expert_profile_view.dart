@@ -46,10 +46,220 @@ class ExpertProfileView extends StatelessWidget {
           initialIndex: selectedIndex,
           child: Builder(
             builder: (innerContext) {
+              Widget buildTabBody() {
+                if (!currentTabHasData) {
+                  return const SizedBox(height: 80);
+                }
+
+                if (selectedIndex == 2) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(
+                        height: 2,
+                        thickness: 2,
+                        color: Color(0xFF33354E),
+                        indent: 0,
+                        endIndent: 300,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          final bloc = context.read<ExpertProfileBloc>();
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => ProjectCategoriesSheet(
+                              selectedCategories: const [],
+                              onApply: (categories) async {
+                                if (categories.isEmpty) {
+                                  bloc.add(
+                                    LoadExpertProfile(expertId: expert.id),
+                                  );
+                                  return;
+                                }
+
+                                final selectedName = categories.first;
+                                final allCategoriesResult = await di
+                                    .sl<AuthRepository>()
+                                    .getCategories(page: 1, pageSize: 50);
+
+                                int? selectedId;
+                                allCategoriesResult.fold((_) {}, (
+                                  allCategories,
+                                ) {
+                                  for (final c in allCategories) {
+                                    if (c.name == selectedName) {
+                                      selectedId = c.id;
+                                      break;
+                                    }
+                                  }
+                                });
+
+                                if (selectedId == null) {
+                                  return;
+                                }
+
+                                bloc.add(FilterExpertProjects(selectedId!));
+                              },
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.sort,
+                                color: Color(0xFF66BB6A),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'All categories',
+                                style: TextStyle(
+                                  color: Color(0xFF66BB6A),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 0,
+                        ),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 1.1,
+                          ),
+                          itemCount: expert.projects.length,
+                          itemBuilder: (context, index) {
+                            final project = expert.projects[index];
+                            return ProjectCard(
+                              project: project,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      ProjectDetailsSheet(project: project),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 5, // Mock count
+                  itemBuilder: (context, index) {
+                    String titlePrefix = 'Item';
+                    switch (selectedIndex) {
+                      case 0:
+                        titlePrefix = 'Research';
+                        break;
+                      case 1:
+                        titlePrefix = 'Article';
+                        break;
+                      case 2:
+                        titlePrefix = 'Question';
+                        break;
+                      case 3:
+                        titlePrefix = 'Review';
+                        break;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$titlePrefix #${index + 1}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF33354E),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'What % of the total budget goes to operating expenses in IT in the banking sector? (Item $index)',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF33354E),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Publication description: ${expert.description.length > 50 ? expert.description.substring(0, 50) : expert.description}...',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 16,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '104',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '30 minutes ago',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 32),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }
+
               return CustomScrollView(
-                key: ValueKey(
-                  'expert_profile_scroll_${selectedIndex}_$currentTabHasData',
-                ),
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPersistentHeader(
@@ -126,224 +336,30 @@ class ExpertProfileView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (selectedIndex == 2)
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Divider(
-                            height: 2,
-                            thickness: 2,
-                            color: Color(0xFF33354E),
-                            indent: 0,
-                            endIndent: 300,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              final bloc = context.read<ExpertProfileBloc>();
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => ProjectCategoriesSheet(
-                                  selectedCategories: const [],
-                                  onApply: (categories) async {
-                                    if (categories.isEmpty) {
-                                      bloc.add(
-                                        LoadExpertProfile(expertId: expert.id),
-                                      );
-                                      return;
-                                    }
-
-                                    final selectedName = categories.first;
-                                    final allCategoriesResult = await di
-                                        .sl<AuthRepository>()
-                                        .getCategories(page: 1, pageSize: 50);
-
-                                    int? selectedId;
-                                    allCategoriesResult.fold((_) {}, (
-                                      allCategories,
-                                    ) {
-                                      for (final c in allCategories) {
-                                        if (c.name == selectedName) {
-                                          selectedId = c.id;
-                                          break;
-                                        }
-                                      }
-                                    });
-
-                                    if (selectedId == null) {
-                                      return;
-                                    }
-
-                                    bloc.add(FilterExpertProjects(selectedId!));
-                                  },
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.sort,
-                                    color: Color(0xFF66BB6A),
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'All categories',
-                                    style: TextStyle(
-                                      color: Color(0xFF66BB6A),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   SliverToBoxAdapter(
-                    child: Builder(
-                      builder: (context) {
-                        if (!currentTabHasData) {
-                          return const SizedBox(height: 80);
-                        }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 5, // Mock count
-                          itemBuilder: (context, index) {
-                            if (selectedIndex == 2) {
-                              // Project index
-                              return const SizedBox.shrink(); // Will use SliverGrid instead
-                            }
-
-                            String titlePrefix = 'Item';
-                            switch (selectedIndex) {
-                              case 0:
-                                titlePrefix = 'Research';
-                                break;
-                              case 1:
-                                titlePrefix = 'Article';
-                                break;
-                              case 2:
-                                titlePrefix = 'Question';
-                                break;
-                              case 3:
-                                titlePrefix = 'Review';
-                                break;
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '$titlePrefix #${index + 1}',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF33354E),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'What % of the total budget goes to operating expenses in IT in the banking sector? (Item $index)',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF33354E),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Publication description: ${expert.description.length > 50 ? expert.description.substring(0, 50) : expert.description}...',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.chat_bubble_outline,
-                                        size: 16,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '104',
-                                        style: TextStyle(
-                                          color: Colors.grey[400],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Icon(
-                                        Icons.calendar_today,
-                                        size: 16,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '30 minutes ago',
-                                        style: TextStyle(
-                                          color: Colors.grey[400],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Divider(height: 32),
-                                ],
-                              ),
-                            );
-                          },
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final offsetAnimation = Tween<Offset>(
+                          begin: const Offset(0.08, 0),
+                          end: Offset.zero,
+                        ).animate(animation);
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          ),
                         );
                       },
+                      child: Container(
+                        key: ValueKey<int>(selectedIndex),
+                        child: buildTabBody(),
+                      ),
                     ),
                   ),
-                  if (selectedIndex == 2 && currentTabHasData)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 0,
-                      ),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 8,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 1.1,
-                            ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final project = expert.projects[index];
-                          return ProjectCard(
-                            project: project,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    ProjectDetailsSheet(project: project),
-                              );
-                            },
-                          );
-                        }, childCount: expert.projects.length),
-                      ),
-                    ),
                   // Add extra padding at bottom to avoid content being hidden behind the button
                   const SliverToBoxAdapter(child: SizedBox(height: 40)),
                 ],
