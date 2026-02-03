@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../auth/domain/entities/category_entity.dart';
 
 enum ProfileSettingsStatus { initial, loading, success, error }
 
@@ -8,6 +9,7 @@ class ProfileSettingsState extends Equatable {
   final String lastName;
   final String about;
   final String imageUrl; // For display
+  final List<CategoryEntity> availableCategories;
   final List<String> categories;
   final String cost;
   final bool isByAgreement;
@@ -27,6 +29,7 @@ class ProfileSettingsState extends Equatable {
     this.lastName = '',
     this.about = '',
     this.imageUrl = '',
+    this.availableCategories = const [],
     this.categories = const [],
     this.cost = '',
     this.isByAgreement = false,
@@ -47,6 +50,7 @@ class ProfileSettingsState extends Equatable {
     String? lastName,
     String? about,
     String? imageUrl,
+    List<CategoryEntity>? availableCategories,
     List<String>? categories,
     String? cost,
     bool? isByAgreement,
@@ -66,6 +70,7 @@ class ProfileSettingsState extends Equatable {
       lastName: lastName ?? this.lastName,
       about: about ?? this.about,
       imageUrl: imageUrl ?? this.imageUrl,
+      availableCategories: availableCategories ?? this.availableCategories,
       categories: categories ?? this.categories,
       cost: cost ?? this.cost,
       isByAgreement: isByAgreement ?? this.isByAgreement,
@@ -88,6 +93,7 @@ class ProfileSettingsState extends Equatable {
     lastName,
     about,
     imageUrl,
+    availableCategories,
     categories,
     cost,
     isByAgreement,

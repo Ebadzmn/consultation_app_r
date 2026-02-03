@@ -29,6 +29,7 @@ import 'features/experts/domain/usecases/create_appointment_use_case.dart';
 import 'features/experts/presentation/bloc/experts_bloc.dart';
 import 'features/experts/domain/usecases/get_client_appointments_use_case.dart';
 import 'features/experts/domain/usecases/get_expert_appointments_use_case.dart';
+import 'features/experts/presentation/bloc/profile_settings/profile_settings_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -43,6 +44,7 @@ Future<void> init() async {
     () => LoginBloc(signInUseCase: sl(), getProfileUseCase: sl()),
   );
   sl.registerFactory(() => ExpertsBloc(getExperts: sl()));
+  sl.registerFactory(() => ProfileSettingsBloc(getCategoriesUseCase: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SignUpUseCase(sl()));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:consultant_app/core/localization/app_locale.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
+import 'package:consultant_app/features/auth/domain/entities/category_entity.dart';
 import '../../domain/entities/expert_profile.dart';
 import '../bloc/profile_settings/profile_settings_bloc.dart';
 import '../bloc/profile_settings/profile_settings_event.dart';
@@ -29,12 +30,6 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   late TextEditingController _oldPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _repeatPasswordController;
-  final List<String> _allCategories = const [
-    'Finance',
-    'IT',
-    'Legal',
-    'Health',
-  ];
 
   @override
   void initState() {
@@ -269,8 +264,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
               ),
               child: BlocBuilder<ProfileSettingsBloc, ProfileSettingsState>(
                 buildWhen: (previous, current) =>
-                    previous.categories != current.categories,
+                    previous.categories != current.categories ||
+                    previous.availableCategories != current.availableCategories,
                 builder: (context, state) {
+                  final allCategories = state.availableCategories;
                   final selected = state.categories;
                   final hasSelection = selected.isNotEmpty;
                   final text = hasSelection
@@ -286,7 +283,12 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     builder: (innerContext) {
                       return InkWell(
                         onTap: () {
-                          _openCategorySelector(innerContext, selected, l10n);
+                          _openCategorySelector(
+                            innerContext,
+                            allCategories,
+                            selected,
+                            l10n,
+                          );
                         },
                         child: SizedBox(
                           height: 48,
@@ -508,6 +510,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
 
   Future<List<String>?> _showCategorySelector(
     BuildContext context,
+    List<CategoryEntity> allCategories,
     List<String> current,
     AppLocalizations l10n,
   ) {
@@ -543,12 +546,12 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ..._allCategories.map(
-                    (c) => CheckboxListTile(
+                  ...allCategories.map(
+                    (category) => CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      value: selected.contains(c),
+                      value: selected.contains(category.name),
                       title: Text(
-                        c,
+                        category.name,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF33354E),
@@ -557,9 +560,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       onChanged: (value) {
                         setState(() {
                           if (value == true) {
-                            selected.add(c);
+                            selected.add(category.name);
                           } else {
-                            selected.remove(c);
+                            selected.remove(category.name);
                           }
                         });
                       },
@@ -609,11 +612,12 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
 
   void _openCategorySelector(
     BuildContext context,
+    List<CategoryEntity> allCategories,
     List<String> current,
     AppLocalizations l10n,
   ) async {
     final bloc = context.read<ProfileSettingsBloc>();
-    _showCategorySelector(context, current, l10n).then((updated) {
+    _showCategorySelector(context, allCategories, current, l10n).then((updated) {
       if (updated == null) {
         return;
       }

@@ -17,6 +17,10 @@ class LoadProfileSettings extends ProfileSettingsEvent {
   List<Object?> get props => [expert];
 }
 
+class ProfileCategoriesRequested extends ProfileSettingsEvent {
+  const ProfileCategoriesRequested();
+}
+
 class UpdateFirstName extends ProfileSettingsEvent {
   final String firstName;
 
