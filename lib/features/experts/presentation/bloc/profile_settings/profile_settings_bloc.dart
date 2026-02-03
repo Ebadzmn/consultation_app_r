@@ -1,11 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../auth/domain/usecases/get_categories_usecase.dart';
 import 'profile_settings_event.dart';
 import 'profile_settings_state.dart';
 
 class ProfileSettingsBloc
     extends Bloc<ProfileSettingsEvent, ProfileSettingsState> {
-  ProfileSettingsBloc() : super(const ProfileSettingsState()) {
+  final GetCategoriesUseCase getCategoriesUseCase;
+
+  ProfileSettingsBloc({required this.getCategoriesUseCase})
+      : super(const ProfileSettingsState()) {
     on<LoadProfileSettings>(_onLoadProfileSettings);
+    on<ProfileCategoriesRequested>(_onProfileCategoriesRequested);
     on<UpdateFirstName>(_onUpdateFirstName);
     on<UpdateLastName>(_onUpdateLastName);
     on<UpdateAbout>(_onUpdateAbout);
@@ -42,7 +47,7 @@ class ProfileSettingsBloc
         lastName: lastName,
         about: event.expert.description,
         imageUrl: event.expert.imageUrl,
-        categories: const [],
+        categories: event.expert.areas,
         cost: event.expert.cost,
         // Logic to determine if cost is by agreement could be parsed from string
         // For now, let's assume if it contains digits it's not by agreement
@@ -53,6 +58,21 @@ class ProfileSettingsBloc
         age: event.expert.age?.toString() ?? '',
         education: event.expert.education,
       ),
+    );
+  }
+
+  Future<void> _onProfileCategoriesRequested(
+    ProfileCategoriesRequested event,
+    Emitter<ProfileSettingsState> emit,
+  ) async {
+    final result = await getCategoriesUseCase(
+      const GetCategoriesParams(page: 1, pageSize: 50),
+    );
+
+    result.fold(
+      (_) => emit(state.copyWith(availableCategories: const [])),
+      (categories) =>
+          emit(state.copyWith(availableCategories: categories)),
     );
   }
 
