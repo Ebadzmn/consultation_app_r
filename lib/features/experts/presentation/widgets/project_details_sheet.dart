@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:consultant_app/core/network/api_client.dart';
 import 'package:consultant_app/injection_container.dart' as di;
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../domain/entities/project.dart';
 import '../../domain/repositories/experts_repository.dart';
 
@@ -27,10 +27,7 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
   Future<Map<String, dynamic>> _loadDetails() async {
     final repository = di.sl<ExpertsRepository>();
     final result = await repository.getProjectDetails(widget.project.id);
-    return result.fold(
-      (_) => <String, dynamic>{},
-      (data) => data,
-    );
+    return result.fold((_) => <String, dynamic>{}, (data) => data);
   }
 
   String _resolveMediaUrl(String? raw, String fallback) {
@@ -57,15 +54,11 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return const Center(
-              child: Text('Failed to load project details'),
-            );
+            return const Center(child: Text('Failed to load project details'));
           }
 
           final data = snapshot.data ?? <String, dynamic>{};
@@ -75,12 +68,10 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
           if (categories is List && categories.isNotEmpty) {
             final first = categories.first;
             if (first is Map<String, dynamic>) {
-              primaryCategory =
-                  (first['name'] ?? '').toString().trim();
+              primaryCategory = (first['name'] ?? '').toString().trim();
             }
           }
-          if (primaryCategory.isEmpty &&
-              widget.project.categories.isNotEmpty) {
+          if (primaryCategory.isEmpty && widget.project.categories.isNotEmpty) {
             primaryCategory = widget.project.categories.first;
           }
           if (primaryCategory.isEmpty) {
@@ -111,13 +102,10 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
           }
 
           final nameRaw = (data['name'] ?? '').toString().trim();
-          final title =
-              nameRaw.isNotEmpty ? nameRaw : widget.project.title;
+          final title = nameRaw.isNotEmpty ? nameRaw : widget.project.title;
 
-          final companyRaw =
-              (data['company'] ?? '').toString().trim();
-          final company =
-              companyRaw.isNotEmpty ? companyRaw : 'ООО';
+          final companyRaw = (data['company'] ?? '').toString().trim();
+          final company = companyRaw.isNotEmpty ? companyRaw : 'ООО';
 
           final goalsRaw = (data['goals'] ?? '').toString().trim();
           final description = goalsRaw.isNotEmpty
@@ -127,42 +115,31 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
           final participants = <_ParticipantItem>[];
           final author = data['author_details'];
           if (author is Map<String, dynamic>) {
-            final fullName =
-                (author['full_name'] ?? '').toString().trim();
-            final avatarRaw =
-                (author['avatar'] ?? '').toString().trim();
+            final fullName = (author['full_name'] ?? '').toString().trim();
+            final avatarRaw = (author['avatar'] ?? '').toString().trim();
             final avatarUrl = _resolveMediaUrl(
               avatarRaw,
               'https://i.pravatar.cc/100?u=author_${widget.project.id}',
             );
             if (fullName.isNotEmpty) {
               participants.add(
-                _ParticipantItem(
-                  name: fullName,
-                  avatarUrl: avatarUrl,
-                ),
+                _ParticipantItem(name: fullName, avatarUrl: avatarUrl),
               );
             }
           }
 
           final members = data['members_details'];
           if (members is List) {
-            for (final m
-                in members.whereType<Map<String, dynamic>>()) {
-              final fullName =
-                  (m['full_name'] ?? '').toString().trim();
-              final avatarRaw =
-                  (m['avatar'] ?? '').toString().trim();
+            for (final m in members.whereType<Map<String, dynamic>>()) {
+              final fullName = (m['full_name'] ?? '').toString().trim();
+              final avatarRaw = (m['avatar'] ?? '').toString().trim();
               final avatarUrl = _resolveMediaUrl(
                 avatarRaw,
                 'https://i.pravatar.cc/100?u=member_${widget.project.id}',
               );
               if (fullName.isNotEmpty) {
                 participants.add(
-                  _ParticipantItem(
-                    name: fullName,
-                    avatarUrl: avatarUrl,
-                  ),
+                  _ParticipantItem(name: fullName, avatarUrl: avatarUrl),
                 );
               }
             }
@@ -171,23 +148,13 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
           final files = <_FileItem>[];
           final rawFiles = data['files'];
           if (rawFiles is List) {
-            for (final f
-                in rawFiles.whereType<Map<String, dynamic>>()) {
-              final name =
-                  (f['name'] ?? '').toString().trim();
+            for (final f in rawFiles.whereType<Map<String, dynamic>>()) {
+              final name = (f['name'] ?? '').toString().trim();
               var url = (f['url'] ?? '').toString().trim();
               url = url.replaceAll('`', '').trim();
-              final resolvedUrl = _resolveMediaUrl(
-                url,
-                '',
-              );
+              final resolvedUrl = _resolveMediaUrl(url, '');
               if (name.isNotEmpty && resolvedUrl.isNotEmpty) {
-                files.add(
-                  _FileItem(
-                    name: name,
-                    url: resolvedUrl,
-                  ),
-                );
+                files.add(_FileItem(name: name, url: resolvedUrl));
               }
             }
           }
@@ -195,13 +162,9 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
           return Container(
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 20,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,10 +181,7 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.grey,
-                      ),
+                      icon: const Icon(Icons.close, color: Colors.grey),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -242,8 +202,7 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE3F2FD),
-                                borderRadius:
-                                    BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
                                 primaryCategory,
@@ -415,11 +374,9 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
     if (url.isEmpty) {
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FileViewerPage(url: url),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => FileViewerPage(url: url)));
   }
 
   Widget _buildStatIcon(IconData icon, String label) {
@@ -439,9 +396,7 @@ class _ProjectDetailsSheetState extends State<ProjectDetailsSheet> {
     );
   }
 
-  List<Widget> _buildParticipantsList(
-    List<_ParticipantItem> participants,
-  ) {
+  List<Widget> _buildParticipantsList(List<_ParticipantItem> participants) {
     if (participants.isEmpty) {
       return [];
     }
@@ -509,20 +464,14 @@ class _ParticipantItem {
   final String name;
   final String avatarUrl;
 
-  _ParticipantItem({
-    required this.name,
-    required this.avatarUrl,
-  });
+  _ParticipantItem({required this.name, required this.avatarUrl});
 }
 
 class _FileItem {
   final String name;
   final String url;
 
-  _FileItem({
-    required this.name,
-    required this.url,
-  });
+  _FileItem({required this.name, required this.url});
 }
 
 class FileViewerPage extends StatelessWidget {

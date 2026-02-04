@@ -322,6 +322,16 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
                             ),
                           ),
                         ] else ...[
+                          ConsultationMonthHeader(
+                            focusedMonth: state.focusedMonth,
+                            onPreviousMonth: () => context
+                                .read<ConsultationsBloc>()
+                                .add(ConsultationsPreviousMonthPressed()),
+                            onNextMonth: () => context
+                                .read<ConsultationsBloc>()
+                                .add(ConsultationsNextMonthPressed()),
+                            maxMonth: maxMonth,
+                          ),
                           _AppointmentsSection(
                             title: 'Appointments',
                             appointments: state.appointments,

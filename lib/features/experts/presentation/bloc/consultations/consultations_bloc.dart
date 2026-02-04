@@ -16,17 +16,17 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     required this.isExpert,
     ConsultationsTab initialTab = ConsultationsTab.calendar,
   }) : super(
-          ConsultationsState(
-            tab: initialTab,
-            focusedMonth: DateTime(DateTime.now().year, DateTime.now().month),
-            selectedDate: DateTime(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day,
-            ),
-            appointments: const [],
-          ),
-        ) {
+         ConsultationsState(
+           tab: initialTab,
+           focusedMonth: DateTime(DateTime.now().year, DateTime.now().month),
+           selectedDate: DateTime(
+             DateTime.now().year,
+             DateTime.now().month,
+             DateTime.now().day,
+           ),
+           appointments: const [],
+         ),
+       ) {
     on<ConsultationsTabChanged>(_onTabChanged);
     on<ConsultationsRangeChanged>(_onRangeChanged);
     on<ConsultationsPreviousMonthPressed>(_onPreviousMonth);
@@ -55,6 +55,80 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     Emitter<ConsultationsState> emit,
   ) {
     emit(state.copyWith(tab: event.tab));
+
+    if (event.tab == ConsultationsTab.list) {
+      // Force fetch full month for List view
+      add(
+        ConsultationsAppointmentsRequested(
+          start: _monthStartFor(state.focusedMonth),
+          end: _monthEndFor(state.focusedMonth),
+        ),
+      );
+    } else {
+      // Restore fetches based on current range for Calendar view
+      if (state.range == ConsultationsRange.week) {
+        // Re-calculate week start/end based on selectedDate
+        final normalizedSelected = DateTime(
+          state.selectedDate.year,
+          state.selectedDate.month,
+          state.selectedDate.day,
+        );
+        final weekStart = normalizedSelected.subtract(
+          Duration(days: normalizedSelected.weekday - 1),
+        );
+        final weekEnd = weekStart.add(const Duration(days: 6));
+        final weekStartDateTime = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day,
+          0,
+          0,
+          0,
+        );
+        final weekEndDateTime = DateTime(
+          weekEnd.year,
+          weekEnd.month,
+          weekEnd.day,
+          23,
+          59,
+          59,
+        );
+
+        add(
+          ConsultationsAppointmentsRequested(
+            start: weekStartDateTime,
+            end: weekEndDateTime,
+          ),
+        );
+      } else if (state.range == ConsultationsRange.day) {
+        final dayStart = DateTime(
+          state.selectedDate.year,
+          state.selectedDate.month,
+          state.selectedDate.day,
+          0,
+          0,
+          0,
+        );
+        final dayEnd = DateTime(
+          state.selectedDate.year,
+          state.selectedDate.month,
+          state.selectedDate.day,
+          23,
+          59,
+          59,
+        );
+
+        add(ConsultationsAppointmentsRequested(start: dayStart, end: dayEnd));
+      } else {
+        // Month range - re-fetch month just in case
+        add(
+          ConsultationsAppointmentsRequested(
+            start: _monthStartFor(state.focusedMonth),
+            end: _monthEndFor(state.focusedMonth),
+          ),
+        );
+      }
+    }
   }
 
   void _onRangeChanged(
@@ -63,11 +137,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
   ) {
     if (event.range == ConsultationsRange.week) {
       final today = DateTime.now();
-      final normalizedToday = DateTime(
-        today.year,
-        today.month,
-        today.day,
-      );
+      final normalizedToday = DateTime(today.year, today.month, today.day);
       final thisWeekStart = normalizedToday.subtract(
         Duration(days: normalizedToday.weekday - 1),
       );
@@ -94,10 +164,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         state.copyWith(
           range: event.range,
           selectedDate: lastWeekStart,
-          focusedMonth: DateTime(
-            lastWeekStart.year,
-            lastWeekStart.month,
-          ),
+          focusedMonth: DateTime(lastWeekStart.year, lastWeekStart.month),
         ),
       );
 
@@ -140,12 +207,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         ),
       );
 
-      add(
-        ConsultationsAppointmentsRequested(
-          start: dayStart,
-          end: dayEnd,
-        ),
-      );
+      add(ConsultationsAppointmentsRequested(start: dayStart, end: dayEnd));
     } else {
       emit(state.copyWith(range: event.range));
     }
@@ -178,9 +240,10 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     );
     final now = DateTime.now();
     final maxMonth = DateTime(now.year, now.month + 4);
-    if (DateTime(next.year, next.month).isAfter(
-      DateTime(maxMonth.year, maxMonth.month),
-    )) {
+    if (DateTime(
+      next.year,
+      next.month,
+    ).isAfter(DateTime(maxMonth.year, maxMonth.month))) {
       return;
     }
     emit(state.copyWith(focusedMonth: next));
@@ -202,12 +265,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
       final key = DateTime(d.year, d.month, d.day);
       workingHours = _expertWorkingSlotsByDate[key] ?? const [];
     }
-    emit(
-      state.copyWith(
-        selectedDate: d,
-        workingHours: workingHours,
-      ),
-    );
+    emit(state.copyWith(selectedDate: d, workingHours: workingHours));
   }
 
   void _onPreviousWeek(
@@ -283,61 +341,51 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         ClientAppointmentsParams(start: event.start, end: event.end),
       );
 
-      result.fold(
-        (_) {},
-        (overview) {
-          _expertWorkingSlotsByDate.clear();
-          for (final slot in overview.workingSlots) {
-            final key = DateTime(
-              slot.start.year,
-              slot.start.month,
-              slot.start.day,
-            );
-            final value =
-                '${slot.start.hour.toString().padLeft(2, '0')}:'
-                '${slot.start.minute.toString().padLeft(2, '0')} - '
-                '${slot.end.hour.toString().padLeft(2, '0')}:'
-                '${slot.end.minute.toString().padLeft(2, '0')}';
-            final existing = _expertWorkingSlotsByDate[key];
-            if (existing == null) {
-              _expertWorkingSlotsByDate[key] = [value];
-            } else {
-              existing.add(value);
-            }
+      result.fold((_) {}, (overview) {
+        _expertWorkingSlotsByDate.clear();
+        for (final slot in overview.workingSlots) {
+          final key = DateTime(
+            slot.start.year,
+            slot.start.month,
+            slot.start.day,
+          );
+          final value =
+              '${slot.start.hour.toString().padLeft(2, '0')}:'
+              '${slot.start.minute.toString().padLeft(2, '0')} - '
+              '${slot.end.hour.toString().padLeft(2, '0')}:'
+              '${slot.end.minute.toString().padLeft(2, '0')}';
+          final existing = _expertWorkingSlotsByDate[key];
+          if (existing == null) {
+            _expertWorkingSlotsByDate[key] = [value];
+          } else {
+            existing.add(value);
           }
+        }
 
-          final selected = DateTime(
-            state.selectedDate.year,
-            state.selectedDate.month,
-            state.selectedDate.day,
-          );
-          final workingHoursStrings =
-              _expertWorkingSlotsByDate[selected] ?? const [];
+        final selected = DateTime(
+          state.selectedDate.year,
+          state.selectedDate.month,
+          state.selectedDate.day,
+        );
+        final workingHoursStrings =
+            _expertWorkingSlotsByDate[selected] ?? const [];
 
-          emit(
-            state.copyWith(
-              appointments: overview.appointments,
-              offHours: const [],
-              workingHours: workingHoursStrings,
-            ),
-          );
-        },
-      );
+        emit(
+          state.copyWith(
+            appointments: overview.appointments,
+            offHours: const [],
+            workingHours: workingHoursStrings,
+          ),
+        );
+      });
     } else {
       final result = await getClientAppointments(
         ClientAppointmentsParams(start: event.start, end: event.end),
       );
 
-      result.fold(
-        (_) {},
-        (appointments) {
-          emit(
-            state.copyWith(
-              appointments: appointments,
-            ),
-          );
-        },
-      );
+      result.fold((_) {}, (appointments) {
+        emit(state.copyWith(appointments: appointments));
+      });
     }
   }
 
