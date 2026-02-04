@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:consultant_app/core/config/app_routes.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
 import '../bloc/expert_profile/expert_profile_state.dart';
@@ -29,7 +31,13 @@ class _MyProfileScaffold extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.experts);
+            }
+          },
         ),
         titleSpacing: 0,
         title: const Text(

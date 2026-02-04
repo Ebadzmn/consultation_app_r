@@ -24,49 +24,13 @@ class ConsultationsCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monthLabel = DateFormat('MMMM yyyy').format(focusedMonth);
-    final canGoNext = maxMonth == null ||
-        DateTime(focusedMonth.year, focusedMonth.month, 1).isBefore(
-          DateTime(maxMonth!.year, maxMonth!.month, 1),
-        );
-
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.chevron_left,
-                  color: Color(0xFFEEEEEE),
-                  size: 30,
-                ),
-                onPressed: onPreviousMonth,
-              ),
-              Expanded(
-                child: Text(
-                  monthLabel,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.chevron_right,
-                  color:
-                      canGoNext ? const Color(0xFF66BB6A) : const Color(0xFFEEEEEE),
-                  size: 30,
-                ),
-                onPressed: canGoNext ? onNextMonth : null,
-              ),
-            ],
-          ),
+        ConsultationMonthHeader(
+          focusedMonth: focusedMonth,
+          onPreviousMonth: onPreviousMonth,
+          onNextMonth: onNextMonth,
+          maxMonth: maxMonth,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -94,6 +58,71 @@ class ConsultationsCalendar extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ConsultationMonthHeader extends StatelessWidget {
+  final DateTime focusedMonth;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
+  final DateTime? maxMonth;
+
+  const ConsultationMonthHeader({
+    super.key,
+    required this.focusedMonth,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
+    this.maxMonth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final monthLabel = DateFormat('MMMM yyyy').format(focusedMonth);
+    final canGoNext =
+        maxMonth == null ||
+        DateTime(
+          focusedMonth.year,
+          focusedMonth.month,
+          1,
+        ).isBefore(DateTime(maxMonth!.year, maxMonth!.month, 1));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.chevron_left,
+              color: Color(0xFFEEEEEE),
+              size: 30,
+            ),
+            onPressed: onPreviousMonth,
+          ),
+          Expanded(
+            child: Text(
+              monthLabel,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.chevron_right,
+              color: canGoNext
+                  ? const Color(0xFF66BB6A)
+                  : const Color(0xFFEEEEEE),
+              size: 30,
+            ),
+            onPressed: canGoNext ? onNextMonth : null,
+          ),
+        ],
+      ),
     );
   }
 }
