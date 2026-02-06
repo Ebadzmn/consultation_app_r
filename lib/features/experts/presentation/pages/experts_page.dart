@@ -226,18 +226,38 @@ class ExpertsView extends StatelessWidget {
               child: Text(state.errorMessage ?? 'Error loading experts'),
             );
           } else if (state.status == ExpertsStatus.success) {
-            return ListView.builder(
-              itemCount: state.experts.length,
-              itemBuilder: (context, index) {
-                final expert = state.experts[index];
-                return GestureDetector(
-                  onTap: () => context.push(
-                    AppRoutes.expertPublicProfile,
-                    extra: expert.id,
-                  ),
-                  child: ExpertCard(expert: expert),
-                );
+            final itemCount =
+                state.experts.length + (state.isLoadingMore ? 1 : 0);
+            return NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.pixels >=
+                        notification.metrics.maxScrollExtent - 200 &&
+                    notification is ScrollUpdateNotification) {
+                  context.read<ExpertsBloc>().add(LoadMoreExperts());
+                }
+                return false;
               },
+              child: ListView.builder(
+                itemCount: itemCount,
+                itemBuilder: (context, index) {
+                  if (index >= state.experts.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  final expert = state.experts[index];
+                  return GestureDetector(
+                    onTap: () => context.push(
+                      AppRoutes.expertPublicProfile,
+                      extra: expert.id,
+                    ),
+                    child: ExpertCard(expert: expert),
+                  );
+                },
+              ),
             );
           }
           return const SizedBox.shrink();
