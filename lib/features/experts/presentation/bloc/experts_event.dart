@@ -9,6 +9,8 @@ abstract class ExpertsEvent extends Equatable {
 
 class LoadExperts extends ExpertsEvent {}
 
+class LoadMoreExperts extends ExpertsEvent {}
+
 class FilterExperts extends ExpertsEvent {
   final List<int> categoryIds;
   final double minRating;
