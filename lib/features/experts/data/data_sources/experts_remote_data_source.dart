@@ -16,6 +16,7 @@ abstract class ExpertsRemoteDataSource {
     double? minRating,
     List<int>? categoryIds,
     String? sortBy,
+    String? search,
   });
   Future<ExpertProfile> getExpertProfile(String expertId);
   Future<ExpertProfile> getCurrentUserProfile();
@@ -35,6 +36,7 @@ abstract class ExpertsRemoteDataSource {
     required DateTime end,
   });
   Future<String?> getScheduleTimezone();
+  Future<List<Map<String, dynamic>>> getSchedule();
   Future<void> updateSchedule({required List<Map<String, dynamic>> schedule});
   Future<void> createAppointment({
     required String expertId,
@@ -306,14 +308,23 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     final categoriesRaw = json['category'] ?? json['categories'];
     List<String> categories = [];
     if (categoriesRaw is List) {
-      categories = categoriesRaw
-          .map((e) => e is int ? e : int.tryParse(e.toString()))
-          .whereType<int>()
-          .map(
-            (categoryId) =>
-                _categoryNamesById[categoryId] ?? 'Категория $categoryId',
-          )
-          .toList();
+      if (categoriesRaw.isNotEmpty &&
+          categoriesRaw.first is Map<String, dynamic>) {
+        categories = categoriesRaw
+            .whereType<Map<String, dynamic>>()
+            .map((m) => (m['name'] ?? '').toString().trim())
+            .where((name) => name.isNotEmpty)
+            .toList();
+      } else {
+        categories = categoriesRaw
+            .map((e) => e is int ? e : int.tryParse(e.toString()))
+            .whereType<int>()
+            .map(
+              (categoryId) =>
+                  _categoryNamesById[categoryId] ?? 'Категория $categoryId',
+            )
+            .toList();
+      }
     }
 
     List<String> participantAvatars = [];
@@ -423,16 +434,20 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     double? minRating,
     List<int>? categoryIds,
     String? sortBy,
+    String? search,
   }) async {
     final query = <String, dynamic>{'page': page, 'page_size': pageSize};
     if (minRating != null) {
       query['min_rating'] = minRating;
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
-      query['categories'] = categoryIds.join(',');
+      query['category'] = categoryIds.first;
     }
     if (sortBy != null && sortBy.trim().isNotEmpty) {
       query['sort_by'] = sortBy.trim();
+    }
+     if (search != null && search.trim().isNotEmpty) {
+      query['search'] = search.trim();
     }
     final response = await _dioClient.get(
       ApiClient.getExperts,
@@ -631,6 +646,22 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
     }
 
     return null;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSchedule() async {
+    final response = await _dioClient.get(ApiClient.schedule);
+    final data = response.data;
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().toList();
+    }
+    if (data is Map<String, dynamic>) {
+      final inner = data['data'];
+      if (inner is List) {
+        return inner.whereType<Map<String, dynamic>>().toList();
+      }
+    }
+    return [];
   }
 
   @override

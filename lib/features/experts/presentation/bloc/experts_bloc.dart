@@ -26,6 +26,7 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
         categoryIds: const [],
         minRating: null,
         sortBy: null,
+        search: null,
       ),
     );
 
@@ -68,6 +69,7 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
         categoryIds: event.categoryIds,
         minRating: event.minRating,
         sortBy: event.sortBy,
+        search: event.search,
       ),
     );
 
@@ -78,6 +80,7 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
         minRating: event.minRating,
         categoryIds: event.categoryIds,
         sortBy: event.sortBy,
+        search: event.search,
       ),
     );
 
@@ -122,6 +125,7 @@ class ExpertsBloc extends Bloc<ExpertsEvent, ExpertsState> {
         categoryIds:
             state.categoryIds.isEmpty ? null : List<int>.from(state.categoryIds),
         sortBy: state.sortBy,
+        search: state.search,
       ),
     );
 

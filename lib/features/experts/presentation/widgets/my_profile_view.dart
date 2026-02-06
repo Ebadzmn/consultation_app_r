@@ -284,18 +284,28 @@ class MyProfileView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildInfoRow('Education', expert.education),
-                              const SizedBox(height: 16),
-                              _buildInfoRow('Experience', expert.experience),
-                              const SizedBox(height: 16),
-                              Text(
-                                expert.description,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  height: 1.4,
-                                  color: Color(0xFF33354E),
+                              if (expert.education.trim().isNotEmpty) ...[
+                                _buildInfoRow('Education', expert.education),
+                              ],
+                              if (expert.experience.trim().isNotEmpty) ...[
+                                if (expert.education.trim().isNotEmpty)
+                                  const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  'Experience',
+                                  expert.experience,
                                 ),
-                              ),
+                              ],
+                              if (expert.description.trim().isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Text(
+                                  expert.description,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.4,
+                                    color: Color(0xFF33354E),
+                                  ),
+                                ),
+                              ],
                               if (isExpert) ...[
                                 const SizedBox(height: 16),
                                 _buildInfoRow('Consultation Cost', expert.cost),
@@ -489,30 +499,85 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                           spacing: 8,
                           runSpacing: 8,
                           alignment: WrapAlignment.center,
-                          children: expert.areas.asMap().entries.map((entry) {
-                            final colors = CategoryColorHelper.getColors(
-                              entry.key,
-                            );
+                          children: () {
+                            final entries =
+                                expert.areas.asMap().entries.toList();
 
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colors.$1,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                entry.value,
-                                style: TextStyle(
-                                  color: colors.$2,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            if (entries.length <= 2) {
+                              return entries.map((entry) {
+                                final colors = CategoryColorHelper.getColors(
+                                  entry.key,
+                                );
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colors.$1,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      color: colors.$2,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }).toList();
+                            }
+
+                            final visibleEntries = entries.take(2).toList();
+                            final moreCount = entries.length - 2;
+
+                            return [
+                              ...visibleEntries.map((entry) {
+                                final colors = CategoryColorHelper.getColors(
+                                  entry.key,
+                                );
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colors.$1,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      color: colors.$2,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '$moreCount+',
+                                  style: const TextStyle(
+                                    color: Color(0xFF616161),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            );
-                          }).toList(),
+                            ];
+                          }(),
                         ),
                       ),
                       const SizedBox(height: 12),

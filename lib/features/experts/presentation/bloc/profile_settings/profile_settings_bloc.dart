@@ -1,4 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:consultant_app/core/network/api_client.dart';
+import 'package:consultant_app/core/network/dio_client.dart';
+import 'package:consultant_app/injection_container.dart' as di;
 import '../../../../auth/domain/usecases/get_categories_usecase.dart';
 import 'profile_settings_event.dart';
 import 'profile_settings_state.dart';
@@ -94,9 +98,62 @@ class ProfileSettingsBloc
     emit(state.copyWith(about: event.about));
   }
 
-  void _onUpdatePhoto(UpdatePhoto event, Emitter<ProfileSettingsState> emit) {
-    // Logic to pick image would go here or be passed in
-    // For now, just a placeholder
+  Future<void> _onUpdatePhoto(
+    UpdatePhoto event,
+    Emitter<ProfileSettingsState> emit,
+  ) async {
+    emit(state.copyWith(status: ProfileSettingsStatus.loading));
+    try {
+      final dioClient = di.sl<DioClient>();
+
+      final file = await dio.MultipartFile.fromFile(
+        event.filePath,
+      );
+
+      final formData = dio.FormData.fromMap({
+        'avatar': file,
+      });
+
+      final response = await dioClient.patch(
+        ApiClient.profile,
+        data: formData,
+        options: dio.Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      String? newImageUrl;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final raw = (data['avatar_url'] ?? data['avatar'] ?? '').toString();
+        final s = raw.trim();
+        if (s.isNotEmpty) {
+          if (s.startsWith('http://') || s.startsWith('https://')) {
+            newImageUrl = s;
+          } else {
+            final uri = Uri.parse(ApiClient.baseUrl);
+            final origin = '${uri.scheme}://${uri.host}';
+            newImageUrl = '$origin$s';
+          }
+        }
+      }
+
+      emit(
+        state.copyWith(
+          status: ProfileSettingsStatus.success,
+          imageUrl: newImageUrl ?? state.imageUrl,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProfileSettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 
   void _onRemovePhoto(RemovePhoto event, Emitter<ProfileSettingsState> emit) {
@@ -177,8 +234,113 @@ class ProfileSettingsBloc
   ) async {
     emit(state.copyWith(status: ProfileSettingsStatus.loading));
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      final firstName = state.firstName.trim();
+      final lastName = state.lastName.trim();
+      final about = state.about.trim();
+
+      int? parseInt(String value) {
+        final trimmed = value.trim();
+        if (trimmed.isEmpty) {
+          return null;
+        }
+        final digits = RegExp(r'\d+').allMatches(trimmed).map((m) {
+          return m.group(0) ?? '';
+        }).join();
+        if (digits.isEmpty) {
+          return null;
+        }
+        return int.tryParse(digits);
+      }
+
+      final age = parseInt(state.age);
+
+      int? hourCost;
+      if (!state.isByAgreement) {
+        hourCost = parseInt(state.cost);
+      }
+
+      final experience = parseInt(state.experience);
+
+      final consultingExperience = experience;
+
+      final hhLink = state.hh.trim().isNotEmpty ? state.hh.trim() : null;
+      final linkedinLink =
+          state.linkedin.trim().isNotEmpty ? state.linkedin.trim() : null;
+
+      final categoryIds = <int>[];
+      final selectedNames = state.categories;
+      for (final category in state.availableCategories) {
+        if (selectedNames.contains(category.name)) {
+          categoryIds.add(category.id);
+        }
+      }
+
+      final educationList = <Map<String, dynamic>>[];
+      final rawEducation = state.education.trim();
+      if (rawEducation.isNotEmpty) {
+        final parts = rawEducation
+            .split('•')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        String? institution;
+        String? faculty;
+        String? specialization;
+        int? yearEnd;
+        if (parts.isNotEmpty) {
+          institution = parts[0];
+        }
+        if (parts.length > 1) {
+          faculty = parts[1];
+        }
+        if (parts.length > 2) {
+          specialization = parts[2];
+        }
+        if (parts.length > 3) {
+          final yearDigits =
+              RegExp(r'\d+').firstMatch(parts[3])?.group(0) ?? '';
+          if (yearDigits.isNotEmpty) {
+            yearEnd = int.tryParse(yearDigits);
+          }
+        }
+        final education = <String, dynamic>{};
+        if (institution != null && institution.isNotEmpty) {
+          education['institution'] = institution;
+        }
+        if (faculty != null && faculty.isNotEmpty) {
+          education['faculty'] = faculty;
+        }
+        if (specialization != null && specialization.isNotEmpty) {
+          education['specialization'] = specialization;
+        }
+        if (yearEnd != null) {
+          education['year_end'] = yearEnd;
+        }
+        if (education.isNotEmpty) {
+          educationList.add(education);
+        }
+      }
+
+      final body = <String, dynamic>{
+        'first_name': firstName,
+        'last_name': lastName,
+        'about': about,
+        'age': age,
+        'hour_cost': hourCost,
+        'experience': experience,
+        'consulting_experience': consultingExperience,
+        'hh_link': hhLink,
+        'linkedin_link': linkedinLink,
+        'categories': categoryIds,
+        'education': educationList,
+        'avatar': null,
+      };
+
+      body.removeWhere((key, value) => value == null);
+
+      final dioClient = di.sl<DioClient>();
+      await dioClient.patch(ApiClient.profile, data: body);
+
       emit(state.copyWith(status: ProfileSettingsStatus.success));
     } catch (e) {
       emit(

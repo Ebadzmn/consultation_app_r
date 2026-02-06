@@ -14,6 +14,7 @@ class ExpertsState extends Equatable {
   final List<int> categoryIds;
   final double? minRating;
   final String? sortBy;
+  final String? search;
 
   const ExpertsState({
     this.status = ExpertsStatus.initial,
@@ -26,6 +27,7 @@ class ExpertsState extends Equatable {
     this.categoryIds = const [],
     this.minRating,
     this.sortBy,
+    this.search,
   });
 
   ExpertsState copyWith({
@@ -39,6 +41,7 @@ class ExpertsState extends Equatable {
     List<int>? categoryIds,
     double? minRating,
     String? sortBy,
+    String? search,
   }) {
     return ExpertsState(
       status: status ?? this.status,
@@ -51,6 +54,7 @@ class ExpertsState extends Equatable {
       categoryIds: categoryIds ?? this.categoryIds,
       minRating: minRating ?? this.minRating,
       sortBy: sortBy ?? this.sortBy,
+      search: search ?? this.search,
     );
   }
 
@@ -66,5 +70,6 @@ class ExpertsState extends Equatable {
         categoryIds,
         minRating,
         sortBy,
+        search,
       ];
 }
