@@ -66,9 +66,20 @@ class ExpertCard extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
-                      children: expert.tags
-                          .map((tag) => _buildTag(tag))
-                          .toList(),
+                      children: () {
+                        final tags = expert.tags;
+                        if (tags.length <= 2) {
+                          return tags.map((tag) => _buildTag(tag)).toList();
+                        }
+
+                        final visible = tags.take(2).toList();
+                        final moreCount = tags.length - 2;
+
+                        return [
+                          ...visible.map((tag) => _buildTag(tag)),
+                          _buildTag('$moreCount+'),
+                        ];
+                      }(),
                     ),
                   ],
                 ),

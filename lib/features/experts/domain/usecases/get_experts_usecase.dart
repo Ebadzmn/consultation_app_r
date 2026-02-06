@@ -10,6 +10,7 @@ class GetExpertsParams extends Equatable {
   final double? minRating;
   final List<int>? categoryIds;
   final String? sortBy;
+  final String? search;
 
   const GetExpertsParams({
     this.page = 1,
@@ -17,6 +18,7 @@ class GetExpertsParams extends Equatable {
     this.minRating,
     this.categoryIds,
     this.sortBy,
+    this.search,
   });
 
   @override
@@ -26,6 +28,7 @@ class GetExpertsParams extends Equatable {
         minRating,
         categoryIds,
         sortBy,
+        search,
       ];
 }
 
@@ -43,6 +46,7 @@ class GetExpertsUseCase {
       minRating: params.minRating,
       categoryIds: params.categoryIds,
       sortBy: params.sortBy,
+      search: params.search,
     );
   }
 }

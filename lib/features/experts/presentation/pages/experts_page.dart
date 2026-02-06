@@ -134,6 +134,21 @@ class ExpertsView extends StatelessWidget {
                     color: Color(0xFF33354E),
                     fontSize: 14,
                   ),
+                  onChanged: (value) {
+                    final trimmed = value.trim();
+                    if (trimmed.isEmpty) {
+                      context.read<ExpertsBloc>().add(LoadExperts());
+                    } else {
+                      context.read<ExpertsBloc>().add(
+                            FilterExperts(
+                              categoryIds: const [],
+                              minRating: 0,
+                              sortBy: '',
+                              search: trimmed,
+                            ),
+                          );
+                    }
+                  },
                   decoration: InputDecoration(
                     hintText: l10n.search,
                     hintStyle: const TextStyle(
@@ -158,6 +173,7 @@ class ExpertsView extends StatelessWidget {
                         const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () {
+                            context.read<ExpertsBloc>().add(LoadExperts());
                             _toggleSearch(context);
                           },
                           child: const Icon(

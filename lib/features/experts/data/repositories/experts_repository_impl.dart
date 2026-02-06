@@ -20,6 +20,7 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
     double? minRating,
     List<int>? categoryIds,
     String? sortBy,
+    String? search,
   }) async {
     try {
       final experts = await remoteDataSource.getExperts(
@@ -28,6 +29,7 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
         minRating: minRating,
         categoryIds: categoryIds,
         sortBy: sortBy,
+        search: search,
       );
       return Right(experts);
     } catch (e) {
@@ -193,6 +195,18 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
     } catch (e) {
       return const Left(
         ServerFailure('Failed to load schedule timezone'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getSchedule() async {
+    try {
+      final result = await remoteDataSource.getSchedule();
+      return Right(result);
+    } catch (e) {
+      return const Left(
+        ServerFailure('Failed to load schedule'),
       );
     }
   }

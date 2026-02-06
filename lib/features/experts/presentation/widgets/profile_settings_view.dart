@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:consultant_app/core/localization/app_locale.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
 import 'package:consultant_app/features/auth/domain/entities/category_entity.dart';
@@ -27,6 +28,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   late TextEditingController _hhController;
   late TextEditingController _ageController;
   late TextEditingController _educationController;
+  late TextEditingController _educationInstitutionController;
+  late TextEditingController _educationFacultyController;
+  late TextEditingController _educationSpecializationController;
+  late TextEditingController _educationYearController;
   late TextEditingController _oldPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _repeatPasswordController;
@@ -51,6 +56,11 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     _hhController = TextEditingController(text: widget.expert.hhUrl);
     _ageController = TextEditingController(text: widget.expert.age?.toString());
     _educationController = TextEditingController(text: widget.expert.education);
+    _educationInstitutionController =
+        TextEditingController(text: widget.expert.education);
+    _educationFacultyController = TextEditingController();
+    _educationSpecializationController = TextEditingController();
+    _educationYearController = TextEditingController();
     _oldPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _repeatPasswordController = TextEditingController();
@@ -67,6 +77,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     _hhController.dispose();
     _ageController.dispose();
     _educationController.dispose();
+    _educationInstitutionController.dispose();
+    _educationFacultyController.dispose();
+    _educationSpecializationController.dispose();
+    _educationYearController.dispose();
     _oldPasswordController.dispose();
     _newPasswordController.dispose();
     _repeatPasswordController.dispose();
@@ -96,6 +110,15 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
           _hhController.text = state.hh;
           _ageController.text = state.age;
           _educationController.text = state.education;
+          final parts = state.education.split('•').map((e) => e.trim()).toList();
+          _educationInstitutionController.text =
+              parts.isNotEmpty ? parts[0] : '';
+          _educationFacultyController.text =
+              parts.length > 1 ? parts[1] : '';
+          _educationSpecializationController.text =
+              parts.length > 2 ? parts[2] : '';
+          _educationYearController.text =
+              parts.length > 3 ? parts[3] : '';
         }
       },
       child: SingleChildScrollView(
@@ -215,8 +238,19 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     OutlinedButton(
-                      onPressed: () {
-                        // Implement upload photo
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (picked == null) {
+                          return;
+                        }
+                        // Send selected image path to bloc to upload and update avatar
+                        // ignore: use_build_context_synchronously
+                        context
+                            .read<ProfileSettingsBloc>()
+                            .add(UpdatePhoto(picked.path));
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFC5CAE9)),
@@ -322,7 +356,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             _buildLabel('Experience'), // Replace with l10n later
             _buildTextField(
               controller: _experienceController,
-              maxLines: 4,
+              maxLines: 2,
               onChanged: (value) => context.read<ProfileSettingsBloc>().add(
                 UpdateExperience(value),
               ),
@@ -331,12 +365,29 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
 
             // Education
             _buildLabel('Education'), // Replace with l10n later
+            const SizedBox(height: 8),
+            _buildLabel('Institution'),
             _buildTextField(
-              controller: _educationController,
-              maxLines: 4,
-              onChanged: (value) => context.read<ProfileSettingsBloc>().add(
-                UpdateEducation(value),
-              ),
+              controller: _educationInstitutionController,
+              onChanged: (_) => _updateEducationFromFields(),
+            ),
+            const SizedBox(height: 12),
+            _buildLabel('Faculty'),
+            _buildTextField(
+              controller: _educationFacultyController,
+              onChanged: (_) => _updateEducationFromFields(),
+            ),
+            const SizedBox(height: 12),
+            _buildLabel('Specialization'),
+            _buildTextField(
+              controller: _educationSpecializationController,
+              onChanged: (_) => _updateEducationFromFields(),
+            ),
+            const SizedBox(height: 12),
+            _buildLabel('Year completed'),
+            _buildTextField(
+              controller: _educationYearController,
+              onChanged: (_) => _updateEducationFromFields(),
             ),
             const SizedBox(height: 24),
 
@@ -773,6 +824,29 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
         ),
       ),
     );
+  }
+
+  void _updateEducationFromFields() {
+    final institution = _educationInstitutionController.text.trim();
+    final faculty = _educationFacultyController.text.trim();
+    final specialization = _educationSpecializationController.text.trim();
+    final year = _educationYearController.text.trim();
+    final parts = <String>[];
+    if (institution.isNotEmpty) {
+      parts.add(institution);
+    }
+    if (faculty.isNotEmpty) {
+      parts.add(faculty);
+    }
+    if (specialization.isNotEmpty) {
+      parts.add(specialization);
+    }
+    if (year.isNotEmpty) {
+      parts.add(year);
+    }
+    final combined = parts.join(' • ');
+    _educationController.text = combined;
+    context.read<ProfileSettingsBloc>().add(UpdateEducation(combined));
   }
 
   Widget _buildTextField({

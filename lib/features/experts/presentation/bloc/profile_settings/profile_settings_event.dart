@@ -94,9 +94,12 @@ class UpdateEducation extends ProfileSettingsEvent {
 }
 
 class UpdatePhoto extends ProfileSettingsEvent {
-  // In a real app, this might be a File or image path.
-  // For now, we'll just simulate the action.
-  const UpdatePhoto();
+  final String filePath;
+
+  const UpdatePhoto(this.filePath);
+
+  @override
+  List<Object?> get props => [filePath];
 }
 
 class RemovePhoto extends ProfileSettingsEvent {}

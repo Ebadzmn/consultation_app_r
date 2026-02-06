@@ -15,13 +15,13 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
   
   // Initialize with default values
   final List<DaySchedule> _schedule = [
-    DaySchedule(day: 'Monday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Tuesday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Wednesday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Thursday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Friday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Saturday', startTime: '09:00', endTime: '18:00', isEnabled: true),
-    DaySchedule(day: 'Sunday', startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Monday', dayOfWeek: 1, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Tuesday', dayOfWeek: 2, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Wednesday', dayOfWeek: 3, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Thursday', dayOfWeek: 4, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Friday', dayOfWeek: 5, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Saturday', dayOfWeek: 6, startTime: '09:00', endTime: '18:00', isEnabled: true),
+    DaySchedule(day: 'Sunday', dayOfWeek: 7, startTime: '09:00', endTime: '18:00', isEnabled: true),
   ];
 
   final List<String> _timezoneOptions = [];
@@ -30,6 +30,7 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
   void initState() {
     super.initState();
     _loadTimezone();
+    _loadSchedule();
   }
 
   Future<void> _loadTimezone() async {
@@ -69,6 +70,104 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
         });
       },
     );
+  }
+
+  Future<void> _loadSchedule() async {
+    final repository = di.sl<ExpertsRepository>();
+    final result = await repository.getSchedule();
+
+    if (!mounted) {
+      return;
+    }
+
+    result.fold(
+      (_) {},
+      (items) {
+        if (items.isEmpty) {
+          return;
+        }
+
+        final byDay = <int, DaySchedule>{};
+
+        for (final item in items) {
+          final rawDay = item['day_of_week'];
+          int? dayOfWeek;
+          if (rawDay is num) {
+            dayOfWeek = rawDay.toInt();
+          } else if (rawDay is String) {
+            dayOfWeek = int.tryParse(rawDay);
+          }
+          dayOfWeek ??= 1;
+
+          final isWorkDay = item['is_work_day'] == true;
+          final start = (item['start_time'] ?? '09:00').toString();
+          final end = (item['end_time'] ?? '18:00').toString();
+          final idValue = item['id'];
+          int? id;
+          if (idValue is num) {
+            id = idValue.toInt();
+          } else if (idValue is String) {
+            id = int.tryParse(idValue);
+          }
+
+          final dayName = _dayNameFor(dayOfWeek);
+
+          byDay[dayOfWeek] = DaySchedule(
+            day: dayName,
+            dayOfWeek: dayOfWeek,
+            startTime: start,
+            endTime: end,
+            isEnabled: isWorkDay,
+            id: id,
+          );
+        }
+
+        final ordered = <DaySchedule>[];
+        for (var day = 1; day <= 7; day++) {
+          final existing = byDay[day];
+          if (existing != null) {
+            ordered.add(existing);
+          } else {
+            ordered.add(
+              DaySchedule(
+                day: _dayNameFor(day),
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '18:00',
+                isEnabled: true,
+              ),
+            );
+          }
+        }
+
+        setState(() {
+          _schedule
+            ..clear()
+            ..addAll(ordered);
+        });
+      },
+    );
+  }
+
+  String _dayNameFor(int dayOfWeek) {
+    switch (dayOfWeek) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      case 7:
+        return 'Sunday';
+      default:
+        return 'Monday';
+    }
   }
 
   @override
@@ -218,13 +317,13 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
                       final payload = <Map<String, dynamic>>[];
                       for (var i = 0; i < _schedule.length; i++) {
                         final item = _schedule[i];
-                        final dayOfWeek = i + 1;
-                        payload.add({
-                          'day_of_week': dayOfWeek,
+                        final map = <String, dynamic>{
+                          'day_of_week': item.dayOfWeek,
                           'is_work_day': item.isEnabled,
                           'start_time': item.startTime,
                           'end_time': item.endTime,
-                        });
+                        };
+                        payload.add(map);
                       }
 
                       final repository = di.sl<ExpertsRepository>();
@@ -345,14 +444,18 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
 
 class DaySchedule {
   final String day;
+  final int dayOfWeek;
+  final int? id;
   String startTime;
   String endTime;
   bool isEnabled;
 
   DaySchedule({
     required this.day,
+    required this.dayOfWeek,
     required this.startTime,
     required this.endTime,
     required this.isEnabled,
+    this.id,
   });
 }

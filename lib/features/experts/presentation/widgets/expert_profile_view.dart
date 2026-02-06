@@ -330,7 +330,7 @@ class ExpertProfileView extends StatelessWidget {
                         tabs: [
                           Tab(text: 'Исследования ${expert.researchCount}'),
                           Tab(text: 'Статьи ${expert.articleListCount}'),
-                          const Tab(text: 'Project'),
+                          Tab(text: 'Project ${expert.projectsCount}'),
                           const Tab(text: 'Отзывы'),
                         ],
                       ),
@@ -493,22 +493,36 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       spacing: 8,
                       runSpacing: 8,
                       alignment: WrapAlignment.center,
-                      children: [
-                        ...expert.areas
-                            .take(3)
-                            .toList()
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) =>
-                                  _buildTag(entry.value, index: entry.key),
+                      children: () {
+                        final entries = expert.areas.asMap().entries.toList();
+
+                        if (entries.length <= 2) {
+                          return entries
+                              .map(
+                                (entry) => _buildTag(
+                                  entry.value,
+                                  index: entry.key,
+                                ),
+                              )
+                              .toList();
+                        }
+
+                        final visibleEntries = entries.take(2).toList();
+                        final moreCount = entries.length - 2;
+
+                        return [
+                          ...visibleEntries.map(
+                            (entry) => _buildTag(
+                              entry.value,
+                              index: entry.key,
                             ),
-                        if (expert.areas.length > 3)
+                          ),
                           _buildTag(
-                            '+${expert.areas.length - 3}',
+                            '$moreCount+',
                             isMore: true,
                           ),
-                      ],
+                        ];
+                      }(),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -598,32 +612,51 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
-                              children: [
-                                ...expert.areas
-                                    .take(3)
-                                    .toList()
-                                    .asMap()
-                                    .entries
-                                    .map(
-                                      (entry) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 6.0,
+                              children: () {
+                                final entries =
+                                    expert.areas.asMap().entries.toList();
+
+                                if (entries.length <= 2) {
+                                  return entries
+                                      .map(
+                                        (entry) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 6.0,
+                                          ),
+                                          child: _buildTag(
+                                            entry.value,
+                                            index: entry.key,
+                                          ),
                                         ),
-                                        child: _buildTag(
-                                          entry.value,
-                                          index: entry.key,
-                                        ),
+                                      )
+                                      .toList();
+                                }
+
+                                final visibleEntries =
+                                    entries.take(2).toList();
+                                final moreCount = entries.length - 2;
+
+                                return [
+                                  ...visibleEntries.map(
+                                    (entry) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 6.0),
+                                      child: _buildTag(
+                                        entry.value,
+                                        index: entry.key,
                                       ),
                                     ),
-                                if (expert.areas.length > 3)
+                                  ),
                                   Padding(
-                                    padding: const EdgeInsets.only(right: 6.0),
+                                    padding:
+                                        const EdgeInsets.only(right: 6.0),
                                     child: _buildTag(
-                                      '+${expert.areas.length - 3}',
+                                      '$moreCount+',
                                       isMore: true,
                                     ),
                                   ),
-                              ],
+                                ];
+                              }(),
                             ),
                           ),
                         ],

@@ -15,6 +15,7 @@ class FilterExperts extends ExpertsEvent {
   final List<int> categoryIds;
   final double minRating;
   final String sortBy;
+  final String? search;
   final int page;
   final int pageSize;
 
@@ -22,6 +23,7 @@ class FilterExperts extends ExpertsEvent {
     required this.categoryIds,
     required this.minRating,
     required this.sortBy,
+    this.search,
     this.page = 1,
     this.pageSize = 10,
   });
@@ -31,6 +33,7 @@ class FilterExperts extends ExpertsEvent {
         categoryIds,
         minRating,
         sortBy,
+        search ?? '',
         page,
         pageSize,
       ];

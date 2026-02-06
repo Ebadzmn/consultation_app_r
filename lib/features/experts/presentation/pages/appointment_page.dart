@@ -89,12 +89,15 @@ class _AppointmentContent extends StatelessWidget {
         },
         builder: (context, state) {
           final categories = state.categories;
+          final hasManyTags = expert.tags.length > 3;
+          final headerHeight = hasManyTags ? 150.0 : 130.0;
+
           return CustomScrollView(
             slivers: [
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _PinnedHeaderDelegate(
-                  height: 160,
+                  height: headerHeight,
                   child: _buildPinnedExpertHeader(context),
                 ),
               ),
@@ -465,26 +468,76 @@ class _AppointmentContent extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
-                  children: expert.tags.take(3).map((area) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getColorForArea(area),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        area,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _getTextColorForArea(area),
-                          fontWeight: FontWeight.w500,
+                  children: () {
+                    final tags = expert.tags;
+
+                    if (tags.length <= 2) {
+                      return tags.map((area) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getColorForArea(area),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            area,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _getTextColorForArea(area),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList();
+                    }
+
+                    final visible = tags.take(2).toList();
+                    final moreCount = tags.length - 2;
+
+                    return [
+                      ...visible.map((area) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getColorForArea(area),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            area,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _getTextColorForArea(area),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$moreCount+',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF616161),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ];
+                  }(),
                 ),
               ],
             ),

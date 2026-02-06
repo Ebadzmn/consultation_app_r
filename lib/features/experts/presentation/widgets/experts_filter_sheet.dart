@@ -336,6 +336,8 @@ class _ExpertsFilterSheetState extends State<ExpertsFilterSheet> {
                           categoryIds: _selectedCategoryIds(),
                           minRating: _minRatingFromLabel(rating),
                           sortBy: selectedSort,
+                          page: 1,
+                          pageSize: 20,
                         ),
                       );
                   Navigator.pop(context);

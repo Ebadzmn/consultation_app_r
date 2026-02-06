@@ -14,6 +14,7 @@ abstract class ExpertsRepository {
     double? minRating,
     List<int>? categoryIds,
     String? sortBy,
+    String? search,
   });
   Future<Either<Failure, ExpertProfile>> getExpertProfile(String expertId);
   Future<Either<Failure, ExpertProfile>> getCurrentUserProfile();
@@ -50,6 +51,7 @@ abstract class ExpertsRepository {
     required List<Map<String, dynamic>> schedule,
   });
   Future<Either<Failure, String?>> getScheduleTimezone();
+  Future<Either<Failure, List<Map<String, dynamic>>>> getSchedule();
   Future<Either<Failure, void>> createProject({
     required String name,
     required int year,
