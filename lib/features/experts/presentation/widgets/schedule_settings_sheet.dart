@@ -178,7 +178,7 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.all(24),
-      height: MediaQuery.of(context).size.height * 0.85, // Occupy most of screen
+      height: MediaQuery.of(context).size.height * 0.9,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
