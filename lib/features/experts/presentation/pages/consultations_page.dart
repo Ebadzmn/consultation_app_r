@@ -381,7 +381,8 @@ class _ConsultationsContentState extends State<_ConsultationsContent> {
           )
           .toList();
     } else {
-      final start = selected.subtract(Duration(days: selected.weekday - 1));
+      final daysToSubtract = (selected.weekday - DateTime.saturday) % 7;
+      final start = selected.subtract(Duration(days: daysToSubtract));
       final end = start.add(const Duration(days: 7));
       filtered = appointments
           .where((a) => !a.dateTime.isBefore(start) && a.dateTime.isBefore(end))

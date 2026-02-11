@@ -73,9 +73,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
           state.selectedDate.month,
           state.selectedDate.day,
         );
-        final weekStart = normalizedSelected.subtract(
-          Duration(days: normalizedSelected.weekday - 1),
-        );
+        final weekStart = _weekStartFor(normalizedSelected);
         final weekEnd = weekStart.add(const Duration(days: 6));
         final weekStartDateTime = DateTime(
           weekStart.year,
@@ -138,23 +136,20 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     if (event.range == ConsultationsRange.week) {
       final today = DateTime.now();
       final normalizedToday = DateTime(today.year, today.month, today.day);
-      final thisWeekStart = normalizedToday.subtract(
-        Duration(days: normalizedToday.weekday - 1),
-      );
-      final lastWeekStart = thisWeekStart.subtract(const Duration(days: 7));
-      final lastWeekEnd = lastWeekStart.add(const Duration(days: 6));
+      final thisWeekStart = _weekStartFor(normalizedToday);
       final weekStartDateTime = DateTime(
-        lastWeekStart.year,
-        lastWeekStart.month,
-        lastWeekStart.day,
+        thisWeekStart.year,
+        thisWeekStart.month,
+        thisWeekStart.day,
         0,
         0,
         0,
       );
+      final thisWeekEnd = thisWeekStart.add(const Duration(days: 6));
       final weekEndDateTime = DateTime(
-        lastWeekEnd.year,
-        lastWeekEnd.month,
-        lastWeekEnd.day,
+        thisWeekEnd.year,
+        thisWeekEnd.month,
+        thisWeekEnd.day,
         23,
         59,
         59,
@@ -163,8 +158,8 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
       emit(
         state.copyWith(
           range: event.range,
-          selectedDate: lastWeekStart,
-          focusedMonth: DateTime(lastWeekStart.year, lastWeekStart.month),
+          selectedDate: normalizedToday,
+          focusedMonth: DateTime(normalizedToday.year, normalizedToday.month),
         ),
       );
 
@@ -293,9 +288,7 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
       newSelected.month,
       newSelected.day,
     );
-    final weekStart = normalizedSelected.subtract(
-      Duration(days: normalizedSelected.weekday - 1),
-    );
+    final weekStart = _weekStartFor(normalizedSelected);
     final weekEnd = weekStart.add(const Duration(days: 6));
     final weekStartDateTime = DateTime(
       weekStart.year,
@@ -391,6 +384,12 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
 
   static DateTime _monthStartFor(DateTime month) {
     return DateTime(month.year, month.month, 1, 0, 0, 0);
+  }
+
+  static DateTime _weekStartFor(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final daysToSubtract = (normalized.weekday - DateTime.saturday) % 7;
+    return normalized.subtract(Duration(days: daysToSubtract));
   }
 
   static DateTime _monthEndFor(DateTime month) {

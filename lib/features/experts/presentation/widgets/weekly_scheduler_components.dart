@@ -27,11 +27,8 @@ class WeeklyCalendarView extends StatelessWidget {
     const double visibleHours = 7;
     const double totalHeight = rowHeight * visibleHours;
 
-    // Calculate start of week (Monday)
-    // If selectedDate is Monday, it keeps it.
-    final weekStart = selectedDate.subtract(
-      Duration(days: selectedDate.weekday - 1),
-    );
+    final daysToSubtract = (selectedDate.weekday - DateTime.saturday) % 7;
+    final weekStart = selectedDate.subtract(Duration(days: daysToSubtract));
     final weekEnd = weekStart.add(const Duration(days: 6));
 
     return Container(
@@ -154,13 +151,13 @@ class _WeeklyHeader extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
+                    _buildDayHeader('Сб'),
+                    _buildDayHeader('Вс'),
                     _buildDayHeader('Пн'),
                     _buildDayHeader('Вт'),
                     _buildDayHeader('Ср'),
                     _buildDayHeader('Чт'),
                     _buildDayHeader('Пт'),
-                    _buildDayHeader('Сб'),
-                    _buildDayHeader('Вс'),
                   ],
                 ),
               ),
