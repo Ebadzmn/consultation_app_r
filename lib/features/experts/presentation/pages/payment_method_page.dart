@@ -146,6 +146,8 @@ class PaymentMethodPage extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    final router = GoRouter.of(context);
                     final appointmentId = args.appointmentId;
                     if (appointmentId == null) {
                       return;
@@ -164,7 +166,7 @@ class PaymentMethodPage extends StatelessWidget {
                           data['confirmation_url'] as String;
                       final paymentId = data['payment_id'] as int;
 
-                      await Navigator.of(context).push(
+                      await navigator.push(
                         MaterialPageRoute(
                           builder: (_) =>
                               PaymentWebViewPage(url: confirmationUrl),
@@ -182,16 +184,16 @@ class PaymentMethodPage extends StatelessWidget {
                           : int.tryParse(rawStatus.toString()) ?? -1;
 
                       if (status == 2) {
-                        await Navigator.of(context).push(
+                        await navigator.push(
                           MaterialPageRoute(
                             builder: (_) => const PaymentFailedPage(),
                           ),
                         );
                       } else {
-                        context.go(AppRoutes.paySuccess, extra: args);
+                        router.go(AppRoutes.paySuccess, extra: args);
                       }
                     } catch (_) {
-                      await Navigator.of(context).push(
+                      await navigator.push(
                         MaterialPageRoute(
                           builder: (_) => const PaymentFailedPage(),
                         ),
@@ -263,7 +265,7 @@ class _PaymentMethodCard extends StatelessWidget {
           border: Border.all(color: const Color(0xFFF0F0F0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withAlpha(5),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

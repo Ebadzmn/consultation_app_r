@@ -92,6 +92,7 @@ class _ExpertPublicProfileScaffold extends StatelessWidget {
                           articlesCount: profile.articlesCount,
                           pollsCount: profile.pollsCount,
                           tags: profile.areas,
+                          categoryIds: const [],
                           description: profile.description,
                           price: price,
                         );

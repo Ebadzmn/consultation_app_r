@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/expert_profile.dart';
 import 'package:consultant_app/injection_container.dart' as di;
+import '../../../auth/domain/entities/category_entity.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../bloc/expert_profile/expert_profile_bloc.dart';
 import '../bloc/expert_profile/expert_profile_event.dart';
@@ -395,7 +396,26 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ExpertProfile expert;
   final bool canCollapse;
 
+  static Future<Map<int, CategoryEntity>>? _categoriesByIdFuture;
+
   _ExpertHeaderDelegate({required this.expert, this.canCollapse = true});
+
+  static Future<Map<int, CategoryEntity>> _loadCategoriesById() async {
+    final result = await di.sl<AuthRepository>().getCategories(
+          page: 1,
+          pageSize: 200,
+        );
+    return result.fold(
+      (_) => <int, CategoryEntity>{},
+      (categories) {
+        final map = <int, CategoryEntity>{};
+        for (final c in categories) {
+          map[c.id] = c;
+        }
+        return map;
+      },
+    );
+  }
 
   @override
   Widget build(
@@ -489,40 +509,18 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                   // Tags
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: () {
-                        final entries = expert.areas.asMap().entries.toList();
-
-                        if (entries.length <= 2) {
-                          return entries
-                              .map(
-                                (entry) => _buildTag(
-                                  entry.value,
-                                  index: entry.key,
-                                ),
-                              )
-                              .toList();
-                        }
-
-                        final visibleEntries = entries.take(2).toList();
-                        final moreCount = entries.length - 2;
-
-                        return [
-                          ...visibleEntries.map(
-                            (entry) => _buildTag(
-                              entry.value,
-                              index: entry.key,
-                            ),
-                          ),
-                          _buildTag(
-                            '$moreCount+',
-                            isMore: true,
-                          ),
-                        ];
-                      }(),
+                    child: FutureBuilder<Map<int, CategoryEntity>>(
+                      future:
+                          _categoriesByIdFuture ??= _loadCategoriesById(),
+                      builder: (context, snapshot) {
+                        final categoriesById = snapshot.data ?? const {};
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: _buildAreaTagWidgets(categoriesById),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -611,52 +609,18 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                           // Tags Row
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: () {
-                                final entries =
-                                    expert.areas.asMap().entries.toList();
-
-                                if (entries.length <= 2) {
-                                  return entries
-                                      .map(
-                                        (entry) => Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 6.0,
-                                          ),
-                                          child: _buildTag(
-                                            entry.value,
-                                            index: entry.key,
-                                          ),
-                                        ),
-                                      )
-                                      .toList();
-                                }
-
-                                final visibleEntries =
-                                    entries.take(2).toList();
-                                final moreCount = entries.length - 2;
-
-                                return [
-                                  ...visibleEntries.map(
-                                    (entry) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(right: 6.0),
-                                      child: _buildTag(
-                                        entry.value,
-                                        index: entry.key,
-                                      ),
-                                    ),
+                            child: FutureBuilder<Map<int, CategoryEntity>>(
+                              future:
+                                  _categoriesByIdFuture ??= _loadCategoriesById(),
+                              builder: (context, snapshot) {
+                                final categoriesById = snapshot.data ?? const {};
+                                return Row(
+                                  children: _buildAreaTagWidgets(
+                                    categoriesById,
+                                    includeRightPadding: true,
                                   ),
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(right: 6.0),
-                                    child: _buildTag(
-                                      '$moreCount+',
-                                      isMore: true,
-                                    ),
-                                  ),
-                                ];
-                              }(),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -669,6 +633,152 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCategoryTag(
+    int categoryId, {
+    required Map<int, CategoryEntity> categoriesById,
+    required int index,
+  }) {
+    final category = categoriesById[categoryId];
+    final label = (category?.name ?? '').trim();
+    final text = label.isNotEmpty
+        ? label
+        : (expert.areas.length > index
+            ? expert.areas[index]
+            : 'Category $categoryId');
+
+    final parsed = _tryParseHexColor(category?.color);
+    if (parsed == null) {
+      return _buildTag(text, index: index);
+    }
+
+    final hsl = HSLColor.fromColor(parsed);
+    final textColor = hsl
+        .withLightness((hsl.lightness * 0.45).clamp(0.22, 0.42))
+        .withSaturation((hsl.saturation * 1.05).clamp(0.25, 1.0))
+        .toColor();
+
+    final bgColor = parsed.withAlpha(150);
+    final borderColor = textColor.withAlpha(220);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Color? _tryParseHexColor(String? value) {
+    final raw = value?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    var hex = raw;
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    }
+    if (hex.startsWith('0x') || hex.startsWith('0X')) {
+      hex = hex.substring(2);
+    }
+
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length != 8) {
+      return null;
+    }
+
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) {
+      return null;
+    }
+    return Color(parsed);
+  }
+
+  List<Widget> _buildAreaTagWidgets(
+    Map<int, CategoryEntity> categoriesById, {
+    bool includeRightPadding = false,
+  }) {
+    List<Widget> wrapIfNeeded(List<Widget> widgets) {
+      if (!includeRightPadding) {
+        return widgets;
+      }
+      return widgets
+          .map(
+            (w) => Padding(
+              padding: const EdgeInsets.only(right: 6.0),
+              child: w,
+            ),
+          )
+          .toList();
+    }
+
+    final categoryIds = expert.categoryIds;
+    if (categoryIds.isNotEmpty && categoriesById.isNotEmpty) {
+      if (categoryIds.length <= 2) {
+        return wrapIfNeeded(
+          categoryIds
+              .asMap()
+              .entries
+              .map(
+                (entry) => _buildCategoryTag(
+                  entry.value,
+                  categoriesById: categoriesById,
+                  index: entry.key,
+                ),
+              )
+              .toList(),
+        );
+      }
+
+      final visible = categoryIds.take(2).toList();
+      final moreCount = categoryIds.length - 2;
+      return wrapIfNeeded(
+        [
+          ...visible.asMap().entries.map(
+                (entry) => _buildCategoryTag(
+                  entry.value,
+                  categoriesById: categoriesById,
+                  index: entry.key,
+                ),
+              ),
+          _buildTag('$moreCount+', isMore: true),
+        ],
+      );
+    }
+
+    final entries = expert.areas.asMap().entries.toList();
+    if (entries.length <= 2) {
+      return wrapIfNeeded(
+        entries
+            .map((entry) => _buildTag(entry.value, index: entry.key))
+            .toList(),
+      );
+    }
+
+    final visibleEntries = entries.take(2).toList();
+    final moreCount = entries.length - 2;
+    return wrapIfNeeded(
+      [
+        ...visibleEntries.map(
+          (entry) => _buildTag(entry.value, index: entry.key),
+        ),
+        _buildTag('$moreCount+', isMore: true),
+      ],
     );
   }
 

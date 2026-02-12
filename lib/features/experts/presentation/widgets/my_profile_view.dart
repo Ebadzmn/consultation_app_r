@@ -1,4 +1,5 @@
 import 'package:consultant_app/core/config/app_routes.dart';
+import 'package:consultant_app/features/auth/domain/entities/category_entity.dart';
 import 'package:consultant_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:consultant_app/features/experts/domain/entities/expert_profile.dart';
 import 'package:flutter/material.dart';
@@ -400,11 +401,185 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
   final bool isExpert;
   final bool canCollapse;
 
+  static Future<Map<int, CategoryEntity>>? _categoriesByIdFuture;
+
   _ExpertHeaderDelegate({
     required this.expert,
     required this.isExpert,
     this.canCollapse = true,
   });
+
+  static Future<Map<int, CategoryEntity>> _loadCategoriesById() async {
+    final result = await di.sl<AuthRepository>().getCategories(
+          page: 1,
+          pageSize: 200,
+        );
+    return result.fold(
+      (_) => <int, CategoryEntity>{},
+      (categories) {
+        final map = <int, CategoryEntity>{};
+        for (final c in categories) {
+          map[c.id] = c;
+        }
+        return map;
+      },
+    );
+  }
+
+  List<Widget> _buildAreaTagWidgets(Map<int, CategoryEntity> categoriesById) {
+    final categoryIds = expert.categoryIds;
+    if (categoryIds.isNotEmpty && categoriesById.isNotEmpty) {
+      if (categoryIds.length <= 2) {
+        return categoryIds
+            .asMap()
+            .entries
+            .map(
+              (entry) => _buildCategoryTag(
+                entry.value,
+                categoriesById: categoriesById,
+                index: entry.key,
+              ),
+            )
+            .toList();
+      }
+
+      final visible = categoryIds.take(2).toList();
+      final moreCount = categoryIds.length - 2;
+      return [
+        ...visible.asMap().entries.map(
+              (entry) => _buildCategoryTag(
+                entry.value,
+                categoriesById: categoriesById,
+                index: entry.key,
+              ),
+            ),
+        _buildMoreTag('$moreCount+'),
+      ];
+    }
+
+    final entries = expert.areas.asMap().entries.toList();
+    if (entries.length <= 2) {
+      return entries
+          .map(
+            (entry) => _buildLegacyTag(entry.value, index: entry.key),
+          )
+          .toList();
+    }
+
+    final visibleEntries = entries.take(2).toList();
+    final moreCount = entries.length - 2;
+    return [
+      ...visibleEntries.map(
+        (entry) => _buildLegacyTag(entry.value, index: entry.key),
+      ),
+      _buildMoreTag('$moreCount+'),
+    ];
+  }
+
+  Widget _buildMoreTag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF616161),
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegacyTag(String text, {required int index}) {
+    final colors = CategoryColorHelper.getColors(index);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.$1,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: colors.$2,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTag(
+    int categoryId, {
+    required Map<int, CategoryEntity> categoriesById,
+    required int index,
+  }) {
+    final category = categoriesById[categoryId];
+    final label = (category?.name ?? '').trim();
+    final text = label.isNotEmpty
+        ? label
+        : (expert.areas.length > index ? expert.areas[index] : 'Category');
+
+    final parsed = _tryParseHexColor(category?.color);
+    if (parsed == null) {
+      return _buildLegacyTag(text, index: index);
+    }
+
+    final hsl = HSLColor.fromColor(parsed);
+    final textColor = hsl
+        .withLightness((hsl.lightness * 0.45).clamp(0.22, 0.42))
+        .withSaturation((hsl.saturation * 1.05).clamp(0.25, 1.0))
+        .toColor();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: parsed.withAlpha(150),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withAlpha(220)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Color? _tryParseHexColor(String? value) {
+    final raw = value?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    var hex = raw;
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    }
+    if (hex.startsWith('0x') || hex.startsWith('0X')) {
+      hex = hex.substring(2);
+    }
+
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length != 8) {
+      return null;
+    }
+
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) {
+      return null;
+    }
+    return Color(parsed);
+  }
 
   @override
   Widget build(
@@ -495,89 +670,18 @@ class _ExpertHeaderDelegate extends SliverPersistentHeaderDelegate {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          alignment: WrapAlignment.center,
-                          children: () {
-                            final entries =
-                                expert.areas.asMap().entries.toList();
-
-                            if (entries.length <= 2) {
-                              return entries.map((entry) {
-                                final colors = CategoryColorHelper.getColors(
-                                  entry.key,
-                                );
-
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colors.$1,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    entry.value,
-                                    style: TextStyle(
-                                      color: colors.$2,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }).toList();
-                            }
-
-                            final visibleEntries = entries.take(2).toList();
-                            final moreCount = entries.length - 2;
-
-                            return [
-                              ...visibleEntries.map((entry) {
-                                final colors = CategoryColorHelper.getColors(
-                                  entry.key,
-                                );
-
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colors.$1,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    entry.value,
-                                    style: TextStyle(
-                                      color: colors.$2,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F5F5),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '$moreCount+',
-                                  style: const TextStyle(
-                                    color: Color(0xFF616161),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ];
-                          }(),
+                        child: FutureBuilder<Map<int, CategoryEntity>>(
+                          future:
+                              _categoriesByIdFuture ??= _loadCategoriesById(),
+                          builder: (context, snapshot) {
+                            final categoriesById = snapshot.data ?? const {};
+                            return Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: _buildAreaTagWidgets(categoriesById),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),

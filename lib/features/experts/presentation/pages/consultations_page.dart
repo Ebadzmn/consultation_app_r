@@ -64,6 +64,7 @@ class ConsultationsPage extends StatelessWidget {
     BuildContext context,
     ConsultationAppointment appointment,
   ) async {
+    final router = GoRouter.of(context);
     if (di.currentUser.value?.userType == 'Expert') {
       showModalBottomSheet(
         context: context,
@@ -113,6 +114,7 @@ class ConsultationsPage extends StatelessWidget {
               articlesCount: profile.articlesCount,
               pollsCount: profile.pollsCount,
               tags: profile.areas,
+              categoryIds: const [],
               description: profile.description,
               price: price,
             );
@@ -130,6 +132,7 @@ class ConsultationsPage extends StatelessWidget {
             articlesCount: 0,
             pollsCount: 0,
             tags: const [],
+            categoryIds: const [],
             description: '',
             price: 0,
           );
@@ -146,7 +149,7 @@ class ConsultationsPage extends StatelessWidget {
           comment: '',
           payWithin: const Duration(days: 2, hours: 14, minutes: 45),
         );
-        context.push(AppRoutes.payNow, extra: args);
+        router.push(AppRoutes.payNow, extra: args);
       } else {
         showModalBottomSheet(
           context: context,

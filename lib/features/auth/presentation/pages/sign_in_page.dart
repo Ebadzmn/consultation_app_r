@@ -42,96 +42,99 @@ class SignInView extends StatelessWidget {
             debugPrint(
               'SignInView: Login Success. isExpert: ${state.isExpert}',
             );
-            // As per latest requirement, route to Experts page instead of Consultations
             context.go(AppRoutes.experts);
           }
         },
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20),
-                Text(
-                  l10n.signInTitle,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E3E5C), // Dark blue-ish color from design
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(height: 30),
-                const SizedBox(height: 30),
-                const SizedBox(height: 30),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.email,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF2E3E5C),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _EmailInput(),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Handle phone sign in
-                    },
-                    child: Text(
-                      l10n.signInWithPhoneNumber,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue.withAlpha(
-                          128,
-                        ), // Light blue link style
-                        decoration: TextDecoration.underline,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20),
+                      Text(
+                        l10n.signInTitle,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E3E5C),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 30),
+                      const SizedBox(height: 30),
+                      const SizedBox(height: 30),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l10n.email,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF2E3E5C),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _EmailInput(),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Text(
+                            l10n.signInWithPhoneNumber,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blue.withAlpha(128),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l10n.password,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF2E3E5C),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _PasswordInput(),
+                      const SizedBox(height: 30),
+                      _LoginButton(),
+                      const SizedBox(height: 30),
+                      GestureDetector(
+                        onTap: () {
+                          context.push('/sign-up');
+                        },
+                        child: Text(
+                          l10n.signUp,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E3E5C),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _ErrorMessageBox(),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.password,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF2E3E5C),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _PasswordInput(),
-                const SizedBox(height: 30),
-                _LoginButton(),
-                const SizedBox(height: 30),
-                GestureDetector(
-                  onTap: () {
-                    // Navigate to Sign Up
-                    context.push('/sign-up');
-                  },
-                  child: Text(
-                    l10n.signUp,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E3E5C),
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                _ErrorMessageBox(),
-                const SizedBox(height: 20),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

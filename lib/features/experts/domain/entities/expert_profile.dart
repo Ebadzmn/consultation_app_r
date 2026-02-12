@@ -6,6 +6,7 @@ class ExpertProfile {
   final double rating;
   final String imageUrl;
   final List<String> areas;
+  final List<int> categoryIds;
   final int articlesCount;
   final int pollsCount;
   final int reviewsCount;
@@ -30,6 +31,7 @@ class ExpertProfile {
     required this.rating,
     required this.imageUrl,
     required this.areas,
+    this.categoryIds = const [],
     required this.articlesCount,
     required this.pollsCount,
     required this.reviewsCount,
@@ -54,6 +56,7 @@ class ExpertProfile {
     double? rating,
     String? imageUrl,
     List<String>? areas,
+    List<int>? categoryIds,
     int? articlesCount,
     int? pollsCount,
     int? reviewsCount,
@@ -77,6 +80,7 @@ class ExpertProfile {
       rating: rating ?? this.rating,
       imageUrl: imageUrl ?? this.imageUrl,
       areas: areas ?? this.areas,
+      categoryIds: categoryIds ?? this.categoryIds,
       articlesCount: articlesCount ?? this.articlesCount,
       pollsCount: pollsCount ?? this.pollsCount,
       reviewsCount: reviewsCount ?? this.reviewsCount,

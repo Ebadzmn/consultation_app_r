@@ -9,6 +9,7 @@ class ExpertEntity extends Equatable {
   final int articlesCount;
   final int pollsCount;
   final List<String> tags;
+  final List<int> categoryIds;
   final String description;
   final int price;
 
@@ -21,6 +22,7 @@ class ExpertEntity extends Equatable {
     required this.articlesCount,
     required this.pollsCount,
     required this.tags,
+    this.categoryIds = const [],
     required this.description,
     required this.price,
   });
@@ -35,6 +37,7 @@ class ExpertEntity extends Equatable {
         articlesCount,
         pollsCount,
         tags,
+        categoryIds,
         description,
         price,
       ];

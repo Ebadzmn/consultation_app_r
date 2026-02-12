@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
 import 'package:consultant_app/l10n/app_localizations.dart';
 import '../../../../injection_container.dart';
+import '../../../auth/domain/entities/category_entity.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/repositories/experts_repository.dart';
 import '../bloc/experts_bloc.dart';
 import '../bloc/experts_event.dart';
@@ -15,29 +17,35 @@ import 'package:consultant_app/features/experts/presentation/widgets/custom_bott
 class ExpertsPageState {
   final bool isSearching;
   final String? avatarUrl;
+  final Map<int, CategoryEntity> categoriesById;
 
   const ExpertsPageState({
     this.isSearching = false,
     this.avatarUrl,
+    this.categoriesById = const {},
   });
 
   ExpertsPageState copyWith({
     bool? isSearching,
     String? avatarUrl,
+    Map<int, CategoryEntity>? categoriesById,
   }) {
     return ExpertsPageState(
       isSearching: isSearching ?? this.isSearching,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      categoriesById: categoriesById ?? this.categoriesById,
     );
   }
 }
 
 class ExpertsPageCubit extends Cubit<ExpertsPageState> {
   final ExpertsRepository repository;
+  final AuthRepository authRepository;
 
-  ExpertsPageCubit({required this.repository})
+  ExpertsPageCubit({required this.repository, required this.authRepository})
       : super(const ExpertsPageState()) {
     _loadAvatar();
+    _loadCategories();
   }
 
   Future<void> _loadAvatar() async {
@@ -46,6 +54,20 @@ class ExpertsPageCubit extends Cubit<ExpertsPageState> {
       (_) {},
       (profile) {
         emit(state.copyWith(avatarUrl: profile.imageUrl));
+      },
+    );
+  }
+
+  Future<void> _loadCategories() async {
+    final result = await authRepository.getCategories(page: 1, pageSize: 200);
+    result.fold(
+      (_) {},
+      (categories) {
+        final map = <int, CategoryEntity>{};
+        for (final c in categories) {
+          map[c.id] = c;
+        }
+        emit(state.copyWith(categoriesById: map));
       },
     );
   }
@@ -66,7 +88,10 @@ class ExpertsPage extends StatelessWidget {
           create: (_) => sl<ExpertsBloc>()..add(LoadExperts()),
         ),
         BlocProvider<ExpertsPageCubit>(
-          create: (_) => ExpertsPageCubit(repository: sl<ExpertsRepository>()),
+          create: (_) => ExpertsPageCubit(
+            repository: sl<ExpertsRepository>(),
+            authRepository: sl<AuthRepository>(),
+          ),
         ),
       ],
       child: const ExpertsView(),
@@ -244,6 +269,7 @@ class ExpertsView extends StatelessWidget {
           } else if (state.status == ExpertsStatus.success) {
             final itemCount =
                 state.experts.length + (state.isLoadingMore ? 1 : 0);
+            final categoriesById = pageState.categoriesById;
             return NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification.metrics.pixels >=
@@ -270,7 +296,10 @@ class ExpertsView extends StatelessWidget {
                       AppRoutes.expertPublicProfile,
                       extra: expert.id,
                     ),
-                    child: ExpertCard(expert: expert),
+                    child: ExpertCard(
+                      expert: expert,
+                      categoriesById: categoriesById,
+                    ),
                   );
                 },
               ),

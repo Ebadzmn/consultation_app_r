@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:consultant_app/core/config/app_routes.dart';
+import '../../../auth/domain/entities/category_entity.dart';
 import '../../domain/entities/expert_entity.dart';
 
 class ExpertCard extends StatelessWidget {
   final ExpertEntity expert;
+  final Map<int, CategoryEntity> categoriesById;
 
-  const ExpertCard({super.key, required this.expert});
+  const ExpertCard({
+    super.key,
+    required this.expert,
+    required this.categoriesById,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,17 +73,32 @@ class ExpertCard extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 4,
                       children: () {
+                        final categoryIds = expert.categoryIds;
+                        if (categoryIds.isNotEmpty &&
+                            categoriesById.isNotEmpty) {
+                          if (categoryIds.length <= 2) {
+                            return categoryIds
+                                .map((id) => _buildCategoryTag(id))
+                                .toList();
+                          }
+
+                          final visible = categoryIds.take(2).toList();
+                          final moreCount = categoryIds.length - 2;
+
+                          return [
+                            ...visible.map((id) => _buildCategoryTag(id)),
+                            _buildTag('$moreCount+'),
+                          ];
+                        }
+
                         final tags = expert.tags;
                         if (tags.length <= 2) {
                           return tags.map((tag) => _buildTag(tag)).toList();
                         }
 
-                        final visible = tags.take(2).toList();
-                        final moreCount = tags.length - 2;
-
                         return [
-                          ...visible.map((tag) => _buildTag(tag)),
-                          _buildTag('$moreCount+'),
+                          ...tags.take(2).map((tag) => _buildTag(tag)),
+                          _buildTag('${tags.length - 2}+'),
                         ];
                       }(),
                     ),
@@ -200,6 +221,71 @@ class ExpertCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildCategoryTag(int categoryId) {
+    final category = categoriesById[categoryId];
+    final label = (category?.name ?? '').trim();
+    final text = label.isNotEmpty ? label : 'Category $categoryId';
+
+    final parsed = _tryParseHexColor(category?.color);
+    if (parsed == null) {
+      return _buildTag(text);
+    }
+
+    final hsl = HSLColor.fromColor(parsed);
+    final textColor = hsl
+        .withLightness((hsl.lightness * 0.45).clamp(0.22, 0.42))
+        .withSaturation((hsl.saturation * 1.05).clamp(0.25, 1.0))
+        .toColor();
+
+    final bg = parsed.withAlpha(150);
+    final border = textColor.withAlpha(220);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Color? _tryParseHexColor(String? value) {
+    final raw = value?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    var hex = raw;
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    }
+    if (hex.startsWith('0x') || hex.startsWith('0X')) {
+      hex = hex.substring(2);
+    }
+
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length != 8) {
+      return null;
+    }
+
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) {
+      return null;
+    }
+    return Color(parsed);
   }
 
   String _formatPrice(int price) {

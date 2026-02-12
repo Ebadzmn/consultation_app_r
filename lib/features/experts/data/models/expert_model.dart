@@ -11,6 +11,7 @@ class ExpertModel extends ExpertEntity {
     required super.articlesCount,
     required super.pollsCount,
     required super.tags,
+    super.categoryIds,
     required super.description,
     required super.price,
   });
@@ -38,12 +39,17 @@ class ExpertModel extends ExpertEntity {
 
     final categories = json['categories'];
     List<String> tags = [];
+    List<int> categoryIds = [];
     if (categories is List) {
-      tags = categories
-          .map((e) => e is int ? e : int.tryParse(e.toString()))
-          .whereType<int>()
-          .map((id) => _categoryNamesById[id] ?? 'Категория $id')
-          .toList();
+      categoryIds =
+          categories
+              .map((e) => e is int ? e : int.tryParse(e.toString()))
+              .whereType<int>()
+              .toList();
+      tags =
+          categoryIds
+              .map((id) => _categoryNamesById[id] ?? 'Категория $id')
+              .toList();
     }
 
     final avatarUrlRaw = (json['avatar_url'] as String?)?.trim();
@@ -68,6 +74,7 @@ class ExpertModel extends ExpertEntity {
       articlesCount: articlesCount,
       pollsCount: pollsCount,
       tags: tags,
+      categoryIds: categoryIds,
       description: description,
       price: price,
     );

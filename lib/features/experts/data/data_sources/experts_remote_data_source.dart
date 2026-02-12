@@ -158,15 +158,20 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
 
     final categories = data['categories'];
     List<String> areas = [];
+    List<int> categoryIds = [];
     if (categories is List) {
-      areas = categories
-          .map((e) => e is int ? e : int.tryParse(e.toString()))
-          .whereType<int>()
-          .map(
-            (categoryId) =>
-                _categoryNamesById[categoryId] ?? 'Категория $categoryId',
-          )
-          .toList();
+      categoryIds =
+          categories
+              .map((e) => e is int ? e : int.tryParse(e.toString()))
+              .whereType<int>()
+              .toList();
+      areas =
+          categoryIds
+              .map(
+                (categoryId) =>
+                    _categoryNamesById[categoryId] ?? 'Категория $categoryId',
+              )
+              .toList();
     }
 
     final avatarUrlRaw = (data['avatar_url'] as String?)?.trim();
@@ -181,6 +186,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       rating: rating,
       imageUrl: imageUrl,
       areas: areas,
+      categoryIds: categoryIds,
       articlesCount: articlesCount,
       pollsCount: (data['polls_cnt'] as num?)?.toInt() ?? 0,
       reviewsCount: reviewsCount,
@@ -221,6 +227,7 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       rating: 0.0,
       imageUrl: imageUrl,
       areas: const [],
+      categoryIds: const [],
       articlesCount: 0,
       pollsCount: 0,
       reviewsCount: 0,
