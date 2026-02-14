@@ -23,7 +23,7 @@ class WeeklyCalendarView extends StatelessWidget {
     // 10 hours visible approx.
     // 1 hour row height = 50.0 (40 + padding/borders ~ 50)
     // 10 * 50 = 500.0 height
-    const double rowHeight = 50.0;
+    const double rowHeight = 40.0;
     const double visibleHours = 7;
     const double totalHeight = rowHeight * visibleHours;
 
@@ -68,7 +68,7 @@ class WeeklyCalendarView extends StatelessWidget {
               blendMode: BlendMode.dstIn,
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 20,
+                  vertical: 10,
                 ), // Padding to allow scrolling past edges
                 itemCount: 24,
                 itemBuilder: (context, index) {
@@ -109,7 +109,7 @@ class _WeeklyHeader extends StatelessWidget {
         '${dateFormat.format(weekStart)} - ${dateFormat.format(weekEnd)}';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.white,
       child: Column(
         children: [
@@ -146,8 +146,8 @@ class _WeeklyHeader extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const SizedBox(width: 50), // Match time column width
-              const SizedBox(width: 8),
+              const SizedBox(width: 38), // Match time column width
+              const SizedBox(width: 2),
               Expanded(
                 child: Row(
                   children: [
@@ -205,12 +205,12 @@ class WeeklyTimeRow extends StatelessWidget {
     return SizedBox(
       height: height,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
         child: Row(
           children: [
             // Time Column
             SizedBox(
-              width: 40,
+              width: 44,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -272,7 +272,8 @@ class WeeklyTimeRow extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
+          
           border: Border.all(color: borderColor, width: 1),
         ),
       );
@@ -285,7 +286,7 @@ class WeeklyTimeRow extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: borderColor, width: 1),
         ),
       ),

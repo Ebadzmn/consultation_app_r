@@ -306,24 +306,7 @@ class _ExpertsFilterSheetState extends State<ExpertsFilterSheet> {
             isSelected: selectedSort == 'New',
             onTap: () => setState(() => selectedSort = 'New'),
           ),
-          _buildMenuItem(
-            icon: Icons.account_balance,
-            text: 'Banks',
-            isSelected: selectedSort == 'Banks',
-            onTap: () => setState(() => selectedSort = 'Banks'),
-          ),
-          _buildMenuItem(
-            icon: Icons.monetization_on, // Closest to coin stack
-            text: 'Finance',
-            isSelected: selectedSort == 'Finance',
-            onTap: () => setState(() => selectedSort = 'Finance'),
-          ),
-          _buildMenuItem(
-            icon: Icons.code, // Braces
-            text: 'IT',
-            isSelected: selectedSort == 'IT',
-            onTap: () => setState(() => selectedSort = 'IT'),
-          ),
+
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),

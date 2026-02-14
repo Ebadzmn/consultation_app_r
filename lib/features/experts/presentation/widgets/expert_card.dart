@@ -18,7 +18,12 @@ class ExpertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(
+        top: 10,
+        left: 12,
+        right: 12,
+        bottom: 10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -59,7 +64,7 @@ class ExpertCard extends StatelessWidget {
                         _buildStatText('Polls: ${expert.pollsCount}'),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       expert.name,
                       style: const TextStyle(
@@ -68,7 +73,7 @@ class ExpertCard extends StatelessWidget {
                         color: Color(0xFF2E2E3E),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
