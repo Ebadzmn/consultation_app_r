@@ -212,6 +212,38 @@ class ExpertsRepositoryImpl implements ExpertsRepository {
   }
 
   @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getScheduleExtraList({
+    required String view,
+    required DateTime periodStart,
+  }) async {
+    try {
+      final result = await remoteDataSource.getScheduleExtraList(
+        view: view,
+        periodStart: periodStart,
+      );
+      return Right(result);
+    } catch (e) {
+      return const Left(
+        ServerFailure('Failed to load extra schedule list'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> createScheduleExtra({
+    required Map<String, dynamic> payload,
+  }) async {
+    try {
+      final result = await remoteDataSource.createScheduleExtra(payload: payload);
+      return Right(result);
+    } catch (e) {
+      return const Left(
+        ServerFailure('Failed to create extra schedule'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> createProject({
     required String name,
     required int year,

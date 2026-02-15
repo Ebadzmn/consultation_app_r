@@ -34,6 +34,7 @@ class ConsultationsPage extends StatelessWidget {
           ConsultationsBloc(
             getClientAppointments: di.sl(),
             getExpertAppointments: di.sl(),
+            expertsRepository: di.sl<ExpertsRepository>(),
             isExpert: isExpert,
             initialTab: initialTab ?? ConsultationsTab.calendar,
           )..add(
@@ -879,7 +880,165 @@ class _WorkingHoursSection extends StatelessWidget {
           ));
         }
 
-        if (allItems.isEmpty) return const SizedBox.shrink();
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final selected = DateTime(
+          state.selectedDate.year,
+          state.selectedDate.month,
+          state.selectedDate.day,
+        );
+        final canEdit = !selected.isBefore(today);
+
+        Future<void> handleEditTap() async {
+          var offHours = state.offHours;
+          var workingHours = state.workingHours;
+          final initialOff = <String>{...offHours};
+          final initialWorking = <String>{...workingHours};
+
+          final isExpert = di.currentUser.value?.userType == 'Expert';
+          if (isExpert &&
+              (state.range == ConsultationsRange.month ||
+                  state.range == ConsultationsRange.day) &&
+              canEdit) {
+            final repo = di.sl<ExpertsRepository>();
+            final result = await repo.getScheduleExtraList(
+              view: 'month',
+              periodStart: DateTime(
+                selected.year,
+                selected.month,
+                selected.day,
+                0,
+                0,
+                0,
+              ),
+            );
+
+            result.fold((_) {}, (items) {
+              final parsed = _extraScheduleForDate(items, selected);
+              offHours = parsed.offHours;
+              workingHours = parsed.workingHours;
+              initialOff
+                ..clear()
+                ..addAll(parsed.offHours);
+              initialWorking
+                ..clear()
+                ..addAll(parsed.workingHours);
+            });
+          }
+
+          if (!context.mounted) {
+            return;
+          }
+
+          _showEditDailyScheduleSheet(
+            context,
+            state.selectedDate,
+            offHours,
+            workingHours,
+            (off, working) async {
+              context.read<ConsultationsBloc>().add(
+                    WorkingHoursUpdated(offHours: off, workingHours: working),
+                  );
+
+              final isExpert =
+                  di.currentUser.value?.userType == 'Expert' &&
+                  (state.range == ConsultationsRange.month ||
+                      state.range == ConsultationsRange.day) &&
+                  canEdit;
+              if (!isExpert) {
+                return;
+              }
+
+              final repo = di.sl<ExpertsRepository>();
+              final addedOff = off.where((s) => !initialOff.contains(s)).toList();
+              final addedWorking =
+                  working.where((s) => !initialWorking.contains(s)).toList();
+
+              Future<void> postInterval(String range, int type) async {
+                final parts = range.split(' - ');
+                if (parts.length != 2) return;
+                final startParts = parts[0].trim().split(':');
+                final endParts = parts[1].trim().split(':');
+                if (startParts.length != 2 || endParts.length != 2) return;
+                final sh = int.tryParse(startParts[0]);
+                final sm = int.tryParse(startParts[1]);
+                final eh = int.tryParse(endParts[0]);
+                final em = int.tryParse(endParts[1]);
+                if (sh == null || sm == null || eh == null || em == null) return;
+
+                String isoNoMillisUtc(DateTime dt) {
+                  final u = dt.toUtc();
+                  return '${u.year.toString().padLeft(4, '0')}-'
+                      '${u.month.toString().padLeft(2, '0')}-'
+                      '${u.day.toString().padLeft(2, '0')}T'
+                      '${u.hour.toString().padLeft(2, '0')}:'
+                      '${u.minute.toString().padLeft(2, '0')}:'
+                      '${u.second.toString().padLeft(2, '0')}Z';
+                }
+
+                final startLocal = DateTime(
+                  selected.year,
+                  selected.month,
+                  selected.day,
+                  sh,
+                  sm,
+                  0,
+                );
+                final endLocal = DateTime(
+                  selected.year,
+                  selected.month,
+                  selected.day,
+                  eh,
+                  em,
+                  0,
+                );
+
+                await repo.createScheduleExtra(
+                  payload: {
+                    'start': isoNoMillisUtc(startLocal),
+                    'end': isoNoMillisUtc(endLocal),
+                    'type': type,
+                  },
+                );
+              }
+
+              for (final r in addedWorking) {
+                await postInterval(r, 1);
+              }
+              for (final r in addedOff) {
+                await postInterval(r, 0);
+              }
+            },
+          );
+        }
+
+        if (allItems.isEmpty) {
+          if (!canEdit) return const SizedBox.shrink();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  await handleEditTap();
+                },
+                child: Row(
+                  children: const [
+                    Icon(Icons.settings, color: Color(0xFF66BB6A), size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Change working hours for this day',
+                      style: TextStyle(
+                        color: Color(0xFF66BB6A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
 
         Widget content;
         if (allItems.length == 1) {
@@ -944,34 +1103,28 @@ class _WorkingHoursSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             content,
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => _showEditDailyScheduleSheet(
-                context,
-                state.selectedDate,
-                state.offHours,
-                state.workingHours,
-                (off, working) {
-                  context.read<ConsultationsBloc>().add(
-                    WorkingHoursUpdated(offHours: off, workingHours: working),
-                  );
+            if (canEdit) ...[
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  await handleEditTap();
                 },
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.settings, color: Color(0xFF66BB6A), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Change working hours for this day',
-                    style: TextStyle(
-                      color: Color(0xFF66BB6A),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                child: Row(
+                  children: const [
+                    Icon(Icons.settings, color: Color(0xFF66BB6A), size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Change working hours for this day',
+                      style: TextStyle(
+                        color: Color(0xFF66BB6A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         );
       },
@@ -993,7 +1146,7 @@ void _showEditDailyScheduleSheet(
   DateTime date,
   List<String> offHours,
   List<String> workingHours,
-  Function(List<String>, List<String>) onSave,
+  Future<void> Function(List<String>, List<String>) onSave,
 ) {
   showModalBottomSheet(
     context: context,
@@ -1006,6 +1159,60 @@ void _showEditDailyScheduleSheet(
       onSave: onSave,
     ),
   );
+}
+
+({List<String> offHours, List<String> workingHours}) _extraScheduleForDate(
+  List<Map<String, dynamic>> items,
+  DateTime date,
+) {
+  String hhmm(DateTime dt) {
+    return '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  final selected = DateTime(date.year, date.month, date.day);
+  final off = <String>{};
+  final working = <String>{};
+
+  for (final item in items) {
+    final startRaw = item['start']?.toString() ?? '';
+    final endRaw = item['end']?.toString() ?? '';
+    if (startRaw.isEmpty || endRaw.isEmpty) continue;
+
+    DateTime? start;
+    DateTime? end;
+    try {
+      start = DateTime.parse(startRaw).toLocal();
+    } catch (_) {}
+    try {
+      end = DateTime.parse(endRaw).toLocal();
+    } catch (_) {}
+    if (start == null || end == null) continue;
+
+    final key = DateTime(start.year, start.month, start.day);
+    if (key != selected) continue;
+
+    final range = '${hhmm(start)} - ${hhmm(end)}';
+
+    final typeValue = item['type'];
+    int? type;
+    if (typeValue is num) {
+      type = typeValue.toInt();
+    } else if (typeValue is String) {
+      type = int.tryParse(typeValue);
+    }
+
+    final isWorking = type == 1;
+    if (isWorking) {
+      working.add(range);
+    } else {
+      off.add(range);
+    }
+  }
+
+  final offList = off.toList()..sort();
+  final workingList = working.toList()..sort();
+  return (offHours: offList, workingHours: workingList);
 }
 
 class _WorkingHoursCard extends StatelessWidget {

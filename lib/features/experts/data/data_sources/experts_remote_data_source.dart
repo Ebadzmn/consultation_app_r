@@ -37,6 +37,13 @@ abstract class ExpertsRemoteDataSource {
   });
   Future<String?> getScheduleTimezone();
   Future<List<Map<String, dynamic>>> getSchedule();
+  Future<List<Map<String, dynamic>>> getScheduleExtraList({
+    required String view,
+    required DateTime periodStart,
+  });
+  Future<Map<String, dynamic>> createScheduleExtra({
+    required Map<String, dynamic> payload,
+  });
   Future<void> updateSchedule({required List<Map<String, dynamic>> schedule});
   Future<void> createAppointment({
     required String expertId,
@@ -669,6 +676,55 @@ class ExpertsRemoteDataSourceImpl implements ExpertsRemoteDataSource {
       }
     }
     return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getScheduleExtraList({
+    required String view,
+    required DateTime periodStart,
+  }) async {
+    String format(DateTime dt) {
+      return '${dt.year.toString().padLeft(4, '0')}-'
+          '${dt.month.toString().padLeft(2, '0')}-'
+          '${dt.day.toString().padLeft(2, '0')}T'
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}:'
+          '${dt.second.toString().padLeft(2, '0')}';
+    }
+
+    final normalized = DateTime(periodStart.year, periodStart.month, periodStart.day);
+
+    final response = await _dioClient.get(
+      ApiClient.scheduleExtraList,
+      queryParameters: {
+        'view': view,
+        'period_start': format(DateTime(normalized.year, normalized.month, normalized.day, 0, 0, 0)),
+      },
+    );
+
+    final data = response.data;
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().toList();
+    }
+    if (data is Map<String, dynamic>) {
+      final inner = data['data'] ?? data['results'] ?? data['items'];
+      if (inner is List) {
+        return inner.whereType<Map<String, dynamic>>().toList();
+      }
+    }
+    return [];
+  }
+
+  @override
+  Future<Map<String, dynamic>> createScheduleExtra({
+    required Map<String, dynamic> payload,
+  }) async {
+    final response = await _dioClient.post(ApiClient.scheduleExtra, data: payload);
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return {};
   }
 
   @override

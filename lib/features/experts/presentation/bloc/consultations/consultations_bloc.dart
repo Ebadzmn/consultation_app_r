@@ -3,16 +3,21 @@ import 'consultations_event.dart';
 import 'consultations_state.dart';
 import '../../../domain/usecases/get_client_appointments_use_case.dart';
 import '../../../domain/usecases/get_expert_appointments_use_case.dart';
+import '../../../domain/repositories/experts_repository.dart';
 
 class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
   final GetClientAppointmentsUseCase getClientAppointments;
   final GetExpertAppointmentsUseCase getExpertAppointments;
+  final ExpertsRepository expertsRepository;
   final bool isExpert;
   final Map<DateTime, List<String>> _expertWorkingSlotsByDate = {};
+  final Map<DateTime, List<String>> _expertExtraWorkingSlotsByDate = {};
+  final Map<DateTime, List<String>> _expertExtraOffSlotsByDate = {};
 
   ConsultationsBloc({
     required this.getClientAppointments,
     required this.getExpertAppointments,
+    required this.expertsRepository,
     required this.isExpert,
     ConsultationsTab initialTab = ConsultationsTab.calendar,
   }) : super(
@@ -129,10 +134,10 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     }
   }
 
-  void _onRangeChanged(
+  Future<void> _onRangeChanged(
     ConsultationsRangeChanged event,
     Emitter<ConsultationsState> emit,
-  ) {
+  ) async {
     if (event.range == ConsultationsRange.week) {
       final today = DateTime.now();
       final normalizedToday = DateTime(today.year, today.month, today.day);
@@ -203,6 +208,10 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
       );
 
       add(ConsultationsAppointmentsRequested(start: dayStart, end: dayEnd));
+
+      if (isExpert) {
+        await _fetchAndApplyExtraScheduleForDay(today, emit);
+      }
     } else {
       emit(state.copyWith(range: event.range));
     }
@@ -250,17 +259,114 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
     );
   }
 
-  void _onDateSelected(
+  Future<void> _onDateSelected(
     ConsultationsDateSelected event,
     Emitter<ConsultationsState> emit,
-  ) {
+  ) async {
     final d = DateTime(event.date.year, event.date.month, event.date.day);
     List<String>? workingHours;
     if (isExpert) {
       final key = DateTime(d.year, d.month, d.day);
-      workingHours = _expertWorkingSlotsByDate[key] ?? const [];
+      workingHours =
+          state.range == ConsultationsRange.month ||
+                  state.range == ConsultationsRange.day
+              ? (_expertExtraWorkingSlotsByDate[key] ?? const [])
+              : (_expertWorkingSlotsByDate[key] ?? const []);
     }
     emit(state.copyWith(selectedDate: d, workingHours: workingHours));
+
+    if (!isExpert ||
+        (state.range != ConsultationsRange.month &&
+            state.range != ConsultationsRange.day)) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (d.isBefore(today)) {
+      return;
+    }
+
+    await _fetchAndApplyExtraScheduleForDay(d, emit);
+  }
+
+  Future<void> _fetchAndApplyExtraScheduleForDay(
+    DateTime d,
+    Emitter<ConsultationsState> emit,
+  ) async {
+    final result = await expertsRepository.getScheduleExtraList(
+      view: 'month',
+      periodStart: DateTime(d.year, d.month, d.day, 0, 0, 0),
+    );
+
+    result.fold((_) {}, (items) {
+      String hhmm(DateTime dt) {
+        return '${dt.hour.toString().padLeft(2, '0')}:'
+            '${dt.minute.toString().padLeft(2, '0')}';
+      }
+
+      final workingByDate = <DateTime, Set<String>>{};
+      final offByDate = <DateTime, Set<String>>{};
+
+      for (final item in items) {
+        final startRaw = item['start']?.toString() ?? '';
+        final endRaw = item['end']?.toString() ?? '';
+        if (startRaw.isEmpty || endRaw.isEmpty) continue;
+
+        DateTime? start;
+        DateTime? end;
+        try {
+          start = DateTime.parse(startRaw).toLocal();
+        } catch (_) {}
+        try {
+          end = DateTime.parse(endRaw).toLocal();
+        } catch (_) {}
+        if (start == null || end == null) continue;
+
+        final key = DateTime(start.year, start.month, start.day);
+        final range = '${hhmm(start)} - ${hhmm(end)}';
+
+        final typeValue = item['type'];
+        int? type;
+        if (typeValue is num) {
+          type = typeValue.toInt();
+        } else if (typeValue is String) {
+          type = int.tryParse(typeValue);
+        }
+
+        final isWorking = type == 1;
+        if (isWorking) {
+          (workingByDate[key] ??= <String>{}).add(range);
+        } else {
+          (offByDate[key] ??= <String>{}).add(range);
+        }
+      }
+
+      _expertExtraWorkingSlotsByDate
+        ..clear()
+        ..addAll(
+          workingByDate.map((k, v) {
+            final sorted = v.toList()..sort();
+            return MapEntry(k, sorted);
+          }),
+        );
+      _expertExtraOffSlotsByDate
+        ..clear()
+        ..addAll(
+          offByDate.map((k, v) {
+            final sorted = v.toList()..sort();
+            return MapEntry(k, sorted);
+          }),
+        );
+
+      final selectedKey = DateTime(d.year, d.month, d.day);
+      emit(
+        state.copyWith(
+          offHours: _expertExtraOffSlotsByDate[selectedKey] ?? const [],
+          workingHours: _expertExtraWorkingSlotsByDate[selectedKey] ?? const [],
+        ),
+      );
+    });
   }
 
   void _onPreviousWeek(
@@ -366,8 +472,12 @@ class ConsultationsBloc extends Bloc<ConsultationsEvent, ConsultationsState> {
         emit(
           state.copyWith(
             appointments: overview.appointments,
-            offHours: const [],
-            workingHours: workingHoursStrings,
+            offHours:
+                state.range == ConsultationsRange.week ? const [] : state.offHours,
+            workingHours:
+                state.range == ConsultationsRange.week
+                    ? workingHoursStrings
+                    : state.workingHours,
           ),
         );
       });

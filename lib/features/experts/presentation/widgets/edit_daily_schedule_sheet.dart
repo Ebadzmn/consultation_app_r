@@ -5,7 +5,8 @@ class EditDailyScheduleSheet extends StatefulWidget {
   final DateTime date;
   final List<String> initialOffHours;
   final List<String> initialWorkingHours;
-  final Function(List<String> offHours, List<String> workingHours) onSave;
+  final Future<void> Function(List<String> offHours, List<String> workingHours)
+  onSave;
 
   const EditDailyScheduleSheet({
     super.key,
@@ -21,6 +22,7 @@ class EditDailyScheduleSheet extends StatefulWidget {
 
 class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
   late List<_ScheduleInterval> _intervals;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -52,19 +54,10 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
         );
       }
     }
-
-    if (_intervals.isEmpty) {
-      _intervals.add(
-        _ScheduleInterval(
-          type: 'Working',
-          startTime: '09:00',
-          endTime: '18:00',
-        ),
-      );
-    }
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
     final offHours = <String>[];
     final workingHours = <String>[];
 
@@ -77,7 +70,11 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
       }
     }
 
-    widget.onSave(offHours, workingHours);
+    setState(() {
+      _isSaving = true;
+    });
+    await widget.onSave(offHours, workingHours);
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -170,7 +167,12 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _handleSave,
+              onPressed:
+                  _isSaving
+                      ? null
+                      : () async {
+                        await _handleSave();
+                      },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF66BB6A),
                 elevation: 0,
@@ -193,7 +195,7 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _isSaving ? null : () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFFEEEEEE)),
                 shape: RoundedRectangleBorder(
@@ -299,6 +301,16 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
   }
 
   Widget _buildTimeField(String time, Function(String) onChanged) {
+    TimeOfDay? parseTime(String value) {
+      final parts = value.split(':');
+      if (parts.length != 2) return null;
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      if (h == null || m == null) return null;
+      if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+      return TimeOfDay(hour: h, minute: m);
+    }
+
     return Container(
       height: 48,
       alignment: Alignment.center,
@@ -306,9 +318,26 @@ class _EditDailyScheduleSheetState extends State<EditDailyScheduleSheet> {
         border: Border.all(color: const Color(0xFFEEEEEE)),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        time,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF33354E)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          final initial = parseTime(time) ?? TimeOfDay.now();
+          final picked = await showTimePicker(
+            context: context,
+            initialTime: initial,
+          );
+          if (picked == null) return;
+          final formatted =
+              '${picked.hour.toString().padLeft(2, '0')}:'
+              '${picked.minute.toString().padLeft(2, '0')}';
+          onChanged(formatted);
+        },
+        child: Center(
+          child: Text(
+            time,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF33354E)),
+          ),
+        ),
       ),
     );
   }

@@ -26,6 +26,8 @@ class ApiClient {
   // Schedule
   static const String schedule = '/schedule/';
   static const String scheduleTimezone = '/schedule/timezone/';
+  static const String scheduleExtraList = '/schedule/extra/list';
+  static const String scheduleExtra = '/schedule/extra/';
 
   // Categories
   static const String categories = '/categories/';

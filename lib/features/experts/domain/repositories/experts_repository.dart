@@ -52,6 +52,13 @@ abstract class ExpertsRepository {
   });
   Future<Either<Failure, String?>> getScheduleTimezone();
   Future<Either<Failure, List<Map<String, dynamic>>>> getSchedule();
+  Future<Either<Failure, List<Map<String, dynamic>>>> getScheduleExtraList({
+    required String view,
+    required DateTime periodStart,
+  });
+  Future<Either<Failure, Map<String, dynamic>>> createScheduleExtra({
+    required Map<String, dynamic> payload,
+  });
   Future<Either<Failure, void>> createProject({
     required String name,
     required int year,
