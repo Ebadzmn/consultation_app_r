@@ -203,7 +203,7 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 6),
 
           // Timezone Section
           const Text(
@@ -301,7 +301,7 @@ class _ScheduleSettingsSheetState extends State<ScheduleSettingsSheet> {
             },
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 6),
 
           // Save Button
           SizedBox(

@@ -161,6 +161,28 @@ class _AppointmentContent extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ] else if (state.timeSlots.isEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            Localizations.localeOf(context).languageCode == 'ru'
+                                ? 'Нет свободных временных слотов на выбранную дату'
+                                : 'No available time slots for the selected date',
+                            style: const TextStyle(
+                              color: Color(0xFF90A4AE),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     ] else ...[
                       _buildTimeSelector(context, state),
                     ],
